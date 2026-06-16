@@ -1,5 +1,5 @@
 /* ================================================================
-   PURPOSE: Updated Detail view with image display and two buttons
+   PURPOSE: Updated Detail view with fixed image size and styling
    LOCATION: /FACILITYS-TRACKER-APP/view_2_locations_details/view_2_locations_details_grid.js
    ================================================================ */
 
@@ -12,12 +12,12 @@ export async function renderDetails(location) {
     app.innerHTML = `
         <div style="padding: 20px; max-width: 400px; margin: auto; font-family: sans-serif;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <h1 style="margin: 0;">${details.number_name}</h1>
-                <button style="padding: 5px 10px; background: #e9ecef; border: 1px solid #ccc; border-radius: 4px;">Edit</button>
+                <h1 style="margin: 0; text-transform: uppercase;">${details.abbreviation}</h1>
+                <button id="editBtn" style="padding: 5px 10px; background: #e9ecef; border: 1px solid #ccc; border-radius: 4px;">Edit</button>
             </div>
             
-            <div style="margin: 20px 0;">
-                <img src="${details.image_url}" alt="Facility Image" style="width: 100%; height: auto; border-radius: 8px; border: 1px solid #ccc;">
+            <div style="margin: 20px 0; text-align: center;">
+                <img src="${details.image_url}" alt="Facility Image" style="width: 250px; height: 250px; object-fit: cover; border-radius: 8px; border: 1px solid #ccc;">
             </div>
             
             <div style="border: 1px solid #ccc; padding: 15px; margin: 20px 0; border-radius: 8px;">
@@ -37,4 +37,9 @@ export async function renderDetails(location) {
             <button onclick="window.navigateTo('locations')" style="width: 100%; margin-top: 10px; padding: 15px; background: #6c757d; color: white; border: none; border-radius: 5px;">BACK</button>
         </div>
     `;
+
+    // Edit Button Logic
+    document.getElementById('editBtn').onclick = () => {
+        alert("Edit functionality coming soon!");
+    };
 }
