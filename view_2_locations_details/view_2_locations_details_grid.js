@@ -1,5 +1,5 @@
 /* ================================================================
-   PURPOSE: Updated Detail view with two buttons and actionable links
+   PURPOSE: Updated Detail view with image display and two buttons
    LOCATION: /FACILITYS-TRACKER-APP/view_2_locations_details/view_2_locations_details_grid.js
    ================================================================ */
 
@@ -14,6 +14,10 @@ export async function renderDetails(location) {
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h1 style="margin: 0;">${details.number_name}</h1>
                 <button style="padding: 5px 10px; background: #e9ecef; border: 1px solid #ccc; border-radius: 4px;">Edit</button>
+            </div>
+            
+            <div style="margin: 20px 0;">
+                <img src="${details.image_url}" alt="Facility Image" style="width: 100%; height: auto; border-radius: 8px; border: 1px solid #ccc;">
             </div>
             
             <div style="border: 1px solid #ccc; padding: 15px; margin: 20px 0; border-radius: 8px;">
