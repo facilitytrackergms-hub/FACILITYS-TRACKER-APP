@@ -2,6 +2,7 @@
    NAME     : router.js
    PURPOSE  : Traffic controller to switch views in index.html
    ================================================================ */
+
 import { renderLocations } from '../02_locations/locations_view.js';
 import { renderContacts } from '../03_contacts/contacts_view.js';
 
