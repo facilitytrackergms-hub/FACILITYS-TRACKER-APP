@@ -4,6 +4,7 @@
    ================================================================ */
 
 import { fetchLocations } from './view_1_locations_data.js';
+import { supabase } from '../00_global_engine/supabaseClient.js';
 
 export async function renderLocations() {
     const app = document.getElementById('app');
@@ -20,6 +21,7 @@ export async function renderLocations() {
             <div id="formModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); padding:20px; box-sizing:border-box;">
                 <form id="createForm" style="background:white; padding: 20px; border-radius: 8px; margin-top: 50px;">
                     <input type="text" id="name" placeholder="Location Name" required style="width: 100%; padding: 10px; margin-bottom: 10px; box-sizing:border-box;">
+                    <input type="text" id="abbr" placeholder="Abbreviation (e.g., GMS)" maxlength="5" required style="width: 100%; padding: 10px; margin-bottom: 10px; box-sizing:border-box;">
                     <input type="text" id="address" placeholder="Address" required style="width: 100%; padding: 10px; margin-bottom: 10px; box-sizing:border-box;">
                     <input type="tel" id="phone" placeholder="Phone" required style="width: 100%; padding: 10px; margin-bottom: 10px; box-sizing:border-box;">
                     
@@ -37,23 +39,41 @@ export async function renderLocations() {
             <div style="display: grid; gap: 10px;">
                 ${locations.map(loc => `
                     <button onclick="window.navigateTo('details', ${JSON.stringify(loc).replace(/"/g, '&quot;')})" 
-                            style="padding: 15px; background: #e9ecef; border: 1px solid #ccc; border-radius: 5px;">
-                        ${loc.number_name}
+                            style="padding: 15px; background: #003366; color: white; border: none; border-radius: 5px; display: flex; flex-direction: column; align-items: center;">
+                        <span style="font-size: 18px; font-weight: bold;">${loc.abbreviation || 'N/A'}</span>
+                        <span style="font-size: 10px; opacity: 0.8;">${loc.number_name}</span>
                     </button>
                 `).join('')}
             </div>
         </div>
     `;
 
-    // Modal Logic
     const modal = document.getElementById('formModal');
     document.getElementById('openFormBtn').onclick = () => modal.style.display = 'block';
     document.getElementById('closeFormBtn').onclick = () => modal.style.display = 'none';
 
-    // Submit Logic
     document.getElementById('createForm').onsubmit = async (e) => {
         e.preventDefault();
-        // ... (Keep your existing upload and database insert logic here) ...
+        const number_name = document.getElementById('name').value;
+        const abbreviation = document.getElementById('abbr').value;
+        const address = document.getElementById('address').value;
+        const phone = document.getElementById('phone').value;
+        const file = document.getElementById('imageInput').files[0];
+
+        let imageUrl = null;
+        if (file) {
+            const { data, error } = await supabase.storage
+                .from('locations-images')
+                .upload(`${Date.now()}_${file.name}`, file);
+            if (!error) {
+                const { data: publicUrl } = supabase.storage
+                    .from('locations-images')
+                    .getPublicUrl(data.path);
+                imageUrl = publicUrl.publicUrl;
+            }
+        }
+
+        await supabase.from('locations').insert([{ number_name, address, phone, abbreviation, image_url: imageUrl }]);
         modal.style.display = 'none';
         renderLocations();
     };
