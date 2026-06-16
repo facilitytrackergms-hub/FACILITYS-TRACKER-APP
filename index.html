@@ -10,12 +10,13 @@
     <div id="app">
     </div>
 
-    <script type="module">
-        import '/FACILITYS-TRACKER-APP/00_global_engine/router.js';
+  <script type="module">
+    // Use a relative path to look for the folder from the current location
+    import './00_global_engine/router.js';
 
-        window.addEventListener('DOMContentLoaded', () => {
-            window.navigateTo('locations');
-        });
-    </script>
+    window.addEventListener('DOMContentLoaded', () => {
+        window.navigateTo('locations');
+    });
+</script>
 </body>
 </html>
