@@ -1,11 +1,11 @@
 /* ================================================================
-   NAME      : locations_view_1.js
-   PURPOSE   : UI for Location Dashboard
-   LOCATION  : /FACILITYS-TRACKER-APP/02_locations/
+   NAME      : view_1_grid.js
+   PURPOSE   : UI for Location Grid
+   LOCATION  : /FACILITYS-TRACKER-APP/01_locations/
    ================================================================ */
 
 import { supabase } from '/FACILITYS-TRACKER-APP/00_global_engine/supabaseClient.js';
-import { locationData } from './locations_data.js';
+import { locationData } from './view_1_data.js';
 
 export async function renderLocations(context) {
     const app = document.getElementById('app');
@@ -41,7 +41,6 @@ export async function renderLocations(context) {
         btn.style.border = "none";
         btn.style.borderRadius = "5px";
         btn.style.cursor = "pointer";
-        // Updated to navigate to your new dashboard
         btn.onclick = () => window.navigateTo('locations_dashboard', loc);
         grid.appendChild(btn);
     });
