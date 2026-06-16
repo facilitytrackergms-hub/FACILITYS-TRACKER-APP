@@ -3,13 +3,12 @@
    PURPOSE  : Traffic controller to switch views in index.html
    ================================================================ */
 
-// Import your view functions
-import { renderLocations } from '../02_locations/02_locations_view.js';
-import { renderContacts } from '../03_contacts/02_contacts_view.js';
-// import { renderProjects } from '../04_projects/02_projects_view.js';
+// UPDATE THESE PATHS TO MATCH YOUR ACTUAL GITHUB FOLDERS
+import { renderLocations } from '../locations/locations_view.js';
+import { renderContacts } from '../contacts/contacts_view.js';
+// import { renderProjects } from '../projects/projects_view.js';
 
 export const router = {
-    // This function clears the app div and loads the correct view
     async navigateTo(viewName) {
         const app = document.getElementById('app');
         app.innerHTML = '<div class="loading">Loading...</div>';
