@@ -12,7 +12,13 @@ export const locationData = {
     },
     
     async insert(location) {
-        const { data, error } = await supabase.from('locations').insert([location]);
+        // Ensure the key 'number_name' matches your SQL table column exactly
+        const { data, error } = await supabase.from('locations').insert([{
+            number_name: location.number_name,
+            address: location.address,
+            phone: location.phone,
+            image_url: location.image_url
+        }]);
         if (error) throw error;
         return data;
     }
