@@ -1,5 +1,5 @@
 /* ================================================================
-   PURPOSE: Dashboard with working form submission and UI
+   PURPOSE: Dashboard with "Create New Facility" button and form
    LOCATION: /FACILITYS-TRACKER-APP/view_1_locations/view_1_locations_grid.js
    ================================================================ */
 
@@ -12,10 +12,10 @@ export async function renderLocations() {
 
     app.innerHTML = `
         <div style="padding: 20px; max-width: 400px; margin: auto; font-family: sans-serif;">
-            <h1 style="text-align: center;">Locations</h1>
+            <h1 style="text-align: center;">FACILITIES DASHBOARD</h1>
             
-            <button id="openFormBtn" style="width: 100%; padding: 15px; background: #003366; color: white; border: none; border-radius: 5px; margin-bottom: 20px;">
-                + ADD LOCATION
+            <button id="openFormBtn" style="width: 100%; padding: 15px; background: #28a745; color: white; border: none; border-radius: 5px; margin-bottom: 20px; font-weight: bold;">
+                Create New Facility
             </button>
 
             <div id="formModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); padding:20px; box-sizing:border-box;">
@@ -48,10 +48,12 @@ export async function renderLocations() {
         </div>
     `;
 
+    // Modal logic
     const modal = document.getElementById('formModal');
     document.getElementById('openFormBtn').onclick = () => modal.style.display = 'block';
     document.getElementById('closeFormBtn').onclick = () => modal.style.display = 'none';
 
+    // Submit logic
     document.getElementById('createForm').onsubmit = async (e) => {
         e.preventDefault();
         
