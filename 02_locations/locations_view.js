@@ -1,81 +1,65 @@
 /* ================================================================
-   NAME     : 02_locations_view.js
-   PURPOSE  : UI rendering for locations
+   NAME     : locations_view.js
+   PURPOSE  : UI for Location Dashboard with dynamic button loading
    ================================================================ */
-import { locationData } from './01_locations_data.js';
-/* ================================================================
-   NAME     : 02_locations_view.js
-   PURPOSE  : UI for Location Dashboard with dynamic button generation
-   ================================================================ */
-import { locationData } from './01_locations_data.js';
+import { locationData } from './locations_data.js';
 
 export async function renderLocations() {
     const app = document.getElementById('app');
     
-    // 1. Render Dashboard Layout
+    // 1. Initial Dashboard Shell
     app.innerHTML = `
         <div style="text-align: center; padding: 20px;">
             <h1>Location Dashboard</h1>
-            <button id="btn-create" style="background: green; color: white; padding: 10px 20px; border: none; cursor: pointer;">
+            <button id="btn-create" style="background: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; border-radius: 5px;">
                 Create New Location
             </button>
             <div id="location-grid" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px;">
             </div>
         </div>
-        <div id="modal" style="display:none; position:fixed; top:20%; left:30%; background:white; padding:20px; border:1px solid #ccc;">
+        
+        <div id="modal" style="display:none; position:fixed; top:20%; left:30%; background:white; padding:20px; border:1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
             <h3>New Location</h3>
-            <input id="loc-name" placeholder="Initials (e.g. FAC)" /><br>
-            <input id="loc-address" placeholder="Address" /><br>
-            <input id="loc-phone" placeholder="Phone" /><br>
-            <input id="loc-image" placeholder="Image URL" /><br>
+            <input id="loc-name" placeholder="Initials (e.g. FAC)" style="display:block; margin-bottom:10px;" /><br>
+            <input id="loc-address" placeholder="Address" style="display:block; margin-bottom:10px;" /><br>
+            <input id="loc-phone" placeholder="Phone" style="display:block; margin-bottom:10px;" /><br>
             <button id="btn-save">Save Location</button>
             <button id="btn-close">Cancel</button>
         </div>
     `;
 
-    // 2. Fetch and Render Buttons
+    // 2. Fetch data and dynamically create buttons
     const grid = document.getElementById('location-grid');
-    const locations = await locationData.fetchAll();
-    
-    locations.forEach(loc => {
-        const btn = document.createElement('button');
-        btn.innerText = loc.name; // This is your Initials/Name
-        btn.style.padding = "20px";
-        btn.style.width = "100px";
-        grid.appendChild(btn);
-    });
+    try {
+        const locations = await locationData.fetchAll();
+        
+        // Only loop and create buttons if locations exist
+        locations.forEach(loc => {
+            const btn = document.createElement('button');
+            btn.innerText = loc.number_name; 
+            btn.style.padding = "20px";
+            btn.style.width = "100px";
+            btn.style.backgroundColor = "#003366"; // Dark blue
+            btn.style.color = "white";
+            btn.style.border = "none";
+            grid.appendChild(btn);
+        });
+    } catch (err) {
+        console.error("No locations found yet.", err);
+    }
 
-    // 3. Modal Logic
+    // 3. Button Click Logic
     document.getElementById('btn-create').onclick = () => document.getElementById('modal').style.display = 'block';
     document.getElementById('btn-close').onclick = () => document.getElementById('modal').style.display = 'none';
     
     document.getElementById('btn-save').onclick = async () => {
         const newLoc = {
-            name: document.getElementById('loc-name').value,
+            number_name: document.getElementById('loc-name').value,
             address: document.getElementById('loc-address').value,
-            phone: document.getElementById('loc-phone').value,
-            image_url: document.getElementById('loc-image').value
+            phone: document.getElementById('loc-phone').value
         };
         await locationData.insert(newLoc);
         document.getElementById('modal').style.display = 'none';
-        renderLocations(); // Refresh grid
+        renderLocations(); // Refreshes the view to show the new button
     };
-}
-export async function renderLocations() {
-    const container = document.getElementById('app');
-    container.innerHTML = '<h1>Locations</h1><div id="grid"></div>';
-    
-    try {
-        const locations = await locationData.fetchAll();
-        const grid = document.getElementById('grid');
-        
-        locations.forEach(loc => {
-            const card = document.createElement('div');
-            card.className = 'location-card';
-            card.innerHTML = `<h3>${loc.number_name}</h3><p>${loc.address}</p>`;
-            grid.appendChild(card);
-        });
-    } catch (err) {
-        console.error("Error loading locations:", err);
-    }
 }
