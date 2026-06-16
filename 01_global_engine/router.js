@@ -1,6 +1,6 @@
 /* ================================================================
-   NAME     : router.js
-   PURPOSE  : Central Navigation Controller
+   NAME      : router.js
+   PURPOSE   : Central Navigation Controller
    ================================================================ */
 
 window.navigateTo = async (view, context = {}) => {
@@ -12,11 +12,11 @@ window.navigateTo = async (view, context = {}) => {
 
     try {
         if (view === 'locations') {
-            const module = await import(`../02_locations/locations_view.js${cb}`);
+            const module = await import(`/FACILITYS-TRACKER-APP/02_locations/locations_view.js${cb}`);
             await module.renderLocations(context);
         } 
         else if (view === 'contacts') {
-            const module = await import(`../03_contacts/contacts_view.js${cb}`);
+            const module = await import(`/FACILITYS-TRACKER-APP/03_contacts/contacts_view.js${cb}`);
             await module.renderContacts(context);
         }
     } catch (err) {
