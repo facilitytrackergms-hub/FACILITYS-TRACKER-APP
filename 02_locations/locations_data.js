@@ -2,7 +2,8 @@
    NAME     : locations_data.js
    PURPOSE  : Database operations for locations
    ================================================================ */
-import { supabase } from '../00_global_engine/supabaseClient.js';
+// Use this path to reach the global engine folder
+import { supabase } from '../01_global_engine/supabaseClient.js';
 
 export const locationData = {
     async fetchAll() {
