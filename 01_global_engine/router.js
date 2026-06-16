@@ -8,21 +8,16 @@ window.navigateTo = async (view, context = {}) => {
     if (!app) return;
 
     app.innerHTML = '<p style="text-align:center; padding:50px;">Loading...</p>';
-    
-    // Cache-buster ensures GitHub Pages always loads the newest file
     const cb = "?v=" + new Date().getTime();
 
     try {
         if (view === 'locations') {
-            const { renderLocations } = await import(`../02_locations/locations_view.js${cb}`);
-            await renderLocations(context);
+            const module = await import(`../02_locations/locations_view.js${cb}`);
+            await module.renderLocations(context);
         } 
         else if (view === 'contacts') {
-            const { renderContacts } = await import(`../03_contacts/contacts_view.js${cb}`);
-            await renderContacts(context);
-        }
-        else {
-            app.innerHTML = '<h1>Welcome to Facility Tracker</h1>';
+            const module = await import(`../03_contacts/contacts_view.js${cb}`);
+            await module.renderContacts(context);
         }
     } catch (err) {
         console.error("Navigation error:", err);
@@ -30,7 +25,6 @@ window.navigateTo = async (view, context = {}) => {
     }
 };
 
-// Initial load
 window.addEventListener('DOMContentLoaded', () => {
     window.navigateTo('locations');
 });
