@@ -8,17 +8,21 @@
 <body>
 
     <nav>
-        <button onclick="router.navigateTo('locations')">Locations</button>
-        <button onclick="router.navigateTo('contacts')">Contacts</button>
-        <button onclick="router.navigateTo('projects')">Projects</button>
+        <button onclick="navigateTo('locations')">Locations</button>
+        <button onclick="navigateTo('contacts')">Contacts</button>
+        <button onclick="navigateTo('projects')">Projects</button>
     </nav>
 
     <div id="app">
         </div>
 
     <script type="module">
-    import { router } from './01_global_engine/router.js';
-    window.router = router; // This makes it available to your buttons
-</script>
+        import './01_global_engine/router.js'; // Imports the router and attaches navigateTo to window
+
+        // Auto-load Locations on startup
+        window.addEventListener('DOMContentLoaded', () => {
+            window.navigateTo('locations');
+        });
+    </script>
 </body>
 </html>
