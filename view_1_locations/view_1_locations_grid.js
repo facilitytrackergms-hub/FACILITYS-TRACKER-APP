@@ -1,5 +1,5 @@
 /* ================================================================
-   PURPOSE: Dashboard with "Create New Facility" button and form
+   PURPOSE: Dashboard with "Create New Facility" button and schema-aligned form
    LOCATION: /FACILITYS-TRACKER-APP/view_1_locations/view_1_locations_grid.js
    ================================================================ */
 
@@ -48,12 +48,10 @@ export async function renderLocations() {
         </div>
     `;
 
-    // Modal logic
     const modal = document.getElementById('formModal');
     document.getElementById('openFormBtn').onclick = () => modal.style.display = 'block';
     document.getElementById('closeFormBtn').onclick = () => modal.style.display = 'none';
 
-    // Submit logic
     document.getElementById('createForm').onsubmit = async (e) => {
         e.preventDefault();
         
@@ -63,12 +61,23 @@ export async function renderLocations() {
         const phone = document.getElementById('phone').value;
         const file = document.getElementById('imageInput').files[0];
 
-        let imageUrl = null;
+        // 1. Insert into locations
+        const { data: locData, error: locError } = await supabase
+            .from('locations')
+            .insert([{ number_name, address, phone, abbreviation }])
+            .select();
 
-        if (file) {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}.${fileExt}`;
-            const { data, error: uploadError } = await supabase.storage
+        if (locError) {
+            alert('Error saving location: ' + locError.message);
+            return;
+        }
+
+        // 2. If image, upload and link to location_images table
+        if (file && locData.length > 0) {
+            const locationId = locData[0].id;
+            const fileName = `${Date.now()}_${file.name}`;
+            
+            const { error: uploadError } = await supabase.storage
                 .from('locations-images')
                 .upload(fileName, file);
 
@@ -76,19 +85,14 @@ export async function renderLocations() {
                 const { data: urlData } = supabase.storage
                     .from('locations-images')
                     .getPublicUrl(fileName);
-                imageUrl = urlData.publicUrl;
+                
+                await supabase
+                    .from('location_images')
+                    .insert([{ location_id: locationId, image_url: urlData.publicUrl }]);
             }
         }
 
-        const { error } = await supabase
-            .from('locations')
-            .insert([{ number_name, address, phone, abbreviation, image_url: imageUrl }]);
-
-        if (error) {
-            alert('Error saving: ' + error.message);
-        } else {
-            modal.style.display = 'none';
-            renderLocations();
-        }
+        modal.style.display = 'none';
+        renderLocations();
     };
 }
