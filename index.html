@@ -17,13 +17,8 @@
         </div>
 
     <script type="module">
-        import { router } from './01_global_engine/router.js';
-        window.router = router;
-
-        // Auto-load Locations on startup
-        window.addEventListener('DOMContentLoaded', () => {
-            router.navigateTo('locations');
-        });
-    </script>
+    import { router } from './01_global_engine/router.js';
+    window.router = router; // This makes it available to your buttons
+</script>
 </body>
 </html>
