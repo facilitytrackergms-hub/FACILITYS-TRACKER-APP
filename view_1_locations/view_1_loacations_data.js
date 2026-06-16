@@ -1,25 +1,17 @@
 /* ================================================================
-   NAME      : view_1_data.js
-   PURPOSE   : Database operations for locations
-   LOCATION  : /FACILITYS-TRACKER-APP/01_locations/
+   PURPOSE: Data fetching for Locations
+   LOCATION: /FACILITYS-TRACKER-APP/view_1_locations/view_1_locations_data.js
    ================================================================ */
 
-import { supabase } from '/FACILITYS-TRACKER-APP/00_global_engine/supabaseClient.js';
-
-export const locationData = {
-    async fetchAll() {
-        const { data, error } = await supabase.from('locations').select('*');
-        if (error) throw error;
-        return data;
-    },
+export async function fetchLocations() {
+    const { data, error } = await supabase
+        .from('locations')
+        .select('*')
+        .order('number_name', { ascending: true });
     
-    async insert(location) {
-        const { data, error } = await supabase.from('locations').insert([{
-            number_name: location.number_name,
-            address: location.address,
-            phone: location.phone
-        }]);
-        if (error) throw error;
-        return data;
+    if (error) {
+        console.error("Error fetching locations:", error);
+        return [];
     }
-};
+    return data;
+}
