@@ -6,18 +6,26 @@ import { supabase } from '../01_global_engine/supabaseClient.js';
 
 export const locationData = {
     async fetchAll() {
-        const { data, error } = await supabase.from('locations').select('*');
+        // Fetches all location records
+        const { data, error } = await supabase
+            .from('locations')
+            .select('*')
+            .order('number_name', { ascending: true });
+            
         if (error) throw error;
         return data;
     },
     
     async insert(location) {
-        // Ensure keys match database columns exactly
-        const { data, error } = await supabase.from('locations').insert([{
-            number_name: location.number_name,
-            address: location.address,
-            phone: location.phone
-        }]);
+        // Inserts new record into Supabase
+        const { data, error } = await supabase
+            .from('locations')
+            .insert([{
+                number_name: location.number_name,
+                address: location.address,
+                phone: location.phone
+            }]);
+            
         if (error) throw error;
         return data;
     }
