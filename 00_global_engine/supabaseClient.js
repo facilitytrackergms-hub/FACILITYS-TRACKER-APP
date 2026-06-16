@@ -1,12 +1,10 @@
 /* ================================================================
-   NAME      : supabaseClient.js
-   PURPOSE   : Supabase Database Connection
-   LOCATION  : /FACILITYS-TRACKER-APP/00_global_engine/
+   NAME     : app_controls/supabaseClient.js
+   PURPOSE  : Securely initializes the Supabase client.
    ================================================================ */
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+const SUPABASE_URL = 'https://ovghcvwxvqpgkrrswcis.supabase.co'; 
+const SUPABASE_ANON_KEY = 'sb_publishable_GxgV4Nol1OZy6ApbwgeARA_I0YrfyPX'; 
 
-const SUPABASE_URL = 'YOUR_SUPABASE_URL_HERE';
-const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY_HERE';
-
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
