@@ -1,25 +1,36 @@
 /* ================================================================
    NAME     : router.js
-   PURPOSE  : Traffic controller to switch views in index.html
+   PURPOSE  : Central Navigation Controller
    ================================================================ */
 
-import { renderLocations } from '../02_locations/locations_view.js';
-import { renderContacts } from '../03_contacts/contacts_view.js';
+window.navigateTo = async (view, context = {}) => {
+    const app = document.getElementById('app');
+    if (!app) return;
 
-export const router = {
-    async navigateTo(viewName) {
-        const app = document.getElementById('app');
-        app.innerHTML = '<div class="loading">Loading...</div>';
+    app.innerHTML = '<p style="text-align:center; padding:50px;">Loading...</p>';
+    
+    // Cache-buster ensures GitHub Pages always loads the newest file
+    const cb = "?v=" + new Date().getTime();
 
-        switch(viewName) {
-            case 'locations':
-                await renderLocations();
-                break;
-            case 'contacts':
-                await renderContacts();
-                break;
-            default:
-                app.innerHTML = '<h1>Welcome to Facility Tracker</h1>';
+    try {
+        if (view === 'locations') {
+            const { renderLocations } = await import(`../02_locations/locations_view.js${cb}`);
+            await renderLocations(context);
+        } 
+        else if (view === 'contacts') {
+            const { renderContacts } = await import(`../03_contacts/contacts_view.js${cb}`);
+            await renderContacts(context);
         }
+        else {
+            app.innerHTML = '<h1>Welcome to Facility Tracker</h1>';
+        }
+    } catch (err) {
+        console.error("Navigation error:", err);
+        app.innerHTML = `<p style="color:red; text-align:center;">Error loading view: ${view}</p>`;
     }
 };
+
+// Initial load
+window.addEventListener('DOMContentLoaded', () => {
+    window.navigateTo('locations');
+});
