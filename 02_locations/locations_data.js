@@ -1,8 +1,8 @@
 /* ================================================================
-   NAME     : 01_locations_data.js
+   NAME     : locations_data.js
    PURPOSE  : Database operations for locations
    ================================================================ */
-import { supabase } from '../00_global_engine/02_supabase_client.js';
+import { supabase } from '../00_global_engine/supabaseClient.js';
 
 export const locationData = {
     async fetchAll() {
@@ -12,12 +12,11 @@ export const locationData = {
     },
     
     async insert(location) {
-        // Ensure the key 'number_name' matches your SQL table column exactly
+        // Mapping UI inputs to your database columns
         const { data, error } = await supabase.from('locations').insert([{
             number_name: location.number_name,
             address: location.address,
-            phone: location.phone,
-            image_url: location.image_url
+            phone: location.phone
         }]);
         if (error) throw error;
         return data;
