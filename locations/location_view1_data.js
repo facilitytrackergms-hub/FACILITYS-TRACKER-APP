@@ -1,25 +1,10 @@
 /* ================================================================
-   NAME     : locations_data.js
-   PURPOSE  : Database operations for locations
+   NAME     : app_controls/supabaseClient.js
+   PURPOSE  : Securely initializes the Supabase client.
    ================================================================ */
-// Use this path to reach the global engine folder
-import { supabase } from '../01_global_engine/supabaseClient.js';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-export const locationData = {
-    async fetchAll() {
-        const { data, error } = await supabase.from('locations').select('*');
-        if (error) throw error;
-        return data;
-    },
-    
-    async insert(location) {
-        // Mapping UI inputs to your database columns
-        const { data, error } = await supabase.from('locations').insert([{
-            number_name: location.number_name,
-            address: location.address,
-            phone: location.phone
-        }]);
-        if (error) throw error;
-        return data;
-    }
-};
+const SUPABASE_URL = 'https://ovghcvwxvqpgkrrswcis.supabase.co'; 
+const SUPABASE_ANON_KEY = 'sb_publishable_GxgV4Nol1OZy6ApbwgeARA_I0YrfyPX'; 
+
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
