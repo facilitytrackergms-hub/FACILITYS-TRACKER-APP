@@ -1,1 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facility Tracker GMS</title>
+</head>
+<body>
 
+    <nav>
+        <button onclick="router.navigateTo('locations')">Locations</button>
+        <button onclick="router.navigateTo('contacts')">Contacts</button>
+        <button onclick="router.navigateTo('projects')">Projects</button>
+    </nav>
+
+    <div id="app">
+        </div>
+
+    <script type="module">
+        import { router } from './01_global_engine/router.js';
+        window.router = router;
+
+        // Auto-load Locations on startup
+        window.addEventListener('DOMContentLoaded', () => {
+            router.navigateTo('locations');
+        });
+    </script>
+</body>
+</html>
