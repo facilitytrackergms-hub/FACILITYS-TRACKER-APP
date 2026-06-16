@@ -1,34 +1,23 @@
 /* ================================================================
-   NAME      : router.js
-   PURPOSE   : Central Navigation Controller
+   PURPOSE: Router to handle view navigation
+   LOCATION: /FACILITYS-TRACKER-APP/00_global_engine/router.js
    ================================================================ */
 
-window.navigateTo = async (view, context = {}) => {
-    const app = document.getElementById('app');
-    if (!app) return;
+import { renderLocations } from '../view_1_locations/view_1_locations_grid.js';
 
-    app.innerHTML = '<p style="text-align:center; padding:50px;">Loading...</p>';
-    const cb = "?v=" + new Date().getTime();
-
-    try {
-        if (view === 'locations') {
-            const module = await import(`/FACILITYS-TRACKER-APP/01_locations/view_1_grid.js${cb}`);
-            await module.renderLocations(context);
-        } 
-        else if (view === 'locations_dashboard') {
-            const module = await import(`/FACILITYS-TRACKER-APP/01_locations/locations_dashboard.js${cb}`);
-            await module.renderDashboard(context);
-        }
-        else if (view === 'contacts') {
-            const module = await import(`/FACILITYS-TRACKER-APP/03_contacts/contacts_view.js${cb}`);
-            await module.renderContacts(context);
-        }
-    } catch (err) {
-        console.error("Navigation error:", err);
-        app.innerHTML = `<p style="color:red; text-align:center;">Error loading view: ${view}</p>`;
+window.navigateTo = (view, context) => {
+    switch (view) {
+        case 'locations':
+            renderLocations();
+            break;
+        case 'hud':
+            // Logic for your hub/dashboard here
+            console.log("Navigating to Hub with context:", context);
+            break;
+        case 'create_location':
+            // If you have a separate form file, import it and call it here
+            break;
+        default:
+            renderLocations();
     }
 };
-
-window.addEventListener('DOMContentLoaded', () => {
-    window.navigateTo('locations');
-});
