@@ -3,7 +3,7 @@
    PURPOSE  : Location Dashboard with Modal and dynamic rendering
    ================================================================ */
 import { locationData } from './locations_data.js';
-
+import { supabase } from '../01_global_engine/supabaseClient.js';
 export async function renderLocations() {
     const app = document.getElementById('app');
     
