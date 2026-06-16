@@ -2,6 +2,8 @@
    NAME     : locations_view.js
    PURPOSE  : UI for Location Dashboard
    ================================================================ */
+// Use this path to reach the global engine folder
+import { supabase } from './01_global_engine/supabaseClient.js';
 import { locationData } from './locations_data.js';
 
 export async function renderLocations(context) {
