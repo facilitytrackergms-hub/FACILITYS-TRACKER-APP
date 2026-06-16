@@ -12,9 +12,13 @@ window.navigateTo = async (view, context = {}) => {
 
     try {
         if (view === 'locations') {
-            const module = await import(`/FACILITYS-TRACKER-APP/02_locations/locations_view.js${cb}`);
+            const module = await import(`/FACILITYS-TRACKER-APP/01_locations/view_1_grid.js${cb}`);
             await module.renderLocations(context);
         } 
+        else if (view === 'locations_dashboard') {
+            const module = await import(`/FACILITYS-TRACKER-APP/01_locations/locations_dashboard.js${cb}`);
+            await module.renderDashboard(context);
+        }
         else if (view === 'contacts') {
             const module = await import(`/FACILITYS-TRACKER-APP/03_contacts/contacts_view.js${cb}`);
             await module.renderContacts(context);
