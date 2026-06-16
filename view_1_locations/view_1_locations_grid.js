@@ -1,5 +1,5 @@
 /* ================================================================
-   PURPOSE: Dashboard with form logic and UI enhancements
+   PURPOSE: Dashboard with working form submission and UI
    LOCATION: /FACILITYS-TRACKER-APP/view_1_locations/view_1_locations_grid.js
    ================================================================ */
 
@@ -48,16 +48,45 @@ export async function renderLocations() {
         </div>
     `;
 
-    // Modal Logic
     const modal = document.getElementById('formModal');
     document.getElementById('openFormBtn').onclick = () => modal.style.display = 'block';
     document.getElementById('closeFormBtn').onclick = () => modal.style.display = 'none';
 
-    // Form submission
     document.getElementById('createForm').onsubmit = async (e) => {
         e.preventDefault();
-        // ... (Insert logic remains the same)
-        modal.style.display = 'none';
-        renderLocations();
+        
+        const number_name = document.getElementById('name').value;
+        const abbreviation = document.getElementById('abbr').value;
+        const address = document.getElementById('address').value;
+        const phone = document.getElementById('phone').value;
+        const file = document.getElementById('imageInput').files[0];
+
+        let imageUrl = null;
+
+        if (file) {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}.${fileExt}`;
+            const { data, error: uploadError } = await supabase.storage
+                .from('locations-images')
+                .upload(fileName, file);
+
+            if (!uploadError) {
+                const { data: urlData } = supabase.storage
+                    .from('locations-images')
+                    .getPublicUrl(fileName);
+                imageUrl = urlData.publicUrl;
+            }
+        }
+
+        const { error } = await supabase
+            .from('locations')
+            .insert([{ number_name, address, phone, abbreviation, image_url: imageUrl }]);
+
+        if (error) {
+            alert('Error saving: ' + error.message);
+        } else {
+            modal.style.display = 'none';
+            renderLocations();
+        }
     };
 }
