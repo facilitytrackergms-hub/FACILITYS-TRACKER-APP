@@ -1,9 +1,10 @@
 /* ================================================================
    NAME     : locations_view.js
-   PURPOSE  : Location Dashboard with Modal and dynamic rendering
+   PURPOSE  : UI for Location Dashboard
    ================================================================ */
-import { locationData } from './locations_data.js';
 import { supabase } from '../01_global_engine/supabaseClient.js';
+import { locationData } from './locations_data.js';
+
 export async function renderLocations() {
     const app = document.getElementById('app');
     
@@ -13,9 +14,9 @@ export async function renderLocations() {
             <button id="btn-create" style="background: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer; border-radius: 5px;">
                 Create New Location
             </button>
-            <div id="location-grid" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px;"></div>
+            <div id="location-grid" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px;">
+            </div>
         </div>
-        
         <div id="modal" style="display:none; position:fixed; top:20%; left:30%; background:white; padding:20px; border:1px solid #ccc; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
             <h3>New Location</h3>
             <input id="loc-name" placeholder="Name" style="display:block; margin-bottom:10px;" /><br>
@@ -26,32 +27,33 @@ export async function renderLocations() {
         </div>
     `;
 
-    // Render Buttons
+    // Render logic
     const grid = document.getElementById('location-grid');
     const locations = await locationData.fetchAll();
     
     locations.forEach(loc => {
         const btn = document.createElement('button');
-        btn.innerText = loc.name;
+        btn.innerText = loc.number_name;
         btn.style.padding = "20px";
         btn.style.backgroundColor = "#003366";
         btn.style.color = "white";
-        btn.onclick = () => window.location.href = `tel:${loc.phone}`;
+        btn.style.border = "none";
+        btn.style.borderRadius = "5px";
         grid.appendChild(btn);
     });
 
-    // Modal Logic
+    // Event listeners
     document.getElementById('btn-create').onclick = () => document.getElementById('modal').style.display = 'block';
     document.getElementById('btn-close').onclick = () => document.getElementById('modal').style.display = 'none';
     
     document.getElementById('btn-save').onclick = async () => {
         const newLoc = {
-            name: document.getElementById('loc-name').value,
+            number_name: document.getElementById('loc-name').value,
             address: document.getElementById('loc-address').value,
             phone: document.getElementById('loc-phone').value
         };
         await locationData.insert(newLoc);
         document.getElementById('modal').style.display = 'none';
-        renderLocations(); // Refresh grid
+        renderLocations(); // Refresh
     };
 }
