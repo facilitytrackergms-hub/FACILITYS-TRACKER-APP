@@ -1,7 +1,7 @@
 /* ================================================================
-   NAME      : locations_view_1_data.js
+   NAME      : view_1_data.js
    PURPOSE   : Database operations for locations
-   LOCATION  : /FACILITYS-TRACKER-APP/02_locations/
+   LOCATION  : /FACILITYS-TRACKER-APP/01_locations/
    ================================================================ */
 
 import { supabase } from '/FACILITYS-TRACKER-APP/00_global_engine/supabaseClient.js';
