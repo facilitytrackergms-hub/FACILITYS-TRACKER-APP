@@ -2,9 +2,10 @@
    NAME     : locations_view.js
    PURPOSE  : UI for Location Dashboard
    ================================================================ */
-import { supabase } from '../01_global_engine/supabaseClient.js';
-import { locationData } from './locations_data.js';
 
+import { supabase } from '/FACILITYS-TRACKER-APP/01_global_engine/supabaseClient.js';
+import { locationData } from './locations_data.js';
+// ... rest of code
 export async function renderLocations(context) {
     // ... rest of your code remains the same
     const app = document.getElementById('app');
