@@ -4,18 +4,15 @@
    ================================================================ */
 
 import { renderLocations } from '../view_1_locations/view_1_locations_grid.js';
+import { renderDetails } from '../view_2_locations_details/view_2_locations_details_grid.js';
 
 window.navigateTo = (view, context) => {
     switch (view) {
         case 'locations':
             renderLocations();
             break;
-        case 'hud':
-            // Logic for your hub/dashboard here
-            console.log("Navigating to Hub with context:", context);
-            break;
-        case 'create_location':
-            // If you have a separate form file, import it and call it here
+        case 'view_2_locations_details':
+            renderDetails(context);
             break;
         default:
             renderLocations();
