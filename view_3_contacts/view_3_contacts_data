@@ -1,1 +1,70 @@
+/* ================================================================
+   PURPOSE: Data service for Facility Contacts
+   LOCATION: /FACILITYS-TRACKER-APP/view_3_contacts/view_3_contacts_data.js
+   LAST UPDATED: 2026-06-16 @ 10:05 PM
+   VERSION: v2026_06_16_contacts_new_build
+   ================================================================ */
 
+import { supabase } from '../00_global_engine/supabaseClient.js';
+
+export async function fetchContacts(locationId) {
+    if (!locationId) return [];
+
+    const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('location_id', locationId)
+        .order('name', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching contacts:', error);
+        return [];
+    }
+
+    return data || [];
+}
+
+export async function createContact(contactData) {
+    const { data, error } = await supabase
+        .from('contacts')
+        .insert([contactData])
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error creating contact:', error);
+        return { data: null, error };
+    }
+
+    return { data, error: null };
+}
+
+export async function updateContact(contactId, contactData) {
+    const { data, error } = await supabase
+        .from('contacts')
+        .update(contactData)
+        .eq('id', contactId)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error updating contact:', error);
+        return { data: null, error };
+    }
+
+    return { data, error: null };
+}
+
+export async function deleteContact(contactId) {
+    const { error } = await supabase
+        .from('contacts')
+        .delete()
+        .eq('id', contactId);
+
+    if (error) {
+        console.error('Error deleting contact:', error);
+        return { error };
+    }
+
+    return { error: null };
+}
