@@ -22,9 +22,9 @@ window.navigateTo = (view, context) => {
             renderContacts(context);
             break;
 
-          case 'view_4_projects':
-    renderProjects(context);
-    break;
+        case 'view_4_projects':
+            renderProjects(context);
+            break;
 
         default:
             renderLocations();
