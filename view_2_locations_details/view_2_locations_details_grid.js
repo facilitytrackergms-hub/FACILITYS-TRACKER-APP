@@ -1,24 +1,24 @@
 /* ================================================================
    PURPOSE: Updated Detail view with working Edit, Delete, and Image Replacement
    LOCATION: /FACILITYS-TRACKER-APP/view_2_locations_details/view_2_locations_details_grid.js
-   LAST UPDATED: 2026-06-16 @ 8:55 PM
-   VERSION: v2026_06_16_image_replace_fix
+   LAST UPDATED: 2026-06-16 @ 9:15 PM
+   VERSION: v2026_06_16_image_category_fix
    ================================================================ */
 
 import { fetchLocationDetails } from './view_2_locations_details_data.js';
 import { supabase } from '../00_global_engine/supabaseClient.js';
 
 const __FILENAME = 'view_2_locations_details_grid.js';
-const __VERSION = 'v2026_06_16_image_replace_fix';
-const __UPDATED = '2026-06-16 @ 8:55 PM';
+const __VERSION = 'v2026_06_16_image_category_fix';
+const __UPDATED = '2026-06-16 @ 9:15 PM';
 
 function escapeHtml(value) {
     return String(value ?? '')
-        .replace(/&/g, '&')
-        .replace(/</g, '<')
-        .replace(/>/g, '>')
-        .replace(/"/g, '"')
-        .replace(/'/g, "'");
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 function renderBottomVersionTag() {
@@ -34,7 +34,12 @@ export async function renderDetails(location) {
     if (!app) return;
 
     if (!location || !location.id) {
-        app.innerHTML = `<div style="padding: 20px; text-align:center;">Location details missing.</div>`;
+        app.innerHTML = `
+            <div style="padding: 20px; text-align:center;">
+                Location details missing.
+                ${renderBottomVersionTag()}
+            </div>
+        `;
         return;
     }
 
@@ -73,7 +78,10 @@ export async function renderDetails(location) {
             </div>
             
             <div style="margin: 20px 0; text-align: center;">
-                ${imageUrl ? `<img src="${imageUrl}" style="width: 250px; height: 250px; object-fit: cover; border-radius: 8px;">` : `<div style="width: 250px; height: 250px; background:#f1f1f1; display:flex; align-items:center; justify-content:center;">No Image</div>`}
+                ${imageUrl 
+                    ? `<img src="${imageUrl}" style="width: 250px; height: 250px; object-fit: cover; border-radius: 8px;">` 
+                    : `<div style="width: 250px; height: 250px; margin:auto; background:#f1f1f1; display:flex; align-items:center; justify-content:center;">No Image</div>`
+                }
             </div>
             
             <button onclick="window.navigateTo('locations')" style="width: 100%; padding: 15px; background: #6c757d; color: white; border: none; border-radius: 5px;">BACK</button>
@@ -86,34 +94,57 @@ export async function renderDetails(location) {
 
     document.getElementById('editForm').onsubmit = async (e) => {
         e.preventDefault();
+
         const file = document.getElementById('replaceImageInput').files[0];
         let newImageUrl = imageUrl;
 
         if (file) {
-            // Sanitize filename by removing spaces
-            const sanitizedName = file.name.replace(/\s+/g, '_');
+            const sanitizedName = file.name
+                .replace(/\s+/g, '_')
+                .replace(/[^a-zA-Z0-9._-]/g, '');
+
             const fileName = `${Date.now()}_${sanitizedName}`;
-            
+
             const { error: uploadError } = await supabase.storage
                 .from('locations-images')
                 .upload(fileName, file);
 
-            if (!uploadError) {
-                const { data } = supabase.storage.from('locations-images').getPublicUrl(fileName);
-                newImageUrl = data.publicUrl;
-                await supabase.from('location_images').insert([{ location_id: details.id, image_url: newImageUrl }]);
-            } else {
+            if (uploadError) {
                 console.error("Storage Error:", uploadError);
-                alert("Image upload failed.");
+                alert("Image upload failed: " + uploadError.message);
+                return;
+            }
+
+            const { data } = supabase.storage
+                .from('locations-images')
+                .getPublicUrl(fileName);
+
+            newImageUrl = data.publicUrl;
+
+            const { error: imageInsertError } = await supabase
+                .from('location_images')
+                .insert([{
+                    location_id: details.id,
+                    image_url: newImageUrl,
+                    category: 'main'
+                }]);
+
+            if (imageInsertError) {
+                console.error("Image Table Insert Error:", imageInsertError);
+                alert("Image saved to storage, but failed to link: " + imageInsertError.message);
+                return;
             }
         }
 
-        const { error } = await supabase.from('locations').update({
-            number_name: document.getElementById('editName').value.trim(),
-            abbreviation: document.getElementById('editAbbr').value.trim().toUpperCase(),
-            address: document.getElementById('editAddress').value.trim(),
-            phone: document.getElementById('editPhone').value.trim()
-        }).eq('id', details.id);
+        const { error } = await supabase
+            .from('locations')
+            .update({
+                number_name: document.getElementById('editName').value.trim(),
+                abbreviation: document.getElementById('editAbbr').value.trim().toUpperCase(),
+                address: document.getElementById('editAddress').value.trim(),
+                phone: document.getElementById('editPhone').value.trim()
+            })
+            .eq('id', details.id);
 
         if (error) {
             alert('Error: ' + error.message);
@@ -126,7 +157,11 @@ export async function renderDetails(location) {
 
     document.getElementById('deleteBtn').onclick = async () => {
         if (confirm(`Delete ${details.number_name}?`)) {
-            const { error } = await supabase.from('locations').delete().eq('id', details.id);
+            const { error } = await supabase
+                .from('locations')
+                .delete()
+                .eq('id', details.id);
+
             if (error) alert('Error: ' + error.message);
             else window.navigateTo('locations');
         }
