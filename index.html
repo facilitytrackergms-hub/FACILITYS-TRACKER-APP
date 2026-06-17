@@ -10,12 +10,15 @@
     <div id="app">
     </div>
 
-  <script type="module">
-    // Use a relative path to look for the folder from the current location
-    import './00_global_engine/router.js';
+ <script type="module">
+    // Make sure this path correctly points to your router file
+    import { navigateTo } from './00_global_engine/router.js';
+    window.navigateTo = navigateTo;
 
     window.addEventListener('DOMContentLoaded', () => {
-        window.navigateTo('locations');
+        // Change 'locations' to the exact name of the file or view 
+        // that handles your main dashboard entry point
+        window.navigateTo('view1_dashboard');
     });
 </script>
 </body>
