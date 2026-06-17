@@ -1,16 +1,16 @@
 /* ================================================================
    PURPOSE: Updated Detail view with working Edit, Delete, Image Replacement, Divider, and Action Buttons
    LOCATION: /FACILITYS-TRACKER-APP/view_2_locations_details/view_2_locations_details_grid.js
-   LAST UPDATED: 2026-06-16 @ 9:35 PM
-   VERSION: v2026_06_16_contact_project_buttons_fix
+   LAST UPDATED: 2026-06-16 @ 10:30 PM
+   VERSION: v2026_06_16_contact_button_nav_fix
    ================================================================ */
 
 import { fetchLocationDetails } from './view_2_locations_details_data.js';
 import { supabase } from '../00_global_engine/supabaseClient.js';
 
 const __FILENAME = 'view_2_locations_details_grid.js';
-const __VERSION = 'v2026_06_16_contact_project_buttons_fix';
-const __UPDATED = '2026-06-16 @ 9:35 PM';
+const __VERSION = 'v2026_06_16_contact_button_nav_fix';
+const __UPDATED = '2026-06-16 @ 10:30 PM';
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -87,10 +87,10 @@ export async function renderDetails(location) {
             <div style="height: 5px; background: #003366; border-radius: 2px; margin: 20px 7px 18px 7px;"></div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
-                <button style="padding: 18px 10px; background: #003366; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 14px;">
+                <button id="contactBtn" style="padding: 18px 10px; background: #003366; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 14px;">
                     1. CONTACT
                 </button>
-                <button style="padding: 18px 10px; background: #003366; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 14px;">
+                <button id="projectsBtn" style="padding: 18px 10px; background: #003366; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 14px;">
                     2. PROJECTS
                 </button>
             </div>
@@ -102,6 +102,10 @@ export async function renderDetails(location) {
 
     document.getElementById('editBtn').onclick = () => document.getElementById('editModal').style.display = 'block';
     document.getElementById('closeEditBtn').onclick = () => document.getElementById('editModal').style.display = 'none';
+
+    document.getElementById('contactBtn').onclick = () => {
+        window.navigateTo('view_3_contacts', details);
+    };
 
     document.getElementById('editForm').onsubmit = async (e) => {
         e.preventDefault();
