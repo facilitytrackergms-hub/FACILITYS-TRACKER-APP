@@ -1,6 +1,6 @@
 /* ================================================================
    PURPOSE: Data fetching for Facilities
-   LOCATION: /locations/view1_dashboard/data.js
+   LOCATION: /locations/view1_dashboard/data.js 
    ================================================================ */
 
 import { supabase } from '../../00_global_engine/supabaseClient.js';
