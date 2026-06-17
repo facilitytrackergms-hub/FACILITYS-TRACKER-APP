@@ -59,12 +59,14 @@ export async function renderDetails(location) {
             
             <div id="editModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); padding:20px; box-sizing:border-box; z-index:100;">
                 <form id="editForm" style="background:white; padding: 20px; border-radius: 8px; margin-top: 50px;">
-                    <input type="text" id="editName" value="${name}" style="width: 100%; padding: 10px; margin-bottom: 10px;">
-                    <input type="text" id="editAbbr" value="${abbreviation}" style="width: 100%; padding: 10px; margin-bottom: 10px;">
-                    <input type="text" id="editAddress" value="${address}" style="width: 100%; padding: 10px; margin-bottom: 10px;">
-                    <input type="tel" id="editPhone" value="${phone}" style="width: 100%; padding: 10px; margin-bottom: 10px;">
+                    <input type="text" id="editName" value="${name}" style="width: 100%; padding: 10px; margin-bottom: 10px; box-sizing:border-box;">
+                    <input type="text" id="editAbbr" value="${abbreviation}" style="width: 100%; padding: 10px; margin-bottom: 10px; box-sizing:border-box; text-transform: uppercase;">
+                    <input type="text" id="editAddress" value="${address}" style="width: 100%; padding: 10px; margin-bottom: 10px; box-sizing:border-box;">
+                    <input type="tel" id="editPhone" value="${phone}" inputmode="tel" style="width: 100%; padding: 10px; margin-bottom: 10px; box-sizing:border-box;">
+                    
                     <input type="file" id="replaceImageInput" accept="image/*" style="display:none;">
                     <button type="button" onclick="document.getElementById('replaceImageInput').click()" style="width: 100%; padding: 10px; background: #6c757d; color: white; border: none; border-radius: 5px; margin-bottom: 10px;">REPLACE IMAGE</button>
+                    
                     <button type="submit" style="width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px;">SAVE CHANGES</button>
                     <button type="button" id="closeEditBtn" style="width: 100%; padding: 10px; background: #6c757d; color: white; border: none; border-radius: 5px; margin-top: 10px;">CANCEL</button>
                 </form>
@@ -79,7 +81,6 @@ export async function renderDetails(location) {
         </div>
     `;
 
-    // Logic for Edit and Image Replacement
     document.getElementById('editBtn').onclick = () => document.getElementById('editModal').style.display = 'block';
     document.getElementById('closeEditBtn').onclick = () => document.getElementById('editModal').style.display = 'none';
 
@@ -89,30 +90,45 @@ export async function renderDetails(location) {
         let newImageUrl = imageUrl;
 
         if (file) {
-            const fileName = `${Date.now()}_${file.name}`;
-            const { error: uploadError } = await supabase.storage.from('locations-images').upload(fileName, file);
+            // Sanitize filename by removing spaces
+            const sanitizedName = file.name.replace(/\s+/g, '_');
+            const fileName = `${Date.now()}_${sanitizedName}`;
+            
+            const { error: uploadError } = await supabase.storage
+                .from('locations-images')
+                .upload(fileName, file);
+
             if (!uploadError) {
                 const { data } = supabase.storage.from('locations-images').getPublicUrl(fileName);
                 newImageUrl = data.publicUrl;
                 await supabase.from('location_images').insert([{ location_id: details.id, image_url: newImageUrl }]);
+            } else {
+                console.error("Storage Error:", uploadError);
+                alert("Image upload failed.");
             }
         }
 
-        await supabase.from('locations').update({
-            number_name: document.getElementById('editName').value,
-            abbreviation: document.getElementById('editAbbr').value,
-            address: document.getElementById('editAddress').value,
-            phone: document.getElementById('editPhone').value
+        const { error } = await supabase.from('locations').update({
+            number_name: document.getElementById('editName').value.trim(),
+            abbreviation: document.getElementById('editAbbr').value.trim().toUpperCase(),
+            address: document.getElementById('editAddress').value.trim(),
+            phone: document.getElementById('editPhone').value.trim()
         }).eq('id', details.id);
+
+        if (error) {
+            alert('Error: ' + error.message);
+            return;
+        }
 
         document.getElementById('editModal').style.display = 'none';
         renderDetails({ id: details.id });
     };
 
     document.getElementById('deleteBtn').onclick = async () => {
-        if (confirm('Delete this facility?')) {
-            await supabase.from('locations').delete().eq('id', details.id);
-            window.navigateTo('locations');
+        if (confirm(`Delete ${details.number_name}?`)) {
+            const { error } = await supabase.from('locations').delete().eq('id', details.id);
+            if (error) alert('Error: ' + error.message);
+            else window.navigateTo('locations');
         }
     };
 }
