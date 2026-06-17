@@ -8,10 +8,12 @@ export async function fetchLocations() {
         .from('locations')
         .select('*')
         .order('number_name', { ascending: true });
+   
     
     if (error) {
         console.error("Error fetching locations:", error);
         return [];
+       
     }
     return data;
 }
