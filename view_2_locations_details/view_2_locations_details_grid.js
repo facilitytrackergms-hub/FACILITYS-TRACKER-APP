@@ -1,16 +1,16 @@
 /* ================================================================
-   PURPOSE: Updated Detail view with working Edit, Delete, and Image Replacement
+   PURPOSE: Updated Detail view with working Edit, Delete, Image Replacement, Divider, and Action Buttons
    LOCATION: /FACILITYS-TRACKER-APP/view_2_locations_details/view_2_locations_details_grid.js
-   LAST UPDATED: 2026-06-16 @ 9:15 PM
-   VERSION: v2026_06_16_image_category_fix
+   LAST UPDATED: 2026-06-16 @ 9:35 PM
+   VERSION: v2026_06_16_contact_project_buttons_fix
    ================================================================ */
 
 import { fetchLocationDetails } from './view_2_locations_details_data.js';
 import { supabase } from '../00_global_engine/supabaseClient.js';
 
 const __FILENAME = 'view_2_locations_details_grid.js';
-const __VERSION = 'v2026_06_16_image_category_fix';
-const __UPDATED = '2026-06-16 @ 9:15 PM';
+const __VERSION = 'v2026_06_16_contact_project_buttons_fix';
+const __UPDATED = '2026-06-16 @ 9:35 PM';
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -83,6 +83,17 @@ export async function renderDetails(location) {
                     : `<div style="width: 250px; height: 250px; margin:auto; background:#f1f1f1; display:flex; align-items:center; justify-content:center;">No Image</div>`
                 }
             </div>
+
+            <div style="height: 5px; background: #003366; border-radius: 2px; margin: 20px 7px 18px 7px;"></div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;">
+                <button style="padding: 18px 10px; background: #003366; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 14px;">
+                    1. CONTACT
+                </button>
+                <button style="padding: 18px 10px; background: #003366; color: white; border: none; border-radius: 10px; font-weight: bold; font-size: 14px;">
+                    2. PROJECTS
+                </button>
+            </div>
             
             <button onclick="window.navigateTo('locations')" style="width: 100%; padding: 15px; background: #6c757d; color: white; border: none; border-radius: 5px;">BACK</button>
             ${renderBottomVersionTag()}
@@ -96,7 +107,8 @@ export async function renderDetails(location) {
         e.preventDefault();
 
         const file = document.getElementById('replaceImageInput').files[0];
-      let newImageUrl = details.image_url || '';
+        let newImageUrl = details.image_url || '';
+
         if (file) {
             const sanitizedName = file.name
                 .replace(/\s+/g, '_')
@@ -135,21 +147,21 @@ export async function renderDetails(location) {
             }
         }
 
-       const { error } = await supabase
-    .from('locations')
-    .update({
-        number_name: document.getElementById('editName').value.trim(),
-        abbreviation: document.getElementById('editAbbr').value.trim().toUpperCase(),
-        address: document.getElementById('editAddress').value.trim(),
-        phone: document.getElementById('editPhone').value.trim(),
-        image_url: newImageUrl
-    })
-    .eq('id', details.id);
+        const { error } = await supabase
+            .from('locations')
+            .update({
+                number_name: document.getElementById('editName').value.trim(),
+                abbreviation: document.getElementById('editAbbr').value.trim().toUpperCase(),
+                address: document.getElementById('editAddress').value.trim(),
+                phone: document.getElementById('editPhone').value.trim(),
+                image_url: newImageUrl
+            })
+            .eq('id', details.id);
 
-if (error) {
-    alert('Error: ' + error.message);
-    return;
-}
+        if (error) {
+            alert('Error: ' + error.message);
+            return;
+        }
 
         document.getElementById('editModal').style.display = 'none';
         renderDetails({ id: details.id });
