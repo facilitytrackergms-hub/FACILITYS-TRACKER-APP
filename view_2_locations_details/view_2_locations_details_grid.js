@@ -1,16 +1,16 @@
 /* ================================================================
    PURPOSE: Updated Detail view with working Edit, Delete, Image Replacement, Divider, and Action Buttons
    LOCATION: /FACILITYS-TRACKER-APP/view_2_locations_details/view_2_locations_details_grid.js
-   LAST UPDATED: 2026-06-16 @ 10:30 PM
-   VERSION: v2026_06_16_contact_button_nav_fix
+   LAST UPDATED: 2026-06-16 @ 11:15 PM
+   VERSION: v2026_06_16_project_button_nav_fix
    ================================================================ */
 
 import { fetchLocationDetails } from './view_2_locations_details_data.js';
 import { supabase } from '../00_global_engine/supabaseClient.js';
 
 const __FILENAME = 'view_2_locations_details_grid.js';
-const __VERSION = 'v2026_06_16_contact_button_nav_fix';
-const __UPDATED = '2026-06-16 @ 10:30 PM';
+const __VERSION = 'v2026_06_16_project_button_nav_fix';
+const __UPDATED = '2026-06-16 @ 11:15 PM';
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -105,6 +105,10 @@ export async function renderDetails(location) {
 
     document.getElementById('contactBtn').onclick = () => {
         window.navigateTo('view_3_contacts', details);
+    };
+
+    document.getElementById('projectsBtn').onclick = () => {
+        window.navigateTo('view_4_projects', details);
     };
 
     document.getElementById('editForm').onsubmit = async (e) => {
