@@ -96,8 +96,7 @@ export async function renderDetails(location) {
         e.preventDefault();
 
         const file = document.getElementById('replaceImageInput').files[0];
-        let newImageUrl = imageUrl;
-
+      let newImageUrl = details.image_url || '';
         if (file) {
             const sanitizedName = file.name
                 .replace(/\s+/g, '_')
@@ -136,20 +135,21 @@ export async function renderDetails(location) {
             }
         }
 
-        const { error } = await supabase
-            .from('locations')
-            .update({
-                number_name: document.getElementById('editName').value.trim(),
-                abbreviation: document.getElementById('editAbbr').value.trim().toUpperCase(),
-                address: document.getElementById('editAddress').value.trim(),
-                phone: document.getElementById('editPhone').value.trim()
-            })
-            .eq('id', details.id);
+       const { error } = await supabase
+    .from('locations')
+    .update({
+        number_name: document.getElementById('editName').value.trim(),
+        abbreviation: document.getElementById('editAbbr').value.trim().toUpperCase(),
+        address: document.getElementById('editAddress').value.trim(),
+        phone: document.getElementById('editPhone').value.trim(),
+        image_url: newImageUrl
+    })
+    .eq('id', details.id);
 
-        if (error) {
-            alert('Error: ' + error.message);
-            return;
-        }
+if (error) {
+    alert('Error: ' + error.message);
+    return;
+}
 
         document.getElementById('editModal').style.display = 'none';
         renderDetails({ id: details.id });
