@@ -1,8 +1,8 @@
 /* ================================================================
    PURPOSE: Data service for Facility Contacts
    LOCATION: /FACILITYS-TRACKER-APP/view_3_contacts/view_3_contacts_data.js
-   LAST UPDATED: 2026-06-16 @ 10:05 PM
-   VERSION: v2026_06_16_contacts_new_build
+   LAST UPDATED: 2026-06-16 @ 10:15 PM
+   VERSION: v2026_06_16_contacts_data_new_build
    ================================================================ */
 
 import { supabase } from '../00_global_engine/supabaseClient.js';
