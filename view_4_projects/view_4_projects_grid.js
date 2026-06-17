@@ -1,8 +1,8 @@
 /* ================================================================
    PURPOSE: Grid view for Facility Projects with Before/During/After Images
    LOCATION: /FACILITYS-TRACKER-APP/view_4_projects/view_4_projects_grid.js
-   LAST UPDATED: 2026-06-16 @ 11:05 PM
-   VERSION: v2026_06_16_projects_new_build
+   LAST UPDATED: 2026-06-16 @ 11:25 PM
+   VERSION: v2026_06_16_view_images_by_category_fix
    ================================================================ */
 
 import {
@@ -17,8 +17,8 @@ import {
 import { supabase } from '../00_global_engine/supabaseClient.js';
 
 const __FILENAME = 'view_4_projects_grid.js';
-const __VERSION = 'v2026_06_16_projects_new_build';
-const __UPDATED = '2026-06-16 @ 11:05 PM';
+const __VERSION = 'v2026_06_16_view_images_by_category_fix';
+const __UPDATED = '2026-06-16 @ 11:25 PM';
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -143,9 +143,11 @@ export async function renderProjects(location) {
                             <button class="projectImageBtn" data-id="${project.id}" data-type="after" style="padding:10px 5px; background:#003366; color:white; border:none; border-radius:6px; font-size:12px; font-weight:bold;">AFTER</button>
                         </div>
 
-                        <button class="viewImagesBtn" data-id="${project.id}" style="width:100%; margin-top:8px; padding:10px; background:#6c757d; color:white; border:none; border-radius:6px;">
-                            VIEW IMAGES
-                        </button>
+                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:8px;">
+                            <button class="viewProjectImagesBtn" data-id="${project.id}" data-type="before" style="padding:10px 5px; background:#6c757d; color:white; border:none; border-radius:6px; font-size:12px; font-weight:bold;">VIEW BEFORE</button>
+                            <button class="viewProjectImagesBtn" data-id="${project.id}" data-type="during" style="padding:10px 5px; background:#6c757d; color:white; border:none; border-radius:6px; font-size:12px; font-weight:bold;">VIEW DURING</button>
+                            <button class="viewProjectImagesBtn" data-id="${project.id}" data-type="after" style="padding:10px 5px; background:#6c757d; color:white; border:none; border-radius:6px; font-size:12px; font-weight:bold;">VIEW AFTER</button>
+                        </div>
                     </div>
                 `).join('')}
             </div>
@@ -235,19 +237,21 @@ export async function renderProjects(location) {
         };
     });
 
-    document.querySelectorAll('.viewImagesBtn').forEach(button => {
+    document.querySelectorAll('.viewProjectImagesBtn').forEach(button => {
         button.onclick = async () => {
             const projectId = button.dataset.id;
-            const images = await fetchProjectImages(projectId);
+            const imageType = button.dataset.type;
+            const allImages = await fetchProjectImages(projectId);
+            const images = allImages.filter(img => img.image_type === imageType);
 
             if (!images.length) {
-                alert('No images found for this project.');
+                alert(`No ${imageType} images found for this project.`);
                 return;
             }
 
             app.innerHTML = `
                 <div style="padding:20px; max-width:400px; margin:auto; font-family:sans-serif;">
-                    <h1 style="text-align:center; color:#003366;">PROJECT IMAGES</h1>
+                    <h1 style="text-align:center; color:#003366;">${imageType.toUpperCase()} IMAGES</h1>
 
                     <div style="display:grid; gap:12px;">
                         ${images.map(img => `
