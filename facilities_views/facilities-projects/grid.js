@@ -1,9 +1,10 @@
 /*================================================================
 FACILITIES-PROJECTS GRID
-VERSION: v2026_06_18_edit_button_fix
+VERSION: v2026_06_18_edit_image_upload_fix
 ================================================================*/
 
 import { supabase } from '../../global_engine/supabaseClient.js';
+import { uploadImage } from '../../global_engine/image-handler.js';
 
 async function fetchFacilityById(facilityId) {
     const { data, error } = await supabase
@@ -20,21 +21,21 @@ async function fetchFacilityById(facilityId) {
     return data;
 }
 
-async function fetchFacilityImage(facilityId) {
+async function fetchFacilityImageRecord(facilityId) {
     const { data, error } = await supabase
         .from('facilities_images')
-        .select('image_url')
+        .select('id, image_url')
         .eq('facilities_id', facilityId)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
     if (error) {
-        console.error('fetchFacilityImage error:', error);
-        return '';
+        console.error('fetchFacilityImageRecord error:', error);
+        return null;
     }
 
-    return data?.image_url || '';
+    return data || null;
 }
 
 function escapeHtml(value) {
@@ -74,7 +75,8 @@ export async function renderProjectsGrid(containerId, context = {}) {
         return;
     }
 
-    const imageUrl = facility.image_url || await fetchFacilityImage(facilityId);
+    const imageRecord = await fetchFacilityImageRecord(facilityId);
+    const imageUrl = facility.image_url || imageRecord?.image_url || '';
 
     const facilityName = facility.abbreviation || facility.number_name || facility.name || 'Facility';
     const address = facility.address || '';
@@ -108,7 +110,9 @@ export async function renderProjectsGrid(containerId, context = {}) {
             .facility-edit-buttons button { flex: 1; padding: 11px; border: none; border-radius: 7px; font-weight: bold; cursor: pointer; }
             .btn-save-edit { background: #22a843; color: white; }
             .btn-cancel-edit { background: #777; color: white; }
+            .btn-image-edit { background: #003b73; color: white; border: none; border-radius: 7px; padding: 11px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; }
             .facility-edit-error { color: red; font-size: 13px; text-align: center; margin-top: 10px; min-height: 16px; }
+            .facility-image-preview { width: 100%; max-height: 120px; object-fit: cover; border-radius: 8px; margin-top: 8px; display: ${imageUrl ? 'block' : 'none'}; }
         </style>
 
         <div class="facility-detail-card">
@@ -136,7 +140,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
             <button id="btn-back-home" class="facility-back-btn">⬅️ BACK</button>
 
-            <div class="facility-version-tag">facilities-projects/grid.js | v2026_06_18_edit_button_fix | 2026-06-18</div>
+            <div class="facility-version-tag">facilities-projects/grid.js | v2026_06_18_edit_image_upload_fix | 2026-06-18</div>
         </div>
 
         <div id="facility-edit-backdrop" class="facility-edit-backdrop">
@@ -155,6 +159,12 @@ export async function renderProjectsGrid(containerId, context = {}) {
                 <label>Phone</label>
                 <input id="edit-facility-phone" type="tel" value="${escapeHtml(phone)}">
 
+                <label>Facility Image</label>
+                <input id="edit-facility-image" type="file" accept="image/*">
+                <img id="edit-image-preview" class="facility-image-preview" src="${escapeHtml(imageUrl)}" alt="Facility Image Preview">
+
+                <button id="btn-update-image" class="btn-image-edit">${imageUrl ? 'Update Image' : 'Add Image'}</button>
+
                 <div class="facility-edit-buttons">
                     <button id="btn-save-edit-facility" class="btn-save-edit">Save</button>
                     <button id="btn-cancel-edit-facility" class="btn-cancel-edit">Cancel</button>
@@ -167,6 +177,8 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
     const editBackdrop = document.getElementById('facility-edit-backdrop');
     const editError = document.getElementById('facility-edit-error');
+    const imageInput = document.getElementById('edit-facility-image');
+    const imagePreview = document.getElementById('edit-image-preview');
 
     document.getElementById('btn-delete-facility').addEventListener('click', async () => {
         if (!confirm('Are you sure you want to delete this facility?')) return;
@@ -210,6 +222,58 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
     document.getElementById('btn-cancel-edit-facility').addEventListener('click', () => {
         editBackdrop.style.display = 'none';
+    });
+
+    imageInput.addEventListener('change', () => {
+        const file = imageInput.files?.[0];
+        if (!file) return;
+
+        imagePreview.src = URL.createObjectURL(file);
+        imagePreview.style.display = 'block';
+    });
+
+    document.getElementById('btn-update-image').addEventListener('click', async () => {
+        const file = imageInput.files?.[0];
+
+        if (!file) {
+            editError.textContent = 'Choose an image first.';
+            return;
+        }
+
+        editError.textContent = 'Uploading image...';
+
+        try {
+            const imageUrlUploaded = await uploadImage(file, 'locations-images', `facilities/${facilityId}`);
+
+            if (imageRecord?.id) {
+                const { error } = await supabase
+                    .from('facilities_images')
+                    .update({
+                        image_url: imageUrlUploaded,
+                        category: 'main'
+                    })
+                    .eq('id', imageRecord.id);
+
+                if (error) throw error;
+            } else {
+                const { error } = await supabase
+                    .from('facilities_images')
+                    .insert([{
+                        facilities_id: facilityId,
+                        image_url: imageUrlUploaded,
+                        category: 'main'
+                    }]);
+
+                if (error) throw error;
+            }
+
+            editError.textContent = '';
+            if (window.navigateTo) window.navigateTo('facilities-projects', facility);
+
+        } catch (err) {
+            console.error('Image update error:', err);
+            editError.textContent = 'Could not update image.';
+        }
     });
 
     document.getElementById('btn-save-edit-facility').addEventListener('click', async () => {
