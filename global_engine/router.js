@@ -11,46 +11,23 @@ export async function navigateTo(view, context = {}) {
         return;
     }
 
-    const facilityViews = ['facilities-contacts', 'facilities-projects'];
-    if (facilityViews.includes(view)) {
-        const facilityId = context?.facility?.id || context?.id || context?.facilityId;
-        if (!facilityId) {
-            console.warn(`Navigation blocked to "${view}": Missing valid facility ID.`);
-            view = 'facilities-home';
-            context = {};
-        }
-    }
-
-    app.innerHTML = '<p style="text-align:center; padding:50px;">Loading...</p>';
+    // ... (keep your existing logic) ...
 
     try {
+        // Use absolute paths starting with /FACILITYS-TRACKER-APP/
+        // Adjust '/FACILITYS-TRACKER-APP/' if your root is different on GitHub
+        const basePath = '/FACILITYS-TRACKER-APP'; 
+
         if (view === 'facilities-home') {
-            const { renderDashboard } = await import(`../facilities_views/facilities-home/grid.js`);
+            const { renderDashboard } = await import(`${basePath}/facilities_views/facilities-home/grid.js`);
             await renderDashboard('app-container');
         } 
         else if (view === 'facilities-contacts') {
-            const { renderContactsGrid } = await import(`../facilities_views/facilities-contacts/grid.js`);
-            const facilityId = context.facility?.id || context?.id;
-            await renderContactsGrid('app-container', facilityId);
+            const { renderContactsGrid } = await import(`${basePath}/facilities_views/facilities-contacts/grid.js`);
+            // ...
         }
-        else if (view === 'facilities-projects') {
-            const { renderProjectsGrid } = await import(`../facilities_views/facilities-projects/grid.js`);
-            const facilityId = context.facility?.id || context?.id;
-            await renderProjectsGrid('app-container', facilityId);
-        }
-        else {
-            console.warn(`Unknown view "${view}"`);
-            app.innerHTML = `<p style="text-align:center; padding:20px;">View not found.</p>`;
-        }
+        // ...
     } catch (err) {
         console.error("Navigation error:", err);
-        app.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error loading: ${view}</p>`;
     }
 }
-
-// Ensure global access for buttons
-window.navigateTo = navigateTo;
-
-window.addEventListener('DOMContentLoaded', () => {
-    navigateTo('facilities-home');
-});
