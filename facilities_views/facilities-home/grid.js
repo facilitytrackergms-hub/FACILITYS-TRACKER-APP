@@ -104,7 +104,7 @@ export async function renderDashboard(containerId) {
             const facilityId = button.dataset.id;
             const selectedFacility = facilities.find(fac => String(fac.id) === String(facilityId));
             if (window.navigateTo && selectedFacility) {
-                window.navigateTo('facilities-projects', selectedFacility);
+                window.navigateTo('facilities-contacts', selectedFacility);
             }
         });
     });
