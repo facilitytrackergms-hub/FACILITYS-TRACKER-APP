@@ -1,6 +1,6 @@
 /*================================================================
 FACILITIES-PROJECTS GRID
-VERSION: v2026_06_18_facility_object_context_fix
+VERSION: v2026_06_18_image_table_delete_check_fix
 ================================================================*/
 
 import { supabase } from '../../global_engine/supabaseClient.js';
@@ -22,7 +22,7 @@ async function fetchFacilityById(facilityId) {
 
 async function fetchFacilityImage(facilityId) {
     const { data, error } = await supabase
-        .from('facilities_images')
+        .from('location_images')
         .select('image_url')
         .eq('location_id', facilityId)
         .order('created_at', { ascending: false })
@@ -115,29 +115,40 @@ export async function renderProjectsGrid(containerId, context = {}) {
             </div>
 
             <div class="facility-divider"></div>
+
             <div class="facility-action-grid">
                 <button id="btn-open-contacts" class="facility-action-btn">👥 2. CONTACT</button>
                 <button id="btn-open-projects" class="facility-action-btn">📋 3. PROJECTS</button>
             </div>
+
             <button id="btn-back-home" class="facility-back-btn">⬅️ BACK</button>
-            <div class="facility-version-tag">facilities-projects/grid.js | v2026_06_18_facility_object_context_fix | 2026-06-18</div>
+
+            <div class="facility-version-tag">facilities-projects/grid.js | v2026_06_18_image_table_delete_check_fix | 2026-06-18</div>
         </div>
     `;
 
     document.getElementById('btn-delete-facility').addEventListener('click', async () => {
         if (!confirm('Are you sure you want to delete this facility?')) return;
 
-        const { error } = await supabase
+        const { data, error } = await supabase
             .from('facilities')
             .delete()
-            .eq('id', facilityId);
+            .eq('id', facilityId)
+            .select('id');
 
         if (error) {
             console.error('Delete error:', error);
-            alert('Failed to delete.');
-        } else {
-            window.navigateTo('facilities-home');
+            alert('Failed to delete facility. Check console.');
+            return;
         }
+
+        if (!data || data.length === 0) {
+            console.error('Delete blocked or no matching facility found:', facilityId);
+            alert('Facility was not deleted. Supabase may be blocking delete with RLS policy.');
+            return;
+        }
+
+        window.navigateTo('facilities-home');
     });
 
     document.getElementById('btn-open-contacts').addEventListener('click', () => {
