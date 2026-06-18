@@ -38,11 +38,11 @@ async function fetchFacilityImage(facilityId) {
 
 function escapeHtml(value) {
     return String(value || '')
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
+        .replaceAll('&', '&')
+        .replaceAll('<', '<')
+        .replaceAll('>', '>')
+        .replaceAll('"', '"')
+        .replaceAll("'", '&#39;');
 }
 
 export async function renderProjectsGrid(containerId, facilityId) {
@@ -83,6 +83,7 @@ export async function renderProjectsGrid(containerId, facilityId) {
                 align-items: center;
                 justify-content: center;
                 position: relative;
+                min-height: 40px;
             }
 
             .facility-detail-title {
@@ -90,6 +91,19 @@ export async function renderProjectsGrid(containerId, facilityId) {
                 font-size: 24px;
                 font-weight: bold;
                 margin: 8px 0 10px;
+            }
+
+            .facility-del-btn {
+                position: absolute;
+                left: 0;
+                top: 0;
+                background: #fee2e2;
+                color: #dc2626;
+                border: none;
+                border-radius: 7px;
+                padding: 8px 10px;
+                font-weight: bold;
+                cursor: pointer;
             }
 
             .facility-edit-btn {
@@ -191,6 +205,7 @@ export async function renderProjectsGrid(containerId, facilityId) {
 
         <div class="facility-detail-card">
             <div class="facility-detail-title-row">
+                <button id="btn-delete-facility" class="facility-del-btn">🗑️</button>
                 <div class="facility-detail-title">${escapeHtml(facilityName)}</div>
                 <button id="btn-edit-facility" class="facility-edit-btn">⚙️ Edit</button>
             </div>
@@ -202,7 +217,7 @@ export async function renderProjectsGrid(containerId, facilityId) {
             <div class="facility-info-box">
                 <div class="facility-info-label">📍 Address</div>
                 ${address ? `
-                    <a class="facility-info-link" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}" target="_blank">
+                    <a class="facility-info-link" href="http://maps.google.com/?q=${encodeURIComponent(address)}" target="_blank">
                         ${escapeHtml(address)}
                     </a>
                 ` : `
@@ -234,10 +249,19 @@ export async function renderProjectsGrid(containerId, facilityId) {
         </div>
     `;
 
-    document.getElementById('btn-open-contacts').addEventListener('click', () => {
-        if (window.navigateTo) {
-            window.navigateTo('facilities-contacts', facility);
+    document.getElementById('btn-delete-facility').addEventListener('click', async () => {
+        if (!confirm('Are you sure you want to delete this facility?')) return;
+        const { error } = await supabase.from('facilities').delete().eq('id', facilityId);
+        if (error) {
+            console.error('Delete error:', error);
+            alert('Failed to delete.');
+        } else {
+            window.navigateTo('facilities-home');
         }
+    });
+
+    document.getElementById('btn-open-contacts').addEventListener('click', () => {
+        if (window.navigateTo) window.navigateTo('facilities-contacts', facility);
     });
 
     document.getElementById('btn-open-projects').addEventListener('click', () => {
@@ -245,17 +269,10 @@ export async function renderProjectsGrid(containerId, facilityId) {
     });
 
     document.getElementById('btn-back-home').addEventListener('click', () => {
-        if (window.navigateTo) {
-            window.navigateTo('facilities-home');
-        }
+        if (window.navigateTo) window.navigateTo('facilities-home');
     });
 
     document.getElementById('btn-edit-facility').addEventListener('click', () => {
         console.log('Edit facility clicked:', facilityId);
     });
 }
-
-/*================================================================
-FACILITIES-PROJECTS GRID
-VERSION: v2026_06_18_projects_shell_v1
-================================================================*/
