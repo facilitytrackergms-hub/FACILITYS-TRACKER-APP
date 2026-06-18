@@ -2,32 +2,79 @@
    PURPOSE: Router to handle view navigation
    LOCATION: /global_engine/router.js
    DATE: 2026-06-18
+   VERSION: v2026_06_18_facility_buttons_route_fix
    ================================================================ */
 
 export async function navigateTo(view, context = {}) {
     const app = document.getElementById('app-container');
+
     if (!app) {
         console.error("App container (#app-container) not found.");
         return;
     }
 
-    // ... (keep your existing logic) ...
-
     try {
-        // Use absolute paths starting with /FACILITYS-TRACKER-APP/
-        // Adjust '/FACILITYS-TRACKER-APP/' if your root is different on GitHub
-        const basePath = '/FACILITYS-TRACKER-APP'; 
+        const basePath = '/FACILITYS-TRACKER-APP';
 
         if (view === 'facilities-home') {
-            const { renderDashboard } = await import(`${basePath}/facilities_views/facilities-home/grid.js`);
-            await renderDashboard('app-container');
-        } 
-        else if (view === 'facilities-contacts') {
-            const { renderContactsGrid } = await import(`${basePath}/facilities_views/facilities-contacts/grid.js`);
-            // ...
+            const module = await import(`${basePath}/facilities_views/facilities-home/grid.js`);
+            await module.renderDashboard('app-container');
+            return;
         }
-        // ...
+
+        if (view === 'facilities-projects') {
+            const module = await import(`${basePath}/facilities_views/facilities-projects/grid.js`);
+
+            if (typeof module.renderProjectsGrid === 'function') {
+                await module.renderProjectsGrid('app-container', context);
+                return;
+            }
+
+            if (typeof module.renderProjects === 'function') {
+                await module.renderProjects('app-container', context);
+                return;
+            }
+
+            if (typeof module.renderDashboard === 'function') {
+                await module.renderDashboard('app-container', context);
+                return;
+            }
+
+            console.error("No valid render function found in facilities-projects/grid.js");
+            app.innerHTML = `<div style="padding:20px;color:red;">Projects view render function not found.</div>`;
+            return;
+        }
+
+        if (view === 'facilities-contacts') {
+            const module = await import(`${basePath}/facilities_views/facilities-contacts/grid.js`);
+
+            if (typeof module.renderContactsGrid === 'function') {
+                await module.renderContactsGrid('app-container', context);
+                return;
+            }
+
+            if (typeof module.renderContacts === 'function') {
+                await module.renderContacts('app-container', context);
+                return;
+            }
+
+            if (typeof module.renderDashboard === 'function') {
+                await module.renderDashboard('app-container', context);
+                return;
+            }
+
+            console.error("No valid render function found in facilities-contacts/grid.js");
+            app.innerHTML = `<div style="padding:20px;color:red;">Contacts view render function not found.</div>`;
+            return;
+        }
+
+        console.error("Unknown route:", view);
+        app.innerHTML = `<div style="padding:20px;color:red;">Unknown route: ${view}</div>`;
+
     } catch (err) {
         console.error("Navigation error:", err);
+        app.innerHTML = `<div style="padding:20px;color:red;">Navigation error. Check console.</div>`;
     }
 }
+
+window.navigateTo = navigateTo;
