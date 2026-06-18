@@ -52,8 +52,8 @@ export async function renderContactsGrid(containerId, context = {}) {
     container.innerHTML = `
         <style>
             .contacts-card { background: #ffffff; max-width: 350px; margin: 16px auto; padding: 18px; border-radius: 14px; box-shadow: 0 4px 18px rgba(0,0,0,0.08); text-align: center; }
-            .contacts-title { color: #003b73; font-size: 22px; font-weight: bold; margin-bottom: 4px; }
-          .contacts-subtitle { color: #003b73; font-size: 14px; font-weight: bold; margin-bottom: 16px; }
+           .contacts-title { color: #003b73; font-size: 24px; font-weight: bold; margin-bottom: 2px; }
+.contacts-subtitle { color: #003b73; font-size: 13px; font-weight: bold; margin-bottom: 16px; letter-spacing: 2px; }
             .contacts-add-btn { background: #22a843; color: white; border: none; border-radius: 9px; width: 100%; padding: 13px; font-weight: bold; font-size: 15px; cursor: pointer; margin-bottom: 16px; }
             .contacts-list {     display: grid;     grid-template-columns: repeat(3, 1fr);     gap: 8px; }
 .contact-record-button {
@@ -113,7 +113,8 @@ export async function renderContactsGrid(containerId, context = {}) {
         </style>
 
         <div class="contacts-card">
-            <div class="contacts-title">CONTACTS</div>
+           <div class="contacts-title">${escapeHtml(facilityName)}</div>
+<div class="contacts-subtitle">CONTACTS</div>
             <div class="contacts-subtitle">${escapeHtml(facilityName)}</div>
 
             <button id="btn-add-contact" class="contacts-add-btn">ADD CONTACT</button>
