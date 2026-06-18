@@ -53,7 +53,7 @@ export async function renderContactsGrid(containerId, context = {}) {
         <style>
             .contacts-card { background: #ffffff; max-width: 350px; margin: 16px auto; padding: 18px; border-radius: 14px; box-shadow: 0 4px 18px rgba(0,0,0,0.08); text-align: center; }
             .contacts-title { color: #003b73; font-size: 22px; font-weight: bold; margin-bottom: 4px; }
-            .contacts-subtitle {     color: #003b73;     font-size: 14px;     font-weight: bold;     margin-bottom: 16px; }     color: #003b73;     font-size: 14px;     font-weight: bold;     margin-bottom: 16px; }
+          .contacts-subtitle { color: #003b73; font-size: 14px; font-weight: bold; margin-bottom: 16px; }
             .contacts-add-btn { background: #22a843; color: white; border: none; border-radius: 9px; width: 100%; padding: 13px; font-weight: bold; font-size: 15px; cursor: pointer; margin-bottom: 16px; }
             .contacts-list {     display: grid;     grid-template-columns: repeat(3, 1fr);     gap: 8px; }
 .contact-record-button {
