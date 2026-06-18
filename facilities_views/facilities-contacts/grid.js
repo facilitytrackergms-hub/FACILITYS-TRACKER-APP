@@ -55,24 +55,21 @@ export async function renderContactsGrid(containerId, context = {}) {
             .contacts-title { color: #003b73; font-size: 22px; font-weight: bold; margin-bottom: 4px; }
             .contacts-subtitle { color: #667085; font-size: 12px; margin-bottom: 16px; }
             .contacts-add-btn { background: #22a843; color: white; border: none; border-radius: 9px; width: 100%; padding: 13px; font-weight: bold; font-size: 15px; cursor: pointer; margin-bottom: 16px; }
-            .contacts-list { display: grid; gap: 12px; }
-           .contact-record-button {
+            .contacts-list {     display: grid;     grid-template-columns: repeat(3, 1fr);     gap: 8px; }
+.contact-record-button {
     display:flex;
+    flex-direction:column;
     align-items:center;
-    gap:10px;
-    width:100%;
-    min-height:52px;
+    justify-content:center;
+    gap:4px;
+    min-height:78px;
     background:#003b73;
     color:white;
     border:none;
     border-radius:10px;
-    padding:8px 12px;
+    padding:6px 4px;
     cursor:pointer;
     font-weight:bold;
-}
-
-.contact-record-button:hover {
-    background:#00509d;
 }
 
 .contact-img {
@@ -81,15 +78,15 @@ export async function renderContactsGrid(containerId, context = {}) {
     border-radius:50%;
     object-fit:cover;
     background:#dbe5ef;
-    flex:0 0 auto;
 }
 
 .contact-name {
     color:white;
-    font-size:15px;
+    font-size:12px;
     font-weight:bold;
+    text-align:center;
+    line-height:1.1;
 }
-
 .contact-role,
 .contact-line,
 .contact-notes,
