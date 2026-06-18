@@ -4,14 +4,13 @@
    DATE: 2026-06-18
    ================================================================ */
 
-window.navigateTo = async (view, context = {}) => {
+export async function navigateTo(view, context = {}) {
     const app = document.getElementById('app-container');
     if (!app) {
         console.error("App container (#app-container) not found.");
         return;
     }
 
-    // Define views that strictly require a facility ID
     const facilityViews = ['facilities-contacts', 'facilities-projects'];
     if (facilityViews.includes(view)) {
         const facilityId = context?.facility?.id || context?.id || context?.facilityId;
@@ -47,8 +46,11 @@ window.navigateTo = async (view, context = {}) => {
         console.error("Navigation error:", err);
         app.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error loading: ${view}</p>`;
     }
-};
+}
+
+// Ensure global access for buttons
+window.navigateTo = navigateTo;
 
 window.addEventListener('DOMContentLoaded', () => {
-    window.navigateTo('facilities-home');
+    navigateTo('facilities-home');
 });
