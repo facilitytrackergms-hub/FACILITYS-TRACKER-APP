@@ -56,14 +56,46 @@ export async function renderContactsGrid(containerId, context = {}) {
             .contacts-subtitle { color: #667085; font-size: 12px; margin-bottom: 16px; }
             .contacts-add-btn { background: #22a843; color: white; border: none; border-radius: 9px; width: 100%; padding: 13px; font-weight: bold; font-size: 15px; cursor: pointer; margin-bottom: 16px; }
             .contacts-list { display: grid; gap: 12px; }
-            .contact-record-button { width: 100%; border: 1px solid #d6dee8; border-radius: 12px; padding: 12px; background: #f8fbff; text-align: left; cursor: pointer; }
-            .contact-record-button:hover { background: #eef6ff; }
-            .contact-top { display: flex; gap: 12px; align-items: center; }
-            .contact-img { width: 58px; height: 58px; border-radius: 10px; object-fit: cover; background: #dbe5ef; flex: 0 0 auto; }
-            .contact-name { color: #003b73; font-weight: bold; font-size: 17px; }
-            .contact-role { color: #667085; font-size: 12px; font-weight: bold; margin-top: 2px; }
-            .contact-line { display: block; color: #003b73; font-size: 13px; margin-top: 4px; }
-            .contact-notes { font-size: 12px; color: #344054; margin-top: 6px; }
+           .contact-record-button {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    width:100%;
+    min-height:52px;
+    background:#003b73;
+    color:white;
+    border:none;
+    border-radius:10px;
+    padding:8px 12px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.contact-record-button:hover {
+    background:#00509d;
+}
+
+.contact-img {
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    object-fit:cover;
+    background:#dbe5ef;
+    flex:0 0 auto;
+}
+
+.contact-name {
+    color:white;
+    font-size:15px;
+    font-weight:bold;
+}
+
+.contact-role,
+.contact-line,
+.contact-notes,
+.contact-top {
+    display:none;
+}
             .contacts-back-btn { background: #747d8c; color: white; border: none; border-radius: 9px; width: 100%; min-height: 48px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 16px; }
             .contacts-version-tag { border-top: 1px solid #d6dee8; margin-top: 18px; padding-top: 10px; font-size: 10px; color: #7d8ba0; text-align: center; }
 
@@ -90,21 +122,14 @@ export async function renderContactsGrid(containerId, context = {}) {
             <button id="btn-add-contact" class="contacts-add-btn">ADD CONTACT</button>
 
             <div class="contacts-list">
-                ${contacts.length ? contacts.map(contact => `
-                    <button type="button" class="contact-record-button" data-id="${contact.id}">
-                        <div class="contact-top">
-                            ${contact.image_url ? `<img class="contact-img" src="${escapeHtml(contact.image_url)}" alt="${escapeHtml(contact.name)}">` : `<div class="contact-img"></div>`}
-                            <div>
-                                <div class="contact-name">${escapeHtml(contact.name)}</div>
-                                <div class="contact-role">${escapeHtml(contact.role)}</div>
-                                ${contact.phone ? `<span class="contact-line">📞 ${escapeHtml(contact.phone)}</span>` : ''}
-                                ${contact.email ? `<span class="contact-line">✉️ ${escapeHtml(contact.email)}</span>` : ''}
-                            </div>
-                        </div>
-                        ${contact.address ? `<span class="contact-line">📍 ${escapeHtml(contact.address)}</span>` : ''}
-                        ${contact.notes ? `<div class="contact-notes">${escapeHtml(contact.notes)}</div>` : ''}
-                    </button>
-                `).join('') : `<p style="text-align:center;color:#667085;">No contacts yet.</p>`}
+              ${contacts.length ? contacts.map(contact => `
+    <button type="button" class="contact-record-button" data-id="${contact.id}">
+        ${contact.image_url
+            ? `<img class="contact-img" src="${escapeHtml(contact.image_url)}" alt="${escapeHtml(contact.name)}">`
+            : `<div class="contact-img"></div>`}
+        <span class="contact-name">${escapeHtml(contact.name)}</span>
+    </button>
+`).join('') : `<p style="text-align:center;color:#667085;">No contacts yet.</p>`}
             </div>
 
             <button id="btn-back-facility" class="contacts-back-btn">⬅️ BACK</button>
