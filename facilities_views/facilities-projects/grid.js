@@ -194,9 +194,8 @@ export async function renderProjectsGrid(containerId, context = {}) {
         modalBackdrop.style.display = 'none';
     });
 
- document.getElementById('btn-back-facility').addEventListener('click', () => {
+document.getElementById('btn-back-facility').addEventListener('click', () => {
     if (window.navigateTo) window.navigateTo('facilities-home');
-});
     });
 
     deleteButton.addEventListener('click', async () => {
