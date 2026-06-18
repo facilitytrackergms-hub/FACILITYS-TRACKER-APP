@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facility Tracker GMS</title>
+    <title>Facility Tracker</title>
 </head>
 <body>
 
-    <div id="app">
+    <div id="app-container">
     </div>
 
- <script type="module">
-    // Make sure this path correctly points to your router file
-    import { navigateTo } from './00_global_engine/router.js';
-    window.navigateTo = navigateTo;
+    <script type="module">
+        // Points to your updated global_engine folder
+        import { navigateTo } from './global_engine/router.js';
+        
+        // This makes navigateTo available globally for your buttons
+        window.navigateTo = navigateTo;
 
-    window.addEventListener('DOMContentLoaded', () => {
-        // Change 'locations' to the exact name of the file or view 
-        // that handles your main dashboard entry point
-        window.navigateTo('view1_dashboard');
-    });
-</script>
+        window.addEventListener('DOMContentLoaded', () => {
+            // Updated to match your new 'facilities-home' view
+            window.navigateTo('facilities-home');
+        });
+    </script>
 </body>
 </html>
