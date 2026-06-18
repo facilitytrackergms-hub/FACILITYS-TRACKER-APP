@@ -1,5 +1,6 @@
 /*================================================================
 FACILITIES-PROJECTS GRID
+VERSION: v2026_06_18_facility_object_context_fix
 ================================================================*/
 
 import { supabase } from '../../global_engine/supabaseClient.js';
@@ -20,7 +21,6 @@ async function fetchFacilityById(facilityId) {
 }
 
 async function fetchFacilityImage(facilityId) {
-    // FIXED: Changed table from 'location_images' to 'facilities_images'
     const { data, error } = await supabase
         .from('facilities_images')
         .select('image_url')
@@ -39,23 +39,36 @@ async function fetchFacilityImage(facilityId) {
 
 function escapeHtml(value) {
     return String(value || '')
-        .replaceAll('&', '&')
-        .replaceAll('<', '<')
-        .replaceAll('>', '>')
-        .replaceAll('"', '"')
-        .replaceAll("'", ''');
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
 }
 
-export async function renderProjectsGrid(containerId, facilityId) {
+export async function renderProjectsGrid(containerId, context = {}) {
     const container = document.getElementById(containerId);
     if (!container) return;
+
+    let facilityId = null;
+    let facility = null;
+
+    if (typeof context === 'object' && context !== null) {
+        facilityId = context.id;
+        facility = context;
+    } else {
+        facilityId = context;
+    }
 
     if (!facilityId) {
         container.innerHTML = `<p style="color:red; text-align:center;">Missing facility ID.</p>`;
         return;
     }
 
-    const facility = await fetchFacilityById(facilityId);
+    if (!facility || !facility.id) {
+        facility = await fetchFacilityById(facilityId);
+    }
+
     if (!facility) {
         container.innerHTML = `<p style="color:red; text-align:center;">Facility not found.</p>`;
         return;
@@ -107,13 +120,18 @@ export async function renderProjectsGrid(containerId, facilityId) {
                 <button id="btn-open-projects" class="facility-action-btn">📋 3. PROJECTS</button>
             </div>
             <button id="btn-back-home" class="facility-back-btn">⬅️ BACK</button>
-            <div class="facility-version-tag">facilities-projects/grid.js | v2026_06_18_delete_fix | 2026-06-18</div>
+            <div class="facility-version-tag">facilities-projects/grid.js | v2026_06_18_facility_object_context_fix | 2026-06-18</div>
         </div>
     `;
 
     document.getElementById('btn-delete-facility').addEventListener('click', async () => {
         if (!confirm('Are you sure you want to delete this facility?')) return;
-        const { error } = await supabase.from('facilities').delete().eq('id', facilityId);
+
+        const { error } = await supabase
+            .from('facilities')
+            .delete()
+            .eq('id', facilityId);
+
         if (error) {
             console.error('Delete error:', error);
             alert('Failed to delete.');
