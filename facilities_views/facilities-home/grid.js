@@ -209,7 +209,7 @@ export async function renderDashboard(containerId) {
         }
 
         const { error } = await supabase
-            .from('locations')
+            .from('facilities')
             .insert([{
                 number_name: numberName,
                 abbreviation: abbreviation,
