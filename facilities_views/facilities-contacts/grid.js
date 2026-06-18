@@ -1,25 +1,17 @@
 /*================================================================
 FACILITIES-CONTACTS GRID
-VERSION: v2026_06_18_contacts_image_upload_view
+VERSION: v2026_06_18_view_on_button_contacts
 ================================================================*/
 
-import { supabase } from '../../global_engine/supabaseClient.js';
+import {
+    fetchContacts,
+    createContact,
+    updateContact,
+    deleteContact,
+    updateContactImage
+} from './data.js';
+
 import { uploadImage } from '../../global_engine/image-handler.js';
-
-async function fetchContacts(facilityId) {
-    const { data, error } = await supabase
-        .from('contacts')
-        .select('*')
-        .eq('facilities_id', facilityId)
-        .order('name', { ascending: true });
-
-    if (error) {
-        console.error('fetchContacts error:', error);
-        return [];
-    }
-
-    return data || [];
-}
 
 function escapeHtml(value) {
     return String(value || '')
@@ -64,17 +56,14 @@ export async function renderContactsGrid(containerId, context = {}) {
             .contacts-subtitle { color: #667085; font-size: 12px; margin-bottom: 16px; }
             .contacts-add-btn { background: #22a843; color: white; border: none; border-radius: 9px; width: 100%; padding: 13px; font-weight: bold; font-size: 15px; cursor: pointer; margin-bottom: 16px; }
             .contacts-list { display: grid; gap: 12px; }
-            .contact-item { border: 1px solid #d6dee8; border-radius: 12px; padding: 12px; background: #f8fbff; text-align: left; }
+            .contact-record-button { width: 100%; border: 1px solid #d6dee8; border-radius: 12px; padding: 12px; background: #f8fbff; text-align: left; cursor: pointer; }
+            .contact-record-button:hover { background: #eef6ff; }
             .contact-top { display: flex; gap: 12px; align-items: center; }
             .contact-img { width: 58px; height: 58px; border-radius: 10px; object-fit: cover; background: #dbe5ef; flex: 0 0 auto; }
             .contact-name { color: #003b73; font-weight: bold; font-size: 17px; }
             .contact-role { color: #667085; font-size: 12px; font-weight: bold; margin-top: 2px; }
-            .contact-link { display: block; color: #003b73; font-size: 13px; margin-top: 4px; text-decoration: underline; }
+            .contact-line { display: block; color: #003b73; font-size: 13px; margin-top: 4px; }
             .contact-notes { font-size: 12px; color: #344054; margin-top: 6px; }
-            .contact-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-            .contact-buttons button { border: none; border-radius: 8px; padding: 9px; font-weight: bold; cursor: pointer; }
-            .btn-edit-contact { background: #003b73; color: white; }
-            .btn-delete-contact { background: #fee2e2; color: #dc2626; }
             .contacts-back-btn { background: #747d8c; color: white; border: none; border-radius: 9px; width: 100%; min-height: 48px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 16px; }
             .contacts-version-tag { border-top: 1px solid #d6dee8; margin-top: 18px; padding-top: 10px; font-size: 10px; color: #7d8ba0; text-align: center; }
 
@@ -86,10 +75,11 @@ export async function renderContactsGrid(containerId, context = {}) {
             .contact-modal textarea { min-height: 70px; resize: vertical; }
             .contact-image-preview { width: 100%; max-height: 130px; object-fit: cover; border-radius: 8px; margin-top: 8px; display: none; }
             .btn-contact-image { background: #003b73; color: white; border: none; border-radius: 7px; padding: 11px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 8px; }
-            .contact-modal-buttons { display: flex; gap: 8px; margin-top: 16px; }
-            .contact-modal-buttons button { flex: 1; padding: 11px; border: none; border-radius: 7px; font-weight: bold; cursor: pointer; }
+            .contact-modal-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+            .contact-modal-buttons button { padding: 11px; border: none; border-radius: 7px; font-weight: bold; cursor: pointer; }
             .btn-save-contact { background: #22a843; color: white; }
             .btn-cancel-contact { background: #777; color: white; }
+            .btn-delete-contact { background: #dc2626; color: yellow; display: none; width: 100%; margin-top: 10px; padding: 11px; border: none; border-radius: 7px; font-weight: bold; cursor: pointer; }
             .contact-error { color: red; font-size: 13px; text-align: center; margin-top: 10px; min-height: 16px; }
         </style>
 
@@ -101,31 +91,25 @@ export async function renderContactsGrid(containerId, context = {}) {
 
             <div class="contacts-list">
                 ${contacts.length ? contacts.map(contact => `
-                    <div class="contact-item">
+                    <button type="button" class="contact-record-button" data-id="${contact.id}">
                         <div class="contact-top">
                             ${contact.image_url ? `<img class="contact-img" src="${escapeHtml(contact.image_url)}" alt="${escapeHtml(contact.name)}">` : `<div class="contact-img"></div>`}
                             <div>
                                 <div class="contact-name">${escapeHtml(contact.name)}</div>
                                 <div class="contact-role">${escapeHtml(contact.role)}</div>
-                                ${contact.phone ? `<a class="contact-link" href="tel:${escapeHtml(contact.phone)}">📞 ${escapeHtml(contact.phone)}</a>` : ''}
-                                ${contact.email ? `<a class="contact-link" href="mailto:${escapeHtml(contact.email)}">✉️ ${escapeHtml(contact.email)}</a>` : ''}
+                                ${contact.phone ? `<span class="contact-line">📞 ${escapeHtml(contact.phone)}</span>` : ''}
+                                ${contact.email ? `<span class="contact-line">✉️ ${escapeHtml(contact.email)}</span>` : ''}
                             </div>
                         </div>
-
-                        ${contact.address ? `<a class="contact-link" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contact.address)}" target="_blank">📍 ${escapeHtml(contact.address)}</a>` : ''}
+                        ${contact.address ? `<span class="contact-line">📍 ${escapeHtml(contact.address)}</span>` : ''}
                         ${contact.notes ? `<div class="contact-notes">${escapeHtml(contact.notes)}</div>` : ''}
-
-                        <div class="contact-buttons">
-                            <button class="btn-edit-contact" data-id="${contact.id}">Edit</button>
-                            <button class="btn-delete-contact" data-id="${contact.id}">Delete</button>
-                        </div>
-                    </div>
+                    </button>
                 `).join('') : `<p style="text-align:center;color:#667085;">No contacts yet.</p>`}
             </div>
 
             <button id="btn-back-facility" class="contacts-back-btn">⬅️ BACK</button>
 
-            <div class="contacts-version-tag">facilities-contacts/grid.js | v2026_06_18_contacts_image_upload_view | 2026-06-18</div>
+            <div class="contacts-version-tag">facilities-contacts/grid.js | v2026_06_18_view_on_button_contacts | 2026-06-18</div>
         </div>
 
         <div id="contact-modal-backdrop" class="contact-modal-backdrop">
@@ -138,14 +122,14 @@ export async function renderContactsGrid(containerId, context = {}) {
                 <input id="contact-name-input" type="text">
 
                 <label>Role</label>
-              <input id="contact-role-input" list="role-options" type="text">
+                <input id="contact-role-input" list="role-options" type="text">
 
-<datalist id="role-options">
-    <option value="Manager">
-    <option value="Nurse">
-    <option value="Technician">
-    <option value="Admin">
-</datalist>
+                <datalist id="role-options">
+                    <option value="Manager">
+                    <option value="Nurse">
+                    <option value="Technician">
+                    <option value="Admin">
+                </datalist>
 
                 <label>Phone</label>
                 <input id="contact-phone-input" type="tel" inputmode="numeric">
@@ -170,7 +154,11 @@ export async function renderContactsGrid(containerId, context = {}) {
                     <button id="btn-cancel-contact" class="btn-cancel-contact">Cancel</button>
                 </div>
 
+                <button id="btn-delete-contact" class="btn-delete-contact">Delete Contact</button>
+
                 <div id="contact-error" class="contact-error"></div>
+
+                <div class="contacts-version-tag">contact modal | v2026_06_18_view_on_button_contacts | 2026-06-18</div>
             </div>
         </div>
     `;
@@ -187,6 +175,7 @@ export async function renderContactsGrid(containerId, context = {}) {
     const imageInput = document.getElementById('contact-image-input');
     const imagePreview = document.getElementById('contact-image-preview');
     const errorBox = document.getElementById('contact-error');
+    const deleteButton = document.getElementById('btn-delete-contact');
 
     function clearModal() {
         contactIdInput.value = '';
@@ -201,6 +190,7 @@ export async function renderContactsGrid(containerId, context = {}) {
         imagePreview.style.display = 'none';
         errorBox.textContent = '';
         modalTitle.textContent = 'Add Contact';
+        deleteButton.style.display = 'none';
     }
 
     function openModal(contact = null) {
@@ -215,6 +205,7 @@ export async function renderContactsGrid(containerId, context = {}) {
             addressInput.value = contact.address || '';
             notesInput.value = contact.notes || '';
             modalTitle.textContent = 'Edit Contact';
+            deleteButton.style.display = 'block';
 
             if (contact.image_url) {
                 imagePreview.src = contact.image_url;
@@ -227,6 +218,14 @@ export async function renderContactsGrid(containerId, context = {}) {
 
     document.getElementById('btn-add-contact').addEventListener('click', () => {
         openModal();
+    });
+
+    document.querySelectorAll('.contact-record-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const contactId = button.dataset.id;
+            const contact = contacts.find(c => String(c.id) === String(contactId));
+            if (contact) openModal(contact);
+        });
     });
 
     document.getElementById('btn-cancel-contact').addEventListener('click', () => {
@@ -243,35 +242,6 @@ export async function renderContactsGrid(containerId, context = {}) {
 
         imagePreview.src = URL.createObjectURL(file);
         imagePreview.style.display = 'block';
-    });
-
-    document.querySelectorAll('.btn-edit-contact').forEach(button => {
-        button.addEventListener('click', () => {
-            const contactId = button.dataset.id;
-            const contact = contacts.find(c => String(c.id) === String(contactId));
-            if (contact) openModal(contact);
-        });
-    });
-
-    document.querySelectorAll('.btn-delete-contact').forEach(button => {
-        button.addEventListener('click', async () => {
-            const contactId = button.dataset.id;
-
-            if (!confirm('Are you sure you want to delete this contact?')) return;
-
-            const { error } = await supabase
-                .from('contacts')
-                .delete()
-                .eq('id', contactId);
-
-            if (error) {
-                console.error('Delete contact error:', error);
-                alert('Could not delete contact.');
-                return;
-            }
-
-            await renderContactsGrid(containerId, context);
-        });
     });
 
     document.getElementById('btn-update-contact-image').addEventListener('click', async () => {
@@ -292,11 +262,7 @@ export async function renderContactsGrid(containerId, context = {}) {
 
         try {
             const imageUrlUploaded = await uploadImage(file, 'locations-images', `contacts/${facilityId}`);
-
-            const { error } = await supabase
-                .from('contacts')
-                .update({ image_url: imageUrlUploaded })
-                .eq('id', contactId);
+            const { error } = await updateContactImage(contactId, imageUrlUploaded);
 
             if (error) throw error;
 
@@ -308,6 +274,24 @@ export async function renderContactsGrid(containerId, context = {}) {
             console.error('Contact image update error:', err);
             errorBox.textContent = 'Could not update image.';
         }
+    });
+
+    deleteButton.addEventListener('click', async () => {
+        const contactId = contactIdInput.value;
+
+        if (!contactId) return;
+        if (!confirm('Are you sure you want to delete this contact?')) return;
+
+        const { error } = await deleteContact(contactId);
+
+        if (error) {
+            console.error('Delete contact error:', error);
+            errorBox.textContent = 'Could not delete contact.';
+            return;
+        }
+
+        modalBackdrop.style.display = 'none';
+        await renderContactsGrid(containerId, context);
     });
 
     document.getElementById('btn-save-contact').addEventListener('click', async () => {
@@ -337,12 +321,7 @@ export async function renderContactsGrid(containerId, context = {}) {
         let savedContact = null;
 
         if (contactId) {
-            const { data, error } = await supabase
-                .from('contacts')
-                .update(payload)
-                .eq('id', contactId)
-                .select('*')
-                .single();
+            const { data, error } = await updateContact(contactId, payload);
 
             if (error) {
                 console.error('Update contact error:', error);
@@ -352,11 +331,7 @@ export async function renderContactsGrid(containerId, context = {}) {
 
             savedContact = data;
         } else {
-            const { data, error } = await supabase
-                .from('contacts')
-                .insert([payload])
-                .select('*')
-                .single();
+            const { data, error } = await createContact(payload);
 
             if (error) {
                 console.error('Insert contact error:', error);
@@ -372,11 +347,7 @@ export async function renderContactsGrid(containerId, context = {}) {
         if (file && savedContact?.id) {
             try {
                 const imageUrlUploaded = await uploadImage(file, 'locations-images', `contacts/${facilityId}`);
-
-                const { error: imageError } = await supabase
-                    .from('contacts')
-                    .update({ image_url: imageUrlUploaded })
-                    .eq('id', savedContact.id);
+                const { error: imageError } = await updateContactImage(savedContact.id, imageUrlUploaded);
 
                 if (imageError) throw imageError;
 
