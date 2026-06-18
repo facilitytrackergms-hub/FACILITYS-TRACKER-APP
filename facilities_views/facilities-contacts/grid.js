@@ -138,7 +138,14 @@ export async function renderContactsGrid(containerId, context = {}) {
                 <input id="contact-name-input" type="text">
 
                 <label>Role</label>
-                <input id="contact-role-input" type="text">
+              <input id="contact-role-input" list="role-options" type="text">
+
+<datalist id="role-options">
+    <option value="Manager">
+    <option value="Nurse">
+    <option value="Technician">
+    <option value="Admin">
+</datalist>
 
                 <label>Phone</label>
                 <input id="contact-phone-input" type="tel">
