@@ -12,7 +12,16 @@ export async function renderDashboard(containerId) {
     const facilities = await fetchFacilities();
 
     let html = `
+       // ... inside renderDashboard ...
+    let html = `
         <style>
+            .home-header {
+                font-size: 20px;
+                font-weight: bold;
+                color: #003b73;
+                margin-bottom: 10px;
+                text-align: center;
+            }
             .facilities-home-container {
                 background: #f7f9fb;
                 border-radius: 0 0 14px 14px;
@@ -21,119 +30,18 @@ export async function renderDashboard(containerId) {
                 margin: 0 auto;
                 text-align: center;
                 border-top: 3px solid #003b73;
+                margin-top: 40px; /* Space for the title */
             }
-
-            .btn-green {
-                background: #22a843;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                padding: 14px 18px;
-                font-size: 16px;
-                font-weight: bold;
-                cursor: pointer;
-                margin-bottom: 24px;
-            }
-
-            .facilities-grid {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 8px;
-            }
-
-            .btn-facility {
-                background: #003b73;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                min-height: 56px;
-                padding: 8px;
-                font-size: 16px;
-                font-weight: bold;
-                cursor: pointer;
-                white-space: normal;
-                line-height: 1.1;
-            }
-
-            .btn-facility:active {
-                transform: scale(0.97);
-            }
-
-            .facility-modal-backdrop {
-                position: fixed;
-                inset: 0;
-                background: rgba(0, 0, 0, 0.45);
-                display: none;
-                align-items: center;
-                justify-content: center;
-                z-index: 9999;
-            }
-
-            .facility-modal {
-                background: white;
-                width: 90%;
-                max-width: 340px;
-                border-radius: 12px;
-                padding: 18px;
-                box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
-                text-align: left;
-            }
-
-            .facility-modal h3 {
-                margin: 0 0 14px;
-                text-align: center;
-                color: #003b73;
-            }
-
-            .facility-modal label {
-                display: block;
-                font-size: 13px;
-                font-weight: bold;
-                margin: 10px 0 4px;
-            }
-
-            .facility-modal input {
-                width: 100%;
-                padding: 9px;
-                border: 1px solid #bbb;
-                border-radius: 6px;
-                font-size: 15px;
-                box-sizing: border-box;
-            }
-
-            .facility-modal-buttons {
-                display: flex;
-                gap: 8px;
-                margin-top: 16px;
-            }
-
-            .facility-modal-buttons button {
-                flex: 1;
-                padding: 11px;
-                border: none;
-                border-radius: 7px;
-                font-weight: bold;
-                cursor: pointer;
-            }
-
-            .btn-save-facility {
-                background: #22a843;
-                color: white;
-            }
-
-            .btn-cancel-facility {
-                background: #777;
-                color: white;
-            }
-
-            .facility-error {
-                color: red;
-                font-size: 13px;
-                text-align: center;
-                margin-top: 10px;
-                min-height: 16px;
-            }
+            /* ... rest of your existing CSS ... */
         </style>
+
+        <div class="home-header">FACILITY HOMES</div>
+        
+        <div class="facilities-home-container">
+            <button id="btn-create-facility" class="btn-green">Create New Facility</button>
+            <div class="facilities-grid">
+    `;
+// ... rest of your function ...
 
         <div class="facilities-home-container">
             <button id="btn-create-facility" class="btn-green">Create New Facility</button>
