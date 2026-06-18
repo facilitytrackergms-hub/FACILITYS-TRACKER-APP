@@ -10,17 +10,12 @@
     <div id="app-container">
     </div>
 
-    <script type="module">
-        // Points to your updated global_engine folder
-        import { navigateTo } from './global_engine/router.js';
-        
-        // This makes navigateTo available globally for your buttons
-        window.navigateTo = navigateTo;
+  <script type="module">
+    // Simply import the router file to execute its code
+    import './global_engine/router.js';
 
-        window.addEventListener('DOMContentLoaded', () => {
-            // Updated to match your new 'facilities-home' view
-            window.navigateTo('facilities-home');
-        });
-    </script>
+    // No need to import navigateTo, because router.js 
+    // already attached it to the window object.
+</script>
 </body>
 </html>
