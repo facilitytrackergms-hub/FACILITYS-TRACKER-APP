@@ -1,33 +1,54 @@
 /* ================================================================
    PURPOSE: Router to handle view navigation
-   LOCATION: /FACILITYS-TRACKER-APP/00_global_engine/router.js
-   DATE: 2026-06-17
+   LOCATION: /global_engine/router.js
+   DATE: 2026-06-18
    ================================================================ */
 
-import { renderLocations } from '../locations/view1_dashboard/grid.js';
-import { renderDetails } from '../view_2_locations_details/view_2_locations_details_grid.js';
-import { renderContacts } from '../view_3_contacts/view_3_contacts_grid.js';
-import { renderProjects } from '../view_4_projects/view_4_projects_grid.js';
+window.navigateTo = async (view, context = {}) => {
+    const app = document.getElementById('app-container');
+    if (!app) {
+        console.error("App container (#app-container) not found.");
+        return;
+    }
 
-window.navigateTo = (view, context) => {
-    switch (view) {
-        case 'view1_dashboard':
-            renderLocations();
-            break;
+    // Define views that strictly require a facility ID
+    const facilityViews = ['facilities-contacts', 'facilities-projects'];
+    if (facilityViews.includes(view)) {
+        const facilityId = context?.facility?.id || context?.id || context?.facilityId;
+        if (!facilityId) {
+            console.warn(`Navigation blocked to "${view}": Missing valid facility ID.`);
+            view = 'facilities-home';
+            context = {};
+        }
+    }
 
-        case 'view_2_locations_details':
-            renderDetails(context);
-            break;
+    app.innerHTML = '<p style="text-align:center; padding:50px;">Loading...</p>';
 
-        case 'view_3_contacts':
-            renderContacts(context);
-            break;
-
-        case 'view_4_projects':
-            renderProjects(context);
-            break;
-
-        default:
-            renderLocations();
+    try {
+        if (view === 'facilities-home') {
+            const { renderDashboard } = await import(`../facilities_views/facilities-home/grid.js`);
+            await renderDashboard('app-container');
+        } 
+        else if (view === 'facilities-contacts') {
+            const { renderContactsGrid } = await import(`../facilities_views/facilities-contacts/grid.js`);
+            const facilityId = context.facility?.id || context?.id;
+            await renderContactsGrid('app-container', facilityId);
+        }
+        else if (view === 'facilities-projects') {
+            const { renderProjectsGrid } = await import(`../facilities_views/facilities-projects/grid.js`);
+            const facilityId = context.facility?.id || context?.id;
+            await renderProjectsGrid('app-container', facilityId);
+        }
+        else {
+            console.warn(`Unknown view "${view}"`);
+            app.innerHTML = `<p style="text-align:center; padding:20px;">View not found.</p>`;
+        }
+    } catch (err) {
+        console.error("Navigation error:", err);
+        app.innerHTML = `<p style="color:red; text-align:center; padding:20px;">Error loading: ${view}</p>`;
     }
 };
+
+window.addEventListener('DOMContentLoaded', () => {
+    window.navigateTo('facilities-home');
+});
