@@ -3,19 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facility Tracker</title>
+    <title>Facility Management Hub</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f1f5f9;
+        }
+        /* Target ID updated to app-container for router compatibility */
+        #app-container {
+            width: 100%;
+            max-width: 420px;
+            height: 90vh;
+            min-height: 700px;
+            background-color: #e6f2ff;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            border-radius: 16px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            -webkit-overflow-scrolling: touch;
+        }
+    </style>
 </head>
 <body>
 
-    <div id="app-container">
-    </div>
+    <div id="app-container"></div>
 
-  <script type="module">
-    // Simply import the router file to execute its code
-    import './global_engine/router.js';
+    <script type="module">
+        import { navigateTo } from './global_engine/router.js';
+        window.navigateTo = navigateTo;
 
-    // No need to import navigateTo, because router.js 
-    // already attached it to the window object.
-</script>
+        window.addEventListener('DOMContentLoaded', () => {
+            window.navigateTo('facilities-home');
+        });
+    </script>
 </body>
 </html>
