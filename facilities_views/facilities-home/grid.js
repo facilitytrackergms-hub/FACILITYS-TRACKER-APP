@@ -1,4 +1,3 @@
-
 /*================================================================
 FACILITIES-HOME GRID
 ================================================================*/
@@ -14,12 +13,12 @@ export async function renderDashboard(containerId) {
     let html = `
         <div class="facilities-home-container">
             <button id="btn-create-facility" class="btn-green">Create New Facility</button>
-            <div class="facilities-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 20px;">
+            <div class="facilities-grid">
     `;
 
     facilities.forEach(fac => {
         html += `
-            <button class="btn-facility" data-id="${fac.id}" style="padding: 20px;">
+            <button class="btn-facility" data-id="${fac.id}">
                 ${fac.abbreviation || fac.number_name}
             </button>
         `;
@@ -27,6 +26,11 @@ export async function renderDashboard(containerId) {
 
     html += `</div></div>`;
     container.innerHTML = html;
+
+    // Add event listener for the Create button
+    document.getElementById('btn-create-facility').addEventListener('click', () => {
+        console.log("Create new facility clicked");
+    });
 }
 
 /*================================================================
