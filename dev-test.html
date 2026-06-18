@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Facility View Tester</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #eef2f6;
+        }
+
+        .dev-panel {
+            max-width: 360px;
+            margin: 12px auto;
+            background: white;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+            border-top: 4px solid #003b73;
+        }
+
+        .dev-title {
+            text-align: center;
+            font-weight: bold;
+            color: #003b73;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .dev-row {
+            margin-bottom: 10px;
+        }
+
+        .dev-row label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            color: #003b73;
+            margin-bottom: 4px;
+        }
+
+        .dev-row input,
+        .dev-row select {
+            width: 100%;
+            padding: 9px;
+            border: 1px solid #bbb;
+            border-radius: 7px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+
+        .dev-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .dev-btn {
+            background: #003b73;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 11px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .dev-btn-green {
+            background: #22a843;
+        }
+
+        .dev-error {
+            color: red;
+            text-align: center;
+            font-size: 13px;
+            min-height: 18px;
+            margin-top: 8px;
+        }
+
+        .dev-divider {
+            height: 3px;
+            background: #003b73;
+            max-width: 360px;
+            margin: 12px auto;
+            border-radius: 5px;
+        }
+
+        .dev-version {
+            text-align: center;
+            font-size: 10px;
+            color: #667085;
+            margin-top: 10px;
+        }
+
+        #app-container {
+            min-height: 300px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dev-panel">
+        <div class="dev-title">VIEW TESTER</div>
+
+        <div class="dev-row">
+            <label>Facility ID</label>
+            <input id="dev-facility-id" type="number" placeholder="Example: 5">
+        </div>
+
+        <div class="dev-row">
+            <label>View</label>
+            <select id="dev-view">
+                <option value="facilities-projects">Facility Details / Projects</option>
+                <option value="facilities-contacts">Contacts</option>
+                <option value="facilities-home">Facilities Home</option>
+            </select>
+        </div>
+
+        <div class="dev-buttons">
+            <button id="btn-load-view" class="dev-btn dev-btn-green">LOAD VIEW</button>
+            <button id="btn-clear-view" class="dev-btn">CLEAR</button>
+        </div>
+
+        <div id="dev-error" class="dev-error"></div>
+
+        <div class="dev-version">
+            dev-test.html | v2026_06_18_view_tester | 2026-06-18
+        </div>
+    </div>
+
+    <div class="dev-divider"></div>
+
+    <div id="app-container"></div>
+
+    <script type="module">
+        import { supabase } from './global_engine/supabaseClient.js';
+        import { navigateTo } from './global_engine/router.js';
+
+        window.navigateTo = navigateTo;
+
+        const facilityIdInput = document.getElementById('dev-facility-id');
+        const viewSelect = document.getElementById('dev-view');
+        const errorBox = document.getElementById('dev-error');
+
+        async function fetchFacilityById(facilityId) {
+            const { data, error } = await supabase
+                .from('facilities')
+                .select('*')
+                .eq('id', facilityId)
+                .single();
+
+            if (error) {
+                console.error('fetchFacilityById error:', error);
+                return null;
+            }
+
+            return data;
+        }
+
+        async function loadView() {
+            errorBox.textContent = '';
+
+            const view = viewSelect.value;
+            const facilityId = facilityIdInput.value.trim();
+
+            if (view === 'facilities-home') {
+                await navigateTo('facilities-home');
+                return;
+            }
+
+            if (!facilityId) {
+                errorBox.textContent = 'Enter a facility ID.';
+                return;
+            }
+
+            const facility = await fetchFacilityById(facilityId);
+
+            if (!facility) {
+                errorBox.textContent = 'Facility not found.';
+                return;
+            }
+
+            await navigateTo(view, facility);
+        }
+
+        document.getElementById('btn-load-view').addEventListener('click', loadView);
+
+        document.getElementById('btn-clear-view').addEventListener('click', () => {
+            document.getElementById('app-container').innerHTML = '';
+            errorBox.textContent = '';
+        });
+
+        const params = new URLSearchParams(window.location.search);
+        const routeParam = params.get('view');
+        const facilityParam = params.get('facility_id');
+
+        if (routeParam) viewSelect.value = routeParam;
+        if (facilityParam) facilityIdInput.value = facilityParam;
+
+        if (routeParam) {
+            loadView();
+        }
+    </script>
+</body>
+</html>
