@@ -1,6 +1,6 @@
 /*================================================================
 FACILITIES-PROJECTS GRID
-VERSION: v2026_06_18_facilities_images_column_fix
+VERSION: v2026_06_18_edit_button_fix
 ================================================================*/
 
 import { supabase } from '../../global_engine/supabaseClient.js';
@@ -79,6 +79,8 @@ export async function renderProjectsGrid(containerId, context = {}) {
     const facilityName = facility.abbreviation || facility.number_name || facility.name || 'Facility';
     const address = facility.address || '';
     const phone = facility.phone || '';
+    const numberName = facility.number_name || facility.name || '';
+    const abbreviation = facility.abbreviation || '';
 
     container.innerHTML = `
         <style>
@@ -96,6 +98,17 @@ export async function renderProjectsGrid(containerId, context = {}) {
             .facility-action-btn { background: #003b73; color: white; border: none; border-radius: 9px; min-height: 54px; font-size: 15px; font-weight: bold; cursor: pointer; }
             .facility-back-btn { background: #747d8c; color: white; border: none; border-radius: 9px; width: 100%; min-height: 48px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 16px; }
             .facility-version-tag { border-top: 1px solid #d6dee8; margin-top: 22px; padding-top: 12px; font-size: 10px; color: #7d8ba0; text-align: center; }
+
+            .facility-edit-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 9999; }
+            .facility-edit-modal { background: white; width: 90%; max-width: 340px; border-radius: 12px; padding: 18px; box-shadow: 0 4px 18px rgba(0,0,0,0.25); text-align: left; }
+            .facility-edit-modal h3 { margin: 0 0 14px; text-align: center; color: #003b73; }
+            .facility-edit-modal label { display: block; font-size: 13px; font-weight: bold; margin: 10px 0 4px; color: #003b73; }
+            .facility-edit-modal input { width: 100%; padding: 9px; border: 1px solid #bbb; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
+            .facility-edit-buttons { display: flex; gap: 8px; margin-top: 16px; }
+            .facility-edit-buttons button { flex: 1; padding: 11px; border: none; border-radius: 7px; font-weight: bold; cursor: pointer; }
+            .btn-save-edit { background: #22a843; color: white; }
+            .btn-cancel-edit { background: #777; color: white; }
+            .facility-edit-error { color: red; font-size: 13px; text-align: center; margin-top: 10px; min-height: 16px; }
         </style>
 
         <div class="facility-detail-card">
@@ -123,9 +136,37 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
             <button id="btn-back-home" class="facility-back-btn">⬅️ BACK</button>
 
-            <div class="facility-version-tag">facilities-projects/grid.js | v2026_06_18_facilities_images_column_fix | 2026-06-18</div>
+            <div class="facility-version-tag">facilities-projects/grid.js | v2026_06_18_edit_button_fix | 2026-06-18</div>
+        </div>
+
+        <div id="facility-edit-backdrop" class="facility-edit-backdrop">
+            <div class="facility-edit-modal">
+                <h3>Edit Facility</h3>
+
+                <label>Facility Name</label>
+                <input id="edit-facility-name" type="text" value="${escapeHtml(numberName)}">
+
+                <label>Abbreviation</label>
+                <input id="edit-facility-abbreviation" type="text" value="${escapeHtml(abbreviation)}">
+
+                <label>Address</label>
+                <input id="edit-facility-address" type="text" value="${escapeHtml(address)}">
+
+                <label>Phone</label>
+                <input id="edit-facility-phone" type="tel" value="${escapeHtml(phone)}">
+
+                <div class="facility-edit-buttons">
+                    <button id="btn-save-edit-facility" class="btn-save-edit">Save</button>
+                    <button id="btn-cancel-edit-facility" class="btn-cancel-edit">Cancel</button>
+                </div>
+
+                <div id="facility-edit-error" class="facility-edit-error"></div>
+            </div>
         </div>
     `;
+
+    const editBackdrop = document.getElementById('facility-edit-backdrop');
+    const editError = document.getElementById('facility-edit-error');
 
     document.getElementById('btn-delete-facility').addEventListener('click', async () => {
         if (!confirm('Are you sure you want to delete this facility?')) return;
@@ -164,6 +205,46 @@ export async function renderProjectsGrid(containerId, context = {}) {
     });
 
     document.getElementById('btn-edit-facility').addEventListener('click', () => {
-        console.log('Edit facility clicked:', facilityId);
+        editBackdrop.style.display = 'flex';
+    });
+
+    document.getElementById('btn-cancel-edit-facility').addEventListener('click', () => {
+        editBackdrop.style.display = 'none';
+    });
+
+    document.getElementById('btn-save-edit-facility').addEventListener('click', async () => {
+        const updatedName = document.getElementById('edit-facility-name').value.trim();
+        const updatedAbbreviation = document.getElementById('edit-facility-abbreviation').value.trim();
+        const updatedAddress = document.getElementById('edit-facility-address').value.trim();
+        const updatedPhone = document.getElementById('edit-facility-phone').value.trim();
+
+        if (!updatedName || !updatedAbbreviation) {
+            editError.textContent = 'Name and abbreviation required.';
+            return;
+        }
+
+        const { data, error } = await supabase
+            .from('facilities')
+            .update({
+                number_name: updatedName,
+                abbreviation: updatedAbbreviation,
+                address: updatedAddress,
+                phone: updatedPhone
+            })
+            .eq('id', facilityId)
+            .select('*')
+            .single();
+
+        if (error) {
+            console.error('Edit save error:', error);
+            editError.textContent = 'Could not save changes.';
+            return;
+        }
+
+        editBackdrop.style.display = 'none';
+
+        if (window.navigateTo) {
+            window.navigateTo('facilities-projects', data);
+        }
     });
 }
