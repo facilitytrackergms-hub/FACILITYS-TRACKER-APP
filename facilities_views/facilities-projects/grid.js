@@ -1,6 +1,6 @@
 /*================================================================
 FACILITIES-PROJECTS GRID
-VERSION: v2026_06_18_image_table_delete_check_fix
+VERSION: v2026_06_18_facilities_images_column_fix
 ================================================================*/
 
 import { supabase } from '../../global_engine/supabaseClient.js';
@@ -22,9 +22,9 @@ async function fetchFacilityById(facilityId) {
 
 async function fetchFacilityImage(facilityId) {
     const { data, error } = await supabase
-        .from('location_images')
+        .from('facilities_images')
         .select('image_url')
-        .eq('location_id', facilityId)
+        .eq('facilities_id', facilityId)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -123,7 +123,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
             <button id="btn-back-home" class="facility-back-btn">⬅️ BACK</button>
 
-            <div class="facility-version-tag">facilities-projects/grid.js | v2026_06_18_image_table_delete_check_fix | 2026-06-18</div>
+            <div class="facility-version-tag">facilities-projects/grid.js | v2026_06_18_facilities_images_column_fix | 2026-06-18</div>
         </div>
     `;
 
