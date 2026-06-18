@@ -148,7 +148,7 @@ export async function renderContactsGrid(containerId, context = {}) {
 </datalist>
 
                 <label>Phone</label>
-                <input id="contact-phone-input" type="tel">
+                <input id="contact-phone-input" type="tel" inputmode="numeric">
 
                 <label>Email</label>
                 <input id="contact-email-input" type="email">
