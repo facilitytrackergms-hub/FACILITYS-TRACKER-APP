@@ -6,7 +6,7 @@ import { supabase } from '../../global_engine/supabaseClient.js';
 
 async function fetchFacilityById(facilityId) {
     const { data, error } = await supabase
-        .from('locations')
+        .from('facilities')
         .select('*')
         .eq('id', facilityId)
         .single();
