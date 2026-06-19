@@ -1,6 +1,6 @@
 /*================================================================
 FACILITIES-PROJECTS GRID
-VERSION: v2026_06_18_view_on_button_projects
+VERSION: v2026_06_18_project_modal_fields_tag_fix
 ================================================================*/
 
 import {
@@ -88,12 +88,12 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
             <button id="btn-back-facility" class="projects-back-btn">⬅️ BACK</button>
 
-            <div class="projects-version-tag">facilities-projects/grid.js | v2026_06_18_view_on_button_projects | 2026-06-18</div>
+            <div class="projects-version-tag">facilities_views/facilities-projects/grid.js</div>
         </div>
 
         <div id="project-modal-backdrop" class="project-modal-backdrop">
             <div class="project-modal">
-                <h3 id="project-modal-title">Add Project</h3>
+                <h3 id="project-modal-title">Add Project for ${escapeHtml(facilityName)}</h3>
 
                 <input id="project-id-input" type="hidden">
 
@@ -101,22 +101,22 @@ export async function renderProjectsGrid(containerId, context = {}) {
                 <input id="project-name-input" type="text">
 
                 <label>Type</label>
-                <input id="project-type-input" type="text">
+                <input id="project-type-input" type="text" list="project-type-options">
 
-                <label>Status</label>
-                <input id="project-status-input" type="text">
+                <datalist id="project-type-options">
+                    <option value="Repair"></option>
+                    <option value="Renovation"></option>
+                    <option value="Maintenance"></option>
+                    <option value="Inspection"></option>
+                    <option value="Replacement"></option>
+                    <option value="Other"></option>
+                </datalist>
 
                 <label>Description</label>
                 <textarea id="project-description-input"></textarea>
 
                 <label>Notes</label>
                 <textarea id="project-notes-input"></textarea>
-
-                <label>Email To</label>
-                <input id="project-email-input" type="email">
-
-                <label>Text To</label>
-                <input id="project-text-input" type="tel" inputmode="numeric">
 
                 <div class="project-modal-buttons">
                     <button id="btn-save-project" class="btn-save-project">Save</button>
@@ -127,7 +127,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
                 <div id="project-error" class="project-error"></div>
 
-                <div class="projects-version-tag">project modal | v2026_06_18_view_on_button_projects | 2026-06-18</div>
+                <div class="projects-version-tag">facilities_views/facilities-projects/grid.js</div>
             </div>
         </div>
     `;
@@ -137,11 +137,8 @@ export async function renderProjectsGrid(containerId, context = {}) {
     const projectIdInput = document.getElementById('project-id-input');
     const projectNameInput = document.getElementById('project-name-input');
     const typeInput = document.getElementById('project-type-input');
-    const statusInput = document.getElementById('project-status-input');
     const descriptionInput = document.getElementById('project-description-input');
     const notesInput = document.getElementById('project-notes-input');
-    const emailInput = document.getElementById('project-email-input');
-    const textInput = document.getElementById('project-text-input');
     const errorBox = document.getElementById('project-error');
     const deleteButton = document.getElementById('btn-delete-project');
 
@@ -149,13 +146,10 @@ export async function renderProjectsGrid(containerId, context = {}) {
         projectIdInput.value = '';
         projectNameInput.value = '';
         typeInput.value = '';
-        statusInput.value = '';
         descriptionInput.value = '';
         notesInput.value = '';
-        emailInput.value = '';
-        textInput.value = '';
         errorBox.textContent = '';
-        modalTitle.textContent = 'Add Project';
+        modalTitle.textContent = `Add Project for ${facilityName}`;
         deleteButton.style.display = 'none';
     }
 
@@ -166,12 +160,9 @@ export async function renderProjectsGrid(containerId, context = {}) {
             projectIdInput.value = project.id || '';
             projectNameInput.value = project.project_name || project.name || '';
             typeInput.value = project.type || '';
-            statusInput.value = project.status || '';
             descriptionInput.value = project.description || '';
             notesInput.value = project.notes || '';
-            emailInput.value = project.email_to || '';
-            textInput.value = project.text_to || '';
-            modalTitle.textContent = 'Edit Project';
+            modalTitle.textContent = `Edit Project for ${facilityName}`;
             deleteButton.style.display = 'block';
         }
 
@@ -231,11 +222,8 @@ document.getElementById('btn-back-facility').addEventListener('click', () => {
             name: projectName,
             project_name: projectName,
             type: typeInput.value.trim(),
-            status: statusInput.value.trim(),
             description: descriptionInput.value.trim(),
-            notes: notesInput.value.trim(),
-            email_to: emailInput.value.trim(),
-            text_to: textInput.value.trim()
+            notes: notesInput.value.trim()
         };
 
         if (projectId) {
