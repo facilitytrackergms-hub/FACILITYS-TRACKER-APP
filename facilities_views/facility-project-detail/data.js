@@ -1,6 +1,6 @@
 /*================================================================
 FACILITY-PROJECT-DETAIL DATA
-VERSION: v2026_06_18_project_updates_added
+VERSION: v2026_06_18_project_update_images_added
 ================================================================*/
 
 import { supabase } from '../../global_engine/supabaseClient.js';
@@ -47,6 +47,14 @@ export async function fetchProjectUpdates(projectId) {
 export async function createProjectUpdate(payload) {
     return await supabase
         .from('project_updates')
+        .insert([payload])
+        .select('*')
+        .single();
+}
+
+export async function createProjectPhoto(payload) {
+    return await supabase
+        .from('project_photos')
         .insert([payload])
         .select('*')
         .single();
