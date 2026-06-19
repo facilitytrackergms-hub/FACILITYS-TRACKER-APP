@@ -387,7 +387,7 @@ export async function renderContactsGrid(containerId, context = {}) {
             <button id="btn-add-project-from-contact" class="contact-detail-add-project-btn">➕ ADD PROJECT</button>
 
             <div class="contact-detail-info-box">
-                <div class="contact-detail-label">PROJECTS ATTACHED TO THIS CONTACT</div>
+                <div class="contact-detail-label">PROJECTS </div>
 
                 ${contactProjects.length ? contactProjects.map(project => `
                     <button type="button" class="contact-project-button" data-project-id="${project.id}">
@@ -395,7 +395,7 @@ export async function renderContactsGrid(containerId, context = {}) {
                         <div class="contact-project-line">${escapeHtml(project.type || '')}</div>
                     </button>
                 `).join('') : `
-                    <div class="contact-detail-value">No projects attached to this contact.</div>
+                    <div class="contact-detail-value">No projects.</div>
                 `}
             </div>
 
