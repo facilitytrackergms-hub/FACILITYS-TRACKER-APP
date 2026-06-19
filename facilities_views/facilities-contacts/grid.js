@@ -1,7 +1,7 @@
 /*================================================================
 FACILITIES-CONTACTS GRID
-VERSION: v2026_06_19_contact_detail_view
-UPDATED: 2026-06-19 @ 4:45 AM EDT
+VERSION: v2026_06_19_contact_detail_center_project_button
+UPDATED: 2026-06-19 @ 6:19 AM EDT
 ================================================================*/
 
 import {
@@ -62,64 +62,99 @@ export async function renderContactsGrid(containerId, context = {}) {
     container.innerHTML = `
         <style>
             .contacts-card { background: #ffffff; max-width: 350px; margin: 16px auto; padding: 18px; border-radius: 14px; box-shadow: 0 4px 18px rgba(0,0,0,0.08); text-align: center; }
-           .contacts-title { color: #003b73; font-size: 24px; font-weight: bold; margin-bottom: 2px; }
-.contacts-subtitle { color: #003b73; font-size: 13px; font-weight: bold; margin-bottom: 16px; letter-spacing: 2px; }
+            .contacts-title { color: #003b73; font-size: 24px; font-weight: bold; margin-bottom: 2px; }
+            .contacts-subtitle { color: #003b73; font-size: 13px; font-weight: bold; margin-bottom: 16px; letter-spacing: 2px; }
             .contacts-add-btn { background: #22a843; color: white; border: none; border-radius: 9px; width: 100%; padding: 13px; font-weight: bold; font-size: 15px; cursor: pointer; margin-bottom: 16px; }
-            .contacts-list {     display: grid;     grid-template-columns: repeat(3, 1fr);     gap: 8px; }
-.contact-record-button {
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:4px;
-    min-height:78px;
-    background:#003b73;
-    color:white;
-    border:none;
-    border-radius:10px;
-    padding:6px 4px;
-    cursor:pointer;
-    font-weight:bold;
-}
+            .contacts-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 
-.contact-img {
-    width:34px;
-    height:34px;
-    border-radius:50%;
-    object-fit:cover;
-    background:#dbe5ef;
-}
+            .contact-record-button {
+                display:flex;
+                flex-direction:column;
+                align-items:center;
+                justify-content:center;
+                gap:4px;
+                min-height:78px;
+                background:#003b73;
+                color:white;
+                border:none;
+                border-radius:10px;
+                padding:6px 4px;
+                cursor:pointer;
+                font-weight:bold;
+            }
 
-.contact-name {
-    color:white;
-    font-size:12px;
-    font-weight:bold;
-    text-align:center;
-    line-height:1.1;
-}
-.contact-role,
-.contact-line,
-.contact-notes,
-.contact-top {
-    display:none;
-}
+            .contact-img {
+                width:34px;
+                height:34px;
+                border-radius:50%;
+                object-fit:cover;
+                background:#dbe5ef;
+            }
+
+            .contact-name {
+                color:white;
+                font-size:12px;
+                font-weight:bold;
+                text-align:center;
+                line-height:1.1;
+            }
+
+            .contact-role,
+            .contact-line,
+            .contact-notes,
+            .contact-top {
+                display:none;
+            }
+
             .contacts-back-btn { background: #747d8c; color: white; border: none; border-radius: 9px; width: 100%; min-height: 48px; font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 16px; }
             .contacts-version-tag { border-top: 1px solid #d6dee8; margin-top: 18px; padding-top: 10px; font-size: 10px; color: #7d8ba0; text-align: center; }
 
             .contact-detail-card { background:#ffffff; max-width:350px; margin:16px auto; padding:18px; border-radius:14px; box-shadow:0 4px 18px rgba(0,0,0,0.08); text-align:center; display:none; }
-            .contact-detail-title { color:#003b73; font-size:24px; font-weight:bold; margin-bottom:2px; }
-            .contact-detail-subtitle { color:#003b73; font-size:13px; font-weight:bold; margin-bottom:16px; letter-spacing:2px; }
-            .contact-detail-img { width:90px; height:90px; border-radius:50%; object-fit:cover; background:#dbe5ef; margin:0 auto 12px; display:block; }
-            .contact-detail-info-box { border:1px solid #d6dee8; border-radius:10px; padding:12px; text-align:left; margin-bottom:14px; background:#f8fbff; }
-            .contact-detail-label { color:#003b73; font-size:11px; font-weight:bold; margin-top:8px; }
-            .contact-detail-value { color:#111827; font-size:14px; margin-bottom:8px; white-space:pre-wrap; }
-            .contact-detail-link { color:#00509d; font-size:14px; font-weight:bold; text-decoration:underline; cursor:pointer; background:none; border:none; padding:0; }
+            .contact-detail-title { color:#003b73; font-size:24px; font-weight:bold; margin-bottom:2px; text-align:center; }
+            .contact-detail-subtitle { color:#003b73; font-size:13px; font-weight:bold; margin-bottom:16px; letter-spacing:2px; text-align:center; }
+            .contact-detail-img { width:90px; height:90px; border-radius:50%; object-fit:cover; background:#dbe5ef; margin:0 auto 14px; display:block; }
+
+            .contact-detail-info-box {
+                border:1px solid #c3d2e3;
+                border-radius:12px;
+                padding:14px;
+                text-align:center;
+                margin-bottom:14px;
+                background:#edf3f9;
+            }
+
+            .contact-detail-label {
+                color:#003b73;
+                font-size:11px;
+                font-weight:bold;
+                margin-top:10px;
+                margin-bottom:4px;
+                text-align:center;
+                letter-spacing:1px;
+            }
+
+            .contact-detail-label:first-child {
+                margin-top:0;
+            }
+
+            .contact-detail-value {
+                color:#111827;
+                font-size:14px;
+                margin:0 auto 10px;
+                white-space:pre-wrap;
+                text-align:center;
+                line-height:1.35;
+                max-width:260px;
+            }
+
+            .contact-detail-link { color:#00509d; font-size:14px; font-weight:bold; text-decoration:underline; cursor:pointer; background:none; border:none; padding:0; text-align:center; }
+            .contact-detail-add-project-btn { background:#22a843; color:white; border:none; border-radius:9px; width:100%; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; margin:0 0 14px; }
             .contact-detail-button-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
             .contact-detail-action-btn { background:#003b73; color:white; border:none; border-radius:9px; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; }
             .contact-detail-delete-btn { background:#dc2626; color:yellow; border:none; border-radius:9px; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; }
-            .contact-project-button { width:100%; border:1px solid #d6dee8; border-radius:10px; padding:10px; margin-top:8px; background:#ffffff; text-align:left; cursor:pointer; }
-            .contact-project-title { color:#003b73; font-size:14px; font-weight:bold; margin-bottom:3px; }
-            .contact-project-line { color:#111827; font-size:12px; }
+            .contact-project-button { width:100%; border:1px solid #c3d2e3; border-radius:10px; padding:10px; margin-top:8px; background:#ffffff; text-align:center; cursor:pointer; }
+            .contact-project-title { color:#003b73; font-size:14px; font-weight:bold; margin-bottom:3px; text-align:center; }
+            .contact-project-line { color:#111827; font-size:12px; text-align:center; }
 
             .contact-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 9999; }
             .contact-modal { background: white; width: 90%; max-width: 360px; border-radius: 12px; padding: 18px; box-shadow: 0 4px 18px rgba(0,0,0,0.25); text-align: left; max-height: 90vh; overflow-y: auto; }
@@ -154,26 +189,25 @@ export async function renderContactsGrid(containerId, context = {}) {
         </style>
 
         <div id="contacts-list-view" class="contacts-card">
-           <div class="contacts-title">${escapeHtml(facilityName)}</div>
-<div class="contacts-subtitle">CONTACTS</div>
-            <div class="contacts-subtitle">${escapeHtml(facilityName)}</div>
+            <div class="contacts-title">${escapeHtml(facilityName)}</div>
+            <div class="contacts-subtitle">CONTACTS</div>
 
             <button id="btn-add-contact" class="contacts-add-btn">ADD CONTACT</button>
 
             <div class="contacts-list">
-              ${contacts.length ? contacts.map(contact => `
-    <button type="button" class="contact-record-button" data-id="${contact.id}">
-        ${contact.image_url
-            ? `<img class="contact-img" src="${escapeHtml(contact.image_url)}" alt="${escapeHtml(contact.name)}">`
-            : `<div class="contact-img"></div>`}
-        <span class="contact-name">${escapeHtml(contact.name)}</span>
-    </button>
-`).join('') : `<p style="text-align:center;color:#667085;">No contacts yet.</p>`}
+                ${contacts.length ? contacts.map(contact => `
+                    <button type="button" class="contact-record-button" data-id="${contact.id}">
+                        ${contact.image_url
+                            ? `<img class="contact-img" src="${escapeHtml(contact.image_url)}" alt="${escapeHtml(contact.name)}">`
+                            : `<div class="contact-img"></div>`}
+                        <span class="contact-name">${escapeHtml(contact.name)}</span>
+                    </button>
+                `).join('') : `<p style="text-align:center;color:#667085;">No contacts yet.</p>`}
             </div>
 
             <button id="btn-back-facility" class="contacts-back-btn">⬅️ BACK</button>
 
-            <div class="contacts-version-tag">facilities-contacts/grid.js | v2026_06_19_contact_detail_view | 2026-06-19 @ 4:45 AM EDT</div>
+            <div class="contacts-version-tag">facilities_views/facilities-contacts/grid.js | v2026_06_19_contact_detail_center_project_button | 2026-06-19 @ 6:19 AM EDT</div>
         </div>
 
         <div id="contact-detail-view" class="contact-detail-card"></div>
@@ -224,7 +258,7 @@ export async function renderContactsGrid(containerId, context = {}) {
 
                 <div id="contact-error" class="contact-error"></div>
 
-                <div class="contacts-version-tag">contact modal | v2026_06_19_contact_detail_view | 2026-06-19 @ 4:45 AM EDT</div>
+                <div class="contacts-version-tag">facilities_views/facilities-contacts/grid.js modal | v2026_06_19_contact_detail_center_project_button | 2026-06-19 @ 6:19 AM EDT</div>
             </div>
         </div>
 
@@ -352,6 +386,8 @@ export async function renderContactsGrid(containerId, context = {}) {
                 <div class="contact-detail-value">${escapeHtml(contact.notes || '')}</div>
             </div>
 
+            <button id="btn-add-project-from-contact" class="contact-detail-add-project-btn">ADD PROJECT FROM CONTACT</button>
+
             <div class="contact-detail-info-box">
                 <div class="contact-detail-label">PROJECTS ATTACHED TO THIS CONTACT</div>
 
@@ -372,7 +408,7 @@ export async function renderContactsGrid(containerId, context = {}) {
                 <button id="btn-contact-detail-delete" class="contact-detail-delete-btn">🗑 Delete</button>
             </div>
 
-            <div class="contacts-version-tag">facilities-contacts/grid.js | v2026_06_19_contact_detail_view | 2026-06-19 @ 4:45 AM EDT</div>
+            <div class="contacts-version-tag">facilities_views/facilities-contacts/grid.js | v2026_06_19_contact_detail_center_project_button | 2026-06-19 @ 6:19 AM EDT</div>
         `;
 
         listView.style.display = 'none';
@@ -387,6 +423,23 @@ export async function renderContactsGrid(containerId, context = {}) {
                 phonePopupBackdrop.style.display = 'flex';
             });
         }
+
+        document.getElementById('btn-add-project-from-contact').addEventListener('click', () => {
+            if (window.navigateTo) {
+                window.navigateTo('facilities-projects', {
+                    ...context,
+                    open_add_project_modal: true,
+                    requested_by_name: contact.name || '',
+                    requested_by_title: contact.role || '',
+                    requested_by_contact_id: contact.id || null,
+                    project_prefill: {
+                        requested_by_name: contact.name || '',
+                        requested_by_title: contact.role || '',
+                        requested_by_contact_id: contact.id || null
+                    }
+                });
+            }
+        });
 
         document.querySelectorAll('.contact-project-button').forEach(button => {
             button.addEventListener('click', () => {
