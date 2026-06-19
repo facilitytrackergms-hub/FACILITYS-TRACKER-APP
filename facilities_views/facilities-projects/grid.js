@@ -1,6 +1,6 @@
 /*================================================================
 FACILITIES-PROJECTS GRID
-VERSION: v2026_06_19_requested_by_fields
+VERSION: v2026_06_19_requested_by_custom_popup
 ================================================================*/
 
 import {
@@ -8,8 +8,7 @@ import {
     createProject,
     updateProject,
     deleteProject,
-    findContactByName,
-    createRequestedByContact
+    findContactByName
 } from './data.js';
 
 function escapeHtml(value) {
@@ -72,6 +71,15 @@ export async function renderProjectsGrid(containerId, context = {}) {
             .btn-cancel-project { background:#777; color:white; }
             .btn-delete-project { background:#dc2626; color:yellow; display:none; width:100%; margin-top:10px; padding:11px; border:none; border-radius:7px; font-weight:bold; cursor:pointer; }
             .project-error { color:red; font-size:13px; text-align:center; margin-top:10px; min-height:16px; }
+
+            .project-custom-popup-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.55); display:none; align-items:center; justify-content:center; z-index:10000; }
+            .project-custom-popup { background:white; width:88%; max-width:330px; border-radius:12px; padding:18px; box-shadow:0 4px 18px rgba(0,0,0,0.28); text-align:center; }
+            .project-custom-popup-title { color:#003b73; font-size:18px; font-weight:bold; margin-bottom:10px; }
+            .project-custom-popup-message { color:#1f2937; font-size:14px; line-height:1.35; margin-bottom:16px; }
+            .project-custom-popup-buttons { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+            .project-custom-popup-buttons button { border:none; border-radius:8px; padding:11px; font-size:14px; font-weight:bold; cursor:pointer; }
+            .btn-popup-yes { background:#22a843; color:white; }
+            .btn-popup-no { background:#777; color:white; }
         </style>
 
         <div class="projects-card">
@@ -90,7 +98,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
             <button id="btn-back-facility" class="projects-back-btn">⬅️ BACK</button>
 
-            <div class="projects-version-tag">facilities_views/facilities-projects/grid.js | v2026_06_19_requested_by_fields</div>
+            <div class="projects-version-tag">facilities_views/facilities-projects/grid.js | v2026_06_19_requested_by_custom_popup</div>
         </div>
 
         <div id="project-modal-backdrop" class="project-modal-backdrop">
@@ -135,7 +143,18 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
                 <div id="project-error" class="project-error"></div>
 
-                <div class="projects-version-tag">facilities_views/facilities-projects/grid.js | v2026_06_19_requested_by_fields</div>
+                <div class="projects-version-tag">facilities_views/facilities-projects/grid.js | v2026_06_19_requested_by_custom_popup</div>
+            </div>
+        </div>
+
+        <div id="requested-by-popup-backdrop" class="project-custom-popup-backdrop">
+            <div class="project-custom-popup">
+                <div class="project-custom-popup-title">Contact Not Found</div>
+                <div class="project-custom-popup-message">Requested by person is not in contacts. Do you want to add this contact?</div>
+                <div class="project-custom-popup-buttons">
+                    <button id="btn-requested-by-popup-yes" class="btn-popup-yes">YES</button>
+                    <button id="btn-requested-by-popup-no" class="btn-popup-no">NO</button>
+                </div>
             </div>
         </div>
     `;
@@ -151,6 +170,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
     const notesInput = document.getElementById('project-notes-input');
     const errorBox = document.getElementById('project-error');
     const deleteButton = document.getElementById('btn-delete-project');
+    const requestedByPopupBackdrop = document.getElementById('requested-by-popup-backdrop');
 
     function clearModal() {
         projectIdInput.value = '';
@@ -180,12 +200,39 @@ export async function renderProjectsGrid(containerId, context = {}) {
             deleteButton.style.display = 'block';
         }
 
+        if (context?.project_draft_prefill) {
+            projectNameInput.value = context.project_draft_prefill.project_name || context.project_draft_prefill.name || '';
+            typeInput.value = context.project_draft_prefill.type || '';
+            requestedByNameInput.value = context.project_draft_prefill.requested_by_name || '';
+            requestedByTitleInput.value = context.project_draft_prefill.requested_by_title || '';
+            descriptionInput.value = context.project_draft_prefill.description || '';
+            notesInput.value = context.project_draft_prefill.notes || '';
+        }
+
         modalBackdrop.style.display = 'flex';
+    }
+
+    function getProjectDraft() {
+        return {
+            facilities_id: facilityId,
+            location_id: facilityId,
+            name: projectNameInput.value.trim(),
+            project_name: projectNameInput.value.trim(),
+            type: typeInput.value.trim(),
+            requested_by_name: requestedByNameInput.value.trim(),
+            requested_by_title: requestedByTitleInput.value.trim(),
+            description: descriptionInput.value.trim(),
+            notes: notesInput.value.trim()
+        };
     }
 
     document.getElementById('btn-add-project').addEventListener('click', () => {
         openModal();
     });
+
+    if (context?.project_draft_prefill) {
+        openModal();
+    }
 
     document.querySelectorAll('.project-record-button').forEach(button => {
         button.addEventListener('click', () => {
@@ -207,6 +254,27 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
     document.getElementById('btn-back-facility').addEventListener('click', () => {
         if (window.navigateTo) window.navigateTo('facilities-home');
+    });
+
+    document.getElementById('btn-requested-by-popup-no').addEventListener('click', () => {
+        requestedByPopupBackdrop.style.display = 'none';
+        errorBox.textContent = 'Add the requested by person to contacts before saving this project.';
+    });
+
+    document.getElementById('btn-requested-by-popup-yes').addEventListener('click', () => {
+        requestedByPopupBackdrop.style.display = 'none';
+
+        if (window.navigateTo) {
+            window.navigateTo('facilities-contacts', {
+                ...context,
+                requested_contact_prefill: {
+                    name: requestedByNameInput.value.trim(),
+                    role: requestedByTitleInput.value.trim()
+                },
+                project_draft_prefill: getProjectDraft(),
+                return_to_projects_after_contact: true
+            });
+        }
     });
 
     deleteButton.addEventListener('click', async () => {
@@ -252,23 +320,8 @@ export async function renderProjectsGrid(containerId, context = {}) {
             if (existingContact) {
                 requestedByContactId = existingContact.id || null;
             } else {
-                const addContact = confirm('Requested by person is not in contacts. Do you want to add this contact?');
-
-                if (addContact) {
-                    const { data: newContact, error: contactCreateError } = await createRequestedByContact({
-                        facilities_id: facilityId,
-                        name: requestedByName,
-                        role: requestedByTitle
-                    });
-
-                    if (contactCreateError) {
-                        console.error('Create requested by contact error:', contactCreateError);
-                        errorBox.textContent = 'Could not add requested by contact.';
-                        return;
-                    }
-
-                    requestedByContactId = newContact?.id || null;
-                }
+                requestedByPopupBackdrop.style.display = 'flex';
+                return;
             }
         }
 
