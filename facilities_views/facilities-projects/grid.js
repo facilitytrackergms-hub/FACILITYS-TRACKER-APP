@@ -1,6 +1,6 @@
 /*================================================================
 FACILITIES-PROJECTS GRID
-VERSION: v2026_06_19_contact_add_project_prefill
+VERSION: v2026_06_19_project_button_date_status
 UPDATED: 2026-06-19 @ 6:24 AM EDT
 ================================================================*/
 
@@ -34,6 +34,15 @@ function getFacilityName(context) {
     return 'Facility';
 }
 
+function formatProjectDate(value) {
+    if (!value) return 'No date';
+    return new Date(value).toLocaleDateString();
+}
+
+function getProjectStatus(project) {
+    return project.status || project.active_status || 'No status';
+}
+
 export async function renderProjectsGrid(containerId, context = {}) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -55,8 +64,10 @@ export async function renderProjectsGrid(containerId, context = {}) {
             .projects-subtitle { color:#003b73; font-size:13px; font-weight:bold; margin-bottom:16px; letter-spacing:2px; }
             .projects-add-btn { background:#22a843; color:white; border:none; border-radius:9px; width:100%; padding:13px; font-weight:bold; font-size:15px; cursor:pointer; margin-bottom:16px; }
             .projects-list { display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; }
-            .project-record-button { min-height:70px; background:#003b73; color:white; border:none; border-radius:10px; padding:8px; cursor:pointer; font-weight:bold; font-size:13px; text-align:center; }
+            .project-record-button { min-height:86px; background:#003b73; color:white; border:none; border-radius:10px; padding:8px; cursor:pointer; text-align:center; }
             .project-record-button:hover { background:#00509d; }
+            .project-record-title { font-weight:bold; font-size:13px; margin-bottom:5px; }
+            .project-record-meta { font-size:11px; font-weight:normal; opacity:0.95; line-height:1.3; }
             .projects-back-btn { background:#747d8c; color:white; border:none; border-radius:9px; width:100%; min-height:48px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:16px; }
             .projects-version-tag { border-top:1px solid #d6dee8; margin-top:18px; padding-top:10px; font-size:10px; color:#7d8ba0; text-align:center; }
 
@@ -92,14 +103,16 @@ export async function renderProjectsGrid(containerId, context = {}) {
             <div class="projects-list">
                 ${projects.length ? projects.map(project => `
                     <button type="button" class="project-record-button" data-id="${project.id}">
-                        ${escapeHtml(project.project_name || project.name || 'Project')}
+                        <div class="project-record-title">${escapeHtml(project.project_name || project.name || 'Project')}</div>
+                        <div class="project-record-meta">${escapeHtml(formatProjectDate(project.created_at))}</div>
+                        <div class="project-record-meta">${escapeHtml(getProjectStatus(project))}</div>
                     </button>
                 `).join('') : `<p style="text-align:center;color:#667085;grid-column:1 / -1;">No projects yet.</p>`}
             </div>
 
             <button id="btn-back-facility" class="projects-back-btn">⬅️ BACK</button>
 
-            <div class="projects-version-tag">facilities_views/facilities-projects/grid.js | v2026_06_19_contact_add_project_prefill | 2026-06-19 @ 6:24 AM EDT</div>
+            <div class="projects-version-tag">grid.js | 2026-06-19 @ 6:24 AM EDT</div>
         </div>
 
         <div id="project-modal-backdrop" class="project-modal-backdrop">
@@ -144,7 +157,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
                 <div id="project-error" class="project-error"></div>
 
-                <div class="projects-version-tag">facilities_views/facilities-projects/grid.js | v2026_06_19_contact_add_project_prefill | 2026-06-19 @ 6:24 AM EDT</div>
+                <div class="projects-version-tag">grid.js | 2026-06-19 @ 6:24 AM EDT</div>
             </div>
         </div>
 
