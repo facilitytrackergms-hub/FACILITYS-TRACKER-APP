@@ -1,6 +1,6 @@
 /*================================================================
 FACILITY-PROJECT-DETAIL GRID
-VERSION: v2026_06_19_requested_by_display
+VERSION: v2026_06_19_clean_tag_project_description
 UPDATED: 2026-06-19 @ 4:45 AM EDT
 ================================================================*/
 
@@ -134,8 +134,8 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             <div class="project-detail-subtitle">${escapeHtml(facilityName)} PROJECT DETAIL</div>
 
             <div class="project-detail-info-box">
-                <div class="project-detail-label">PROJECT NAME</div>
-                <div class="project-detail-value">${escapeHtml(projectName)}</div>
+                <div class="project-detail-label">PROJECT DESCRIPTION</div>
+                <div class="project-detail-value">${escapeHtml(project.description || '')}</div>
 
                 <div class="project-detail-label">TYPE</div>
                 <div class="project-detail-value">${escapeHtml(project.type || '')}</div>
@@ -145,9 +145,6 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div class="project-detail-label">REQUESTED BY TITLE</div>
                 <div class="project-detail-value">${escapeHtml(project.requested_by_title || '')}</div>
-
-                <div class="project-detail-label">DESCRIPTION</div>
-                <div class="project-detail-value">${escapeHtml(project.description || '')}</div>
 
                 <div class="project-detail-label">NOTES</div>
                 <div class="project-detail-value">${escapeHtml(project.notes || '')}</div>
@@ -176,7 +173,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
             <button id="btn-back-projects" class="project-detail-back-btn">⬅️ BACK</button>
 
-            <div class="project-detail-version-tag">facilities_views/facility-project-detail/grid.js | v2026_06_19_requested_by_display | 2026-06-19 @ 4:45 AM EDT</div>
+            <div class="project-detail-version-tag">grid.js | 2026-06-19 @ 4:45 AM EDT</div>
         </div>
 
         <div id="project-detail-modal-backdrop" class="project-detail-modal-backdrop">
@@ -211,7 +208,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-detail-error" class="project-detail-error"></div>
 
-                <div class="project-detail-version-tag">facilities_views/facility-project-detail/grid.js | v2026_06_19_requested_by_display | 2026-06-19 @ 4:45 AM EDT</div>
+                <div class="project-detail-version-tag">grid.js | 2026-06-19 @ 4:45 AM EDT</div>
             </div>
         </div>
 
@@ -273,7 +270,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-update-error" class="project-update-error"></div>
 
-                <div class="project-detail-version-tag">facilities_views/facility-project-detail/grid.js | v2026_06_19_requested_by_display | 2026-06-19 @ 4:45 AM EDT</div>
+                <div class="project-detail-version-tag">grid.js | 2026-06-19 @ 4:45 AM EDT</div>
             </div>
         </div>
     `;
