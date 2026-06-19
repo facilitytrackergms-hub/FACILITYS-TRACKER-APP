@@ -47,14 +47,27 @@ export async function renderDashboard(containerId) {
         <div id="facility-modal-backdrop" class="facility-modal-backdrop">
             <div class="facility-modal">
                 <h3>Create New Facility</h3>
-                <label>Facility Name</label><input id="facility-name-input" type="text">
-                <label>Abbreviation</label><input id="facility-abbreviation-input" type="text">
-                <label>Address</label><input id="facility-address-input" type="text">
-                <label>Phone</label><input id="facility-phone-input" type="tel">
+
+                <label>Facility Name</label>
+                <input id="facility-name-input" type="text">
+
+                <label>Abbreviation</label>
+                <input id="facility-abbreviation-input" type="text">
+
+                <label>Address</label>
+                <input id="facility-address-input" type="text">
+
+                <label>Phone</label>
+                <input id="facility-phone-input" type="tel">
+
+                <label>Image URL</label>
+                <input id="facility-image-input" type="text">
+
                 <div class="facility-modal-buttons">
                     <button id="btn-save-facility" class="btn-save-facility">Save</button>
                     <button id="btn-cancel-facility" class="btn-cancel-facility">Cancel</button>
                 </div>
+
                 <div id="facility-error" class="facility-error"></div>
             </div>
         </div>
@@ -80,6 +93,7 @@ export async function renderDashboard(containerId) {
         const abbreviation = document.getElementById('facility-abbreviation-input').value.trim();
         const address = document.getElementById('facility-address-input').value.trim();
         const phone = document.getElementById('facility-phone-input').value.trim();
+        const image_url = document.getElementById('facility-image-input').value.trim();
 
         if (!numberName || !abbreviation) {
             errorBox.textContent = 'Name and abbreviation required.';
@@ -87,7 +101,11 @@ export async function renderDashboard(containerId) {
         }
 
         const { error } = await supabase.from('facilities').insert([{ 
-            number_name: numberName, abbreviation, address, phone 
+            number_name: numberName,
+            abbreviation,
+            address,
+            phone,
+            image_url
         }]);
 
         if (error) {
