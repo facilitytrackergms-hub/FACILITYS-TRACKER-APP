@@ -1,8 +1,8 @@
 /* ================================================================
    PURPOSE: Contact data service
    LOCATION: /facilities_views/facilities-contacts/data.js
-   VERSION: v2026_06_18_view_on_button_contacts
-   DATE: 2026-06-18
+   VERSION: v2026_06_19_contact_detail_projects
+   UPDATED: 2026-06-19 @ 4:45 AM EDT
    ================================================================ */
 
 import { supabase } from '../../global_engine/supabaseClient.js';
@@ -51,4 +51,50 @@ export async function deleteContact(contactId) {
         .from('contacts')
         .delete()
         .eq('id', contactId);
+}
+
+export async function fetchContactProjects(facilityId, contactId, contactName = '') {
+    if (!facilityId || !contactId) return [];
+
+    const { data: contactIdProjects, error: contactIdError } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('facilities_id', facilityId)
+        .eq('requested_by_contact_id', contactId)
+        .order('created_at', { ascending: false });
+
+    if (contactIdError) {
+        console.error('Error fetching contact projects by ID:', contactIdError);
+        return [];
+    }
+
+    const cleanName = String(contactName || '').trim();
+
+    if (!cleanName) {
+        return contactIdProjects || [];
+    }
+
+    const { data: contactNameProjects, error: contactNameError } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('facilities_id', facilityId)
+        .ilike('requested_by_name', cleanName)
+        .order('created_at', { ascending: false });
+
+    if (contactNameError) {
+        console.error('Error fetching contact projects by name:', contactNameError);
+        return contactIdProjects || [];
+    }
+
+    const projectMap = new Map();
+
+    (contactIdProjects || []).forEach(project => {
+        projectMap.set(String(project.id), project);
+    });
+
+    (contactNameProjects || []).forEach(project => {
+        projectMap.set(String(project.id), project);
+    });
+
+    return Array.from(projectMap.values());
 }
