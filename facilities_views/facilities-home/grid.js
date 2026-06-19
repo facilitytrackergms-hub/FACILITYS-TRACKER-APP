@@ -60,8 +60,10 @@ export async function renderDashboard(containerId) {
                 <label>Phone</label>
                 <input id="facility-phone-input" type="tel">
 
-                <label>Image URL</label>
-                <input id="facility-image-input" type="text">
+                <label>Facility Image</label>
+                <input id="facility-image-input" type="file" accept="image/*" capture="environment">
+
+                <img id="facility-image-preview" style="width:100%;margin-top:10px;border-radius:8px;display:none;">
 
                 <div class="facility-modal-buttons">
                     <button id="btn-save-facility" class="btn-save-facility">Save</button>
@@ -73,10 +75,35 @@ export async function renderDashboard(containerId) {
         </div>
     `;
 
-    // 2. Render to DOM
     container.innerHTML = html;
 
-    // 3. Attach all event listeners
+    // =========================
+    // FIX: IMAGE HANDLER (MOVED CORRECTLY)
+    // =========================
+
+    const imageInput = document.getElementById('facility-image-input');
+    const preview = document.getElementById('facility-image-preview');
+
+    let imageFile = null;
+
+    if (imageInput) {
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            imageFile = file;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                preview.src = reader.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // =========================
+
     const modalBackdrop = document.getElementById('facility-modal-backdrop');
     const errorBox = document.getElementById('facility-error');
 
@@ -89,18 +116,38 @@ export async function renderDashboard(containerId) {
     });
 
     document.getElementById('btn-save-facility').addEventListener('click', async () => {
+
         const numberName = document.getElementById('facility-name-input').value.trim();
         const abbreviation = document.getElementById('facility-abbreviation-input').value.trim();
         const address = document.getElementById('facility-address-input').value.trim();
         const phone = document.getElementById('facility-phone-input').value.trim();
-        const image_url = document.getElementById('facility-image-input').value.trim();
+
+        let image_url = '';
+
+        if (imageFile) {
+            const fileName = `${Date.now()}_${imageFile.name}`;
+
+            const { error: uploadError } = await supabase
+                .storage
+                .from('locations-images')
+                .upload(fileName, imageFile);
+
+            if (!uploadError) {
+                const { data } = supabase
+                    .storage
+                    .from('locations-images')
+                    .getPublicUrl(fileName);
+
+                image_url = data.publicUrl;
+            }
+        }
 
         if (!numberName || !abbreviation) {
             errorBox.textContent = 'Name and abbreviation required.';
             return;
         }
 
-        const { error } = await supabase.from('facilities').insert([{ 
+        const { error } = await supabase.from('facilities').insert([{
             number_name: numberName,
             abbreviation,
             address,
