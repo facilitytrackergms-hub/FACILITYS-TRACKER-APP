@@ -1,6 +1,6 @@
 /*================================================================
 FACILITY-PROJECT-DETAIL GRID
-VERSION: v2026_06_18_project_photo_dashboard_links
+VERSION: v2026_06_18_project_update_route_linked
 ================================================================*/
 
 import {
@@ -64,7 +64,6 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
     }
 
     const projectUpdates = await fetchProjectUpdates(projectId);
-    const latestUpdate = projectUpdates[0] || null;
 
     const facilityName = getFacilityName(facility);
     const projectName = project.project_name || project.name || 'Project';
@@ -85,8 +84,10 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             .project-detail-back-btn { background:#747d8c; color:white; border:none; border-radius:9px; width:100%; min-height:48px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:12px; }
             .project-detail-version-tag { border-top:1px solid #d6dee8; margin-top:18px; padding-top:10px; font-size:10px; color:#7d8ba0; text-align:center; }
             .project-update-date { color:#667085; font-size:11px; margin-bottom:4px; }
-            .project-photo-button-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-top:12px; }
-            .project-photo-btn { background:#003b73; color:white; border:none; border-radius:7px; padding:10px 4px; font-size:12px; font-weight:bold; cursor:pointer; }
+            .project-update-record-button { width:100%; border:1px solid #d6dee8; border-radius:10px; padding:10px; margin-top:8px; background:#ffffff; text-align:left; cursor:pointer; }
+            .project-update-record-button-title { color:#003b73; font-size:14px; font-weight:bold; margin-bottom:3px; }
+            .project-update-record-button-status { color:#111827; font-size:12px; margin-bottom:3px; }
+            .project-update-record-button-date { color:#667085; font-size:11px; }
 
             .project-detail-modal-backdrop,
             .project-update-modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:9999; }
@@ -146,37 +147,17 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             </div>
 
             <div class="project-detail-info-box">
-                <div class="project-detail-label">LAST PROJECT UPDATE</div>
+                <div class="project-detail-label">PROJECT UPDATES</div>
 
-                ${latestUpdate ? `
-                    <div class="project-update-date">${escapeHtml(formatDate(latestUpdate.created_at))}</div>
-
-                    <div class="project-detail-label">UPDATE TITLE</div>
-                    <div class="project-detail-value">${escapeHtml(latestUpdate.update_title || '')}</div>
-
-                    <div class="project-detail-label">STATUS</div>
-                    <div class="project-detail-value">${escapeHtml(latestUpdate.status || '')}</div>
-
-                    <div class="project-detail-label">WHERE I LEFT OFF</div>
-                    <div class="project-detail-value">${escapeHtml(latestUpdate.left_off_at || '')}</div>
-
-                    <div class="project-detail-label">MATERIALS NEEDED</div>
-                    <div class="project-detail-value">${escapeHtml(latestUpdate.materials_needed || '')}</div>
-
-                    <div class="project-detail-label">NEXT STEP</div>
-                    <div class="project-detail-value">${escapeHtml(latestUpdate.next_step || '')}</div>
-                ` : `
+                ${projectUpdates.length ? projectUpdates.map(update => `
+                    <button type="button" class="project-update-record-button" data-id="${update.id}">
+                        <div class="project-update-record-button-title">${escapeHtml(update.update_title || 'Project Update')}</div>
+                        <div class="project-update-record-button-status">${escapeHtml(update.status || '')}</div>
+                        <div class="project-update-record-button-date">${escapeHtml(formatDate(update.created_at))}</div>
+                    </button>
+                `).join('') : `
                     <div class="project-detail-value">No project updates yet.</div>
                 `}
-            </div>
-
-            <div class="project-detail-info-box">
-                <div class="project-detail-label">PROJECT PHOTOS</div>
-                <div class="project-photo-button-row">
-                    <button id="btn-view-before-images" type="button" class="project-photo-btn">BEFORE</button>
-                    <button id="btn-view-during-images" type="button" class="project-photo-btn">DURING</button>
-                    <button id="btn-view-after-images" type="button" class="project-photo-btn">AFTER</button>
-                </div>
             </div>
 
             <button id="btn-add-project-update" class="project-detail-main-btn">ADD PROJECT UPDATE</button>
@@ -295,28 +276,18 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
     const errorBox = document.getElementById('project-detail-error');
     const updateErrorBox = document.getElementById('project-update-error');
 
-    function openProjectPhotos(photoType) {
-        if (window.navigateTo) {
-            window.navigateTo('project-photos', {
-                ...facility,
-                project_id: projectId,
-                project_name: projectName,
-                facilities_id: facilityId,
-                photo_type: photoType
-            });
-        }
-    }
-
-    document.getElementById('btn-view-before-images').addEventListener('click', () => {
-        openProjectPhotos('before');
-    });
-
-    document.getElementById('btn-view-during-images').addEventListener('click', () => {
-        openProjectPhotos('during');
-    });
-
-    document.getElementById('btn-view-after-images').addEventListener('click', () => {
-        openProjectPhotos('after');
+    document.querySelectorAll('.project-update-record-button').forEach(button => {
+        button.addEventListener('click', () => {
+            if (window.navigateTo) {
+                window.navigateTo('project-update', {
+                    ...facility,
+                    project_id: projectId,
+                    project_update_id: button.dataset.id,
+                    project_name: projectName,
+                    facilities_id: facilityId
+                });
+            }
+        });
     });
 
     document.getElementById('btn-add-project-update').addEventListener('click', () => {
@@ -381,7 +352,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             notes
         };
 
-        const { error } = await createProjectUpdate(payload);
+        const { data, error } = await createProjectUpdate(payload);
 
         if (error) {
             console.error('Insert project update error:', error);
@@ -392,9 +363,12 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
         updateModalBackdrop.style.display = 'none';
 
         if (window.navigateTo) {
-            window.navigateTo('facility-project-detail', {
+            window.navigateTo('project-update', {
                 ...facility,
-                project_id: projectId
+                project_id: projectId,
+                project_update_id: data.id,
+                project_name: projectName,
+                facilities_id: facilityId
             });
         }
     });
