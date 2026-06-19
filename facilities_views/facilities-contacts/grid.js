@@ -1,6 +1,7 @@
 /*================================================================
 FACILITIES-CONTACTS GRID
-VERSION: v2026_06_19_requested_by_prefill
+VERSION: v2026_06_19_requested_by_project_detail_flow
+UPDATED: 2026-06-19 @ 4:45 AM EDT
 ================================================================*/
 
 import {
@@ -10,6 +11,10 @@ import {
     deleteContact,
     updateContactImage
 } from './data.js';
+
+import {
+    createProject
+} from '../facilities-projects/data.js';
 
 import { uploadImage } from '../../global_engine/image-handler.js';
 
@@ -139,7 +144,7 @@ export async function renderContactsGrid(containerId, context = {}) {
 
             <button id="btn-back-facility" class="contacts-back-btn">⬅️ BACK</button>
 
-            <div class="contacts-version-tag">facilities-contacts/grid.js | v2026_06_19_requested_by_prefill | 2026-06-19</div>
+            <div class="contacts-version-tag">facilities-contacts/grid.js | v2026_06_19_requested_by_project_detail_flow | 2026-06-19 @ 4:45 AM EDT</div>
         </div>
 
         <div id="contact-modal-backdrop" class="contact-modal-backdrop">
@@ -188,14 +193,14 @@ export async function renderContactsGrid(containerId, context = {}) {
 
                 <div id="contact-error" class="contact-error"></div>
 
-                <div class="contacts-version-tag">contact modal | v2026_06_19_requested_by_prefill | 2026-06-19</div>
+                <div class="contacts-version-tag">contact modal | v2026_06_19_requested_by_project_detail_flow | 2026-06-19 @ 4:45 AM EDT</div>
             </div>
         </div>
 
         <div id="contact-saved-popup-backdrop" class="contact-custom-popup-backdrop">
             <div class="contact-custom-popup">
                 <div class="contact-custom-popup-title">Contact Saved</div>
-                <div class="contact-custom-popup-message">Contact was added. You can now finish saving the project.</div>
+                <div class="contact-custom-popup-message">Contact was added. Opening project detail.</div>
                 <div class="contact-custom-popup-buttons">
                     <button id="btn-contact-saved-ok">OK</button>
                 </div>
@@ -289,14 +294,6 @@ export async function renderContactsGrid(containerId, context = {}) {
 
     document.getElementById('btn-contact-saved-ok').addEventListener('click', () => {
         contactSavedPopupBackdrop.style.display = 'none';
-
-        if (context?.return_to_projects_after_contact && window.navigateTo) {
-            window.navigateTo('facilities-projects', {
-                ...context,
-                requested_contact_prefill: null,
-                return_to_projects_after_contact: false
-            });
-        }
     });
 
     imageInput.addEventListener('change', () => {
@@ -421,13 +418,37 @@ export async function renderContactsGrid(containerId, context = {}) {
             }
         }
 
-        modalBackdrop.style.display = 'none';
+        if (context?.return_to_project_detail_after_contact && context?.project_draft_prefill && savedContact?.id) {
+            const projectPayload = {
+                ...context.project_draft_prefill,
+                requested_by_name: contactName,
+                requested_by_title: contactRole,
+                requested_by_contact_id: savedContact.id
+            };
 
-        if (context?.return_to_projects_after_contact) {
-            contactSavedPopupBackdrop.style.display = 'flex';
-            return;
+            const { data: newProject, error: projectError } = await createProject(projectPayload);
+
+            if (projectError) {
+                console.error('Create project after contact error:', projectError);
+                errorBox.textContent = 'Contact saved, but project failed.';
+                return;
+            }
+
+            modalBackdrop.style.display = 'none';
+
+            if (newProject?.id && window.navigateTo) {
+                window.navigateTo('facility-project-detail', {
+                    ...context,
+                    requested_contact_prefill: null,
+                    project_draft_prefill: null,
+                    return_to_project_detail_after_contact: false,
+                    project_id: newProject.id
+                });
+                return;
+            }
         }
 
+        modalBackdrop.style.display = 'none';
         await renderContactsGrid(containerId, context);
     });
 }
