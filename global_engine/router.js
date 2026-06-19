@@ -127,6 +127,5 @@ export async function navigateTo(view, context = {}) {
         console.error("Navigation error:", err);
         app.innerHTML = `<div style="padding:20px;color:red;">Navigation error. Check console.</div>`;
     }
-}
 
 window.navigateTo = navigateTo;
