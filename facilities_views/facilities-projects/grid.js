@@ -1,7 +1,7 @@
 /*================================================================
 FACILITIES-PROJECTS GRID
-VERSION: v2026_06_19_requested_by_project_detail_flow
-UPDATED: 2026-06-19 @ 4:45 AM EDT
+VERSION: v2026_06_19_contact_add_project_prefill
+UPDATED: 2026-06-19 @ 6:24 AM EDT
 ================================================================*/
 
 import {
@@ -99,7 +99,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
             <button id="btn-back-facility" class="projects-back-btn">⬅️ BACK</button>
 
-            <div class="projects-version-tag">facilities_views/facilities-projects/grid.js | v2026_06_19_requested_by_project_detail_flow | 2026-06-19 @ 4:45 AM EDT</div>
+            <div class="projects-version-tag">facilities_views/facilities-projects/grid.js | v2026_06_19_contact_add_project_prefill | 2026-06-19 @ 6:24 AM EDT</div>
         </div>
 
         <div id="project-modal-backdrop" class="project-modal-backdrop">
@@ -144,7 +144,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
                 <div id="project-error" class="project-error"></div>
 
-                <div class="projects-version-tag">facilities_views/facilities-projects/grid.js | v2026_06_19_requested_by_project_detail_flow | 2026-06-19 @ 4:45 AM EDT</div>
+                <div class="projects-version-tag">facilities_views/facilities-projects/grid.js | v2026_06_19_contact_add_project_prefill | 2026-06-19 @ 6:24 AM EDT</div>
             </div>
         </div>
 
@@ -210,6 +210,23 @@ export async function renderProjectsGrid(containerId, context = {}) {
             notesInput.value = context.project_draft_prefill.notes || '';
         }
 
+        if (context?.project_prefill) {
+            projectNameInput.value = context.project_prefill.project_name || context.project_prefill.name || projectNameInput.value;
+            typeInput.value = context.project_prefill.type || typeInput.value;
+            requestedByNameInput.value = context.project_prefill.requested_by_name || requestedByNameInput.value;
+            requestedByTitleInput.value = context.project_prefill.requested_by_title || requestedByTitleInput.value;
+            descriptionInput.value = context.project_prefill.description || descriptionInput.value;
+            notesInput.value = context.project_prefill.notes || notesInput.value;
+        }
+
+        if (context?.requested_by_name) {
+            requestedByNameInput.value = context.requested_by_name || '';
+        }
+
+        if (context?.requested_by_title) {
+            requestedByTitleInput.value = context.requested_by_title || '';
+        }
+
         modalBackdrop.style.display = 'flex';
     }
 
@@ -231,7 +248,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
         openModal();
     });
 
-    if (context?.project_draft_prefill) {
+    if (context?.project_draft_prefill || context?.project_prefill || context?.open_add_project_modal) {
         openModal();
     }
 
@@ -307,9 +324,9 @@ export async function renderProjectsGrid(containerId, context = {}) {
             return;
         }
 
-        let requestedByContactId = null;
+        let requestedByContactId = context?.requested_by_contact_id || context?.project_prefill?.requested_by_contact_id || null;
 
-        if (requestedByName) {
+        if (requestedByName && !requestedByContactId) {
             const { data: existingContact, error: contactFindError } = await findContactByName(facilityId, requestedByName);
 
             if (contactFindError) {
