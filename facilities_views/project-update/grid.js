@@ -58,7 +58,7 @@ function renderPhotoSection(photoType, photos) {
             <div class="project-update-section-title">${escapeHtml(getPhotoTitle(photoType))}</div>
 
             <button type="button" class="project-update-add-photo-btn" data-type="${escapeHtml(photoType)}">ADD IMAGE</button>
-            <input type="file" accept="image/*" multiple class="project-update-photo-input" data-type="${escapeHtml(photoType)}" style="display:none;">
+            <input type="file" accept="image/*" capture="environment" multiple class="project-update-photo-input" data-type="${escapeHtml(photoType)}" style="display:none;">
 
             <div class="project-update-photo-grid">
                 ${photos.length ? photos.map((photo, index) => `
