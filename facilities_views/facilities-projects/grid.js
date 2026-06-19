@@ -1,13 +1,15 @@
 /*================================================================
 FACILITIES-PROJECTS GRID
-VERSION: v2026_06_18_project_modal_fields_tag_fix
+VERSION: v2026_06_19_requested_by_fields
 ================================================================*/
 
 import {
     fetchProjects,
     createProject,
     updateProject,
-    deleteProject
+    deleteProject,
+    findContactByName,
+    createRequestedByContact
 } from './data.js';
 
 function escapeHtml(value) {
@@ -88,7 +90,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
             <button id="btn-back-facility" class="projects-back-btn">⬅️ BACK</button>
 
-            <div class="projects-version-tag">facilities_views/facilities-projects/grid.js</div>
+            <div class="projects-version-tag">facilities_views/facilities-projects/grid.js | v2026_06_19_requested_by_fields</div>
         </div>
 
         <div id="project-modal-backdrop" class="project-modal-backdrop">
@@ -112,6 +114,12 @@ export async function renderProjectsGrid(containerId, context = {}) {
                     <option value="Other"></option>
                 </datalist>
 
+                <label>Requested By Name</label>
+                <input id="requested-by-name-input" type="text">
+
+                <label>Requested By Title</label>
+                <input id="requested-by-title-input" type="text">
+
                 <label>Description</label>
                 <textarea id="project-description-input"></textarea>
 
@@ -127,7 +135,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
                 <div id="project-error" class="project-error"></div>
 
-                <div class="projects-version-tag">facilities_views/facilities-projects/grid.js</div>
+                <div class="projects-version-tag">facilities_views/facilities-projects/grid.js | v2026_06_19_requested_by_fields</div>
             </div>
         </div>
     `;
@@ -137,6 +145,8 @@ export async function renderProjectsGrid(containerId, context = {}) {
     const projectIdInput = document.getElementById('project-id-input');
     const projectNameInput = document.getElementById('project-name-input');
     const typeInput = document.getElementById('project-type-input');
+    const requestedByNameInput = document.getElementById('requested-by-name-input');
+    const requestedByTitleInput = document.getElementById('requested-by-title-input');
     const descriptionInput = document.getElementById('project-description-input');
     const notesInput = document.getElementById('project-notes-input');
     const errorBox = document.getElementById('project-error');
@@ -146,6 +156,8 @@ export async function renderProjectsGrid(containerId, context = {}) {
         projectIdInput.value = '';
         projectNameInput.value = '';
         typeInput.value = '';
+        requestedByNameInput.value = '';
+        requestedByTitleInput.value = '';
         descriptionInput.value = '';
         notesInput.value = '';
         errorBox.textContent = '';
@@ -160,6 +172,8 @@ export async function renderProjectsGrid(containerId, context = {}) {
             projectIdInput.value = project.id || '';
             projectNameInput.value = project.project_name || project.name || '';
             typeInput.value = project.type || '';
+            requestedByNameInput.value = project.requested_by_name || '';
+            requestedByTitleInput.value = project.requested_by_title || '';
             descriptionInput.value = project.description || '';
             notesInput.value = project.notes || '';
             modalTitle.textContent = `Edit Project for ${facilityName}`;
@@ -186,12 +200,13 @@ export async function renderProjectsGrid(containerId, context = {}) {
             }
         });
     });
+
     document.getElementById('btn-cancel-project').addEventListener('click', () => {
         modalBackdrop.style.display = 'none';
     });
 
-document.getElementById('btn-back-facility').addEventListener('click', () => {
-    if (window.navigateTo) window.navigateTo('facilities-home');
+    document.getElementById('btn-back-facility').addEventListener('click', () => {
+        if (window.navigateTo) window.navigateTo('facilities-home');
     });
 
     deleteButton.addEventListener('click', async () => {
@@ -215,10 +230,46 @@ document.getElementById('btn-back-facility').addEventListener('click', () => {
     document.getElementById('btn-save-project').addEventListener('click', async () => {
         const projectId = projectIdInput.value;
         const projectName = projectNameInput.value.trim();
+        const requestedByName = requestedByNameInput.value.trim();
+        const requestedByTitle = requestedByTitleInput.value.trim();
 
         if (!projectName) {
             errorBox.textContent = 'Project name required.';
             return;
+        }
+
+        let requestedByContactId = null;
+
+        if (requestedByName) {
+            const { data: existingContact, error: contactFindError } = await findContactByName(facilityId, requestedByName);
+
+            if (contactFindError) {
+                console.error('Find requested by contact error:', contactFindError);
+                errorBox.textContent = 'Could not check requested by contact.';
+                return;
+            }
+
+            if (existingContact) {
+                requestedByContactId = existingContact.id || null;
+            } else {
+                const addContact = confirm('Requested by person is not in contacts. Do you want to add this contact?');
+
+                if (addContact) {
+                    const { data: newContact, error: contactCreateError } = await createRequestedByContact({
+                        facilities_id: facilityId,
+                        name: requestedByName,
+                        role: requestedByTitle
+                    });
+
+                    if (contactCreateError) {
+                        console.error('Create requested by contact error:', contactCreateError);
+                        errorBox.textContent = 'Could not add requested by contact.';
+                        return;
+                    }
+
+                    requestedByContactId = newContact?.id || null;
+                }
+            }
         }
 
         const payload = {
@@ -227,6 +278,9 @@ document.getElementById('btn-back-facility').addEventListener('click', () => {
             name: projectName,
             project_name: projectName,
             type: typeInput.value.trim(),
+            requested_by_name: requestedByName,
+            requested_by_title: requestedByTitle,
+            requested_by_contact_id: requestedByContactId,
             description: descriptionInput.value.trim(),
             notes: notesInput.value.trim()
         };
