@@ -1,6 +1,6 @@
 /*================================================================
 FACILITY-PROJECT-DETAIL GRID
-VERSION: v2026_06_18_project_updates_added
+VERSION: v2026_06_18_project_update_images_added
 ================================================================*/
 
 import {
@@ -8,8 +8,13 @@ import {
     updateProjectDetail,
     deleteProjectDetail,
     fetchProjectUpdates,
-    createProjectUpdate
+    createProjectUpdate,
+    createProjectPhoto
 } from './data.js';
+
+import {
+    uploadImage
+} from '../../global_engine/image-handler.js';
 
 function escapeHtml(value) {
     return String(value || '')
@@ -70,6 +75,10 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
     const projectName = project.project_name || project.name || 'Project';
     const facilityId = project.facilities_id || project.location_id || facility.id || null;
 
+    let beforeFiles = [];
+    let duringFiles = [];
+    let afterFiles = [];
+
     container.innerHTML = `
         <style>
             .project-detail-card { background:#ffffff; max-width:350px; margin:16px auto; padding:18px; border-radius:14px; box-shadow:0 4px 18px rgba(0,0,0,0.08); text-align:center; }
@@ -85,6 +94,9 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             .project-detail-back-btn { background:#747d8c; color:white; border:none; border-radius:9px; width:100%; min-height:48px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:12px; }
             .project-detail-version-tag { border-top:1px solid #d6dee8; margin-top:18px; padding-top:10px; font-size:10px; color:#7d8ba0; text-align:center; }
             .project-update-date { color:#667085; font-size:11px; margin-bottom:4px; }
+            .project-photo-button-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:6px; margin-top:12px; }
+            .project-photo-btn { background:#003b73; color:white; border:none; border-radius:7px; padding:10px 4px; font-size:12px; font-weight:bold; cursor:pointer; }
+            .project-photo-count { color:#667085; font-size:11px; margin-top:6px; text-align:center; }
 
             .project-detail-modal-backdrop,
             .project-update-modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:9999; }
@@ -148,6 +160,9 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 ${latestUpdate ? `
                     <div class="project-update-date">${escapeHtml(formatDate(latestUpdate.created_at))}</div>
+
+                    <div class="project-detail-label">UPDATE TITLE</div>
+                    <div class="project-detail-value">${escapeHtml(latestUpdate.update_title || '')}</div>
 
                     <div class="project-detail-label">STATUS</div>
                     <div class="project-detail-value">${escapeHtml(latestUpdate.status || '')}</div>
@@ -217,6 +232,21 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             <div class="project-update-modal">
                 <h3>Add Project Update</h3>
 
+                <label>Update Title</label>
+                <input id="project-update-title-input" type="text" list="project-update-title-options">
+
+                <datalist id="project-update-title-options">
+                    <option value="General Update"></option>
+                    <option value="Carpet Update"></option>
+                    <option value="AC Update"></option>
+                    <option value="Plumbing Update"></option>
+                    <option value="Electrical Update"></option>
+                    <option value="Painting Update"></option>
+                    <option value="Materials Update"></option>
+                    <option value="Vendor Update"></option>
+                    <option value="Room Flip Update"></option>
+                </datalist>
+
                 <label>Status Today</label>
                 <input id="project-update-status-input" type="text" list="project-update-status-options">
 
@@ -249,6 +279,18 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
                 <label>Notes</label>
                 <textarea id="project-update-notes-input"></textarea>
 
+                <div class="project-photo-button-row">
+                    <button id="btn-before-images" type="button" class="project-photo-btn">BEFORE</button>
+                    <button id="btn-during-images" type="button" class="project-photo-btn">DURING</button>
+                    <button id="btn-after-images" type="button" class="project-photo-btn">AFTER</button>
+                </div>
+
+                <div id="project-photo-count" class="project-photo-count">No images selected.</div>
+
+                <input id="before-image-input" type="file" accept="image/*" multiple style="display:none;">
+                <input id="during-image-input" type="file" accept="image/*" multiple style="display:none;">
+                <input id="after-image-input" type="file" accept="image/*" multiple style="display:none;">
+
                 <div class="project-update-modal-buttons">
                     <button id="btn-save-project-update" class="btn-save-project-update">Save</button>
                     <button id="btn-cancel-project-update" class="btn-cancel-project-update">Cancel</button>
@@ -265,6 +307,45 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
     const updateModalBackdrop = document.getElementById('project-update-modal-backdrop');
     const errorBox = document.getElementById('project-detail-error');
     const updateErrorBox = document.getElementById('project-update-error');
+    const photoCount = document.getElementById('project-photo-count');
+
+    function updatePhotoCount() {
+        const total = beforeFiles.length + duringFiles.length + afterFiles.length;
+
+        if (!total) {
+            photoCount.textContent = 'No images selected.';
+            return;
+        }
+
+        photoCount.textContent = `Images selected: Before ${beforeFiles.length}, During ${duringFiles.length}, After ${afterFiles.length}`;
+    }
+
+    document.getElementById('btn-before-images').addEventListener('click', () => {
+        document.getElementById('before-image-input').click();
+    });
+
+    document.getElementById('btn-during-images').addEventListener('click', () => {
+        document.getElementById('during-image-input').click();
+    });
+
+    document.getElementById('btn-after-images').addEventListener('click', () => {
+        document.getElementById('after-image-input').click();
+    });
+
+    document.getElementById('before-image-input').addEventListener('change', event => {
+        beforeFiles = Array.from(event.target.files || []);
+        updatePhotoCount();
+    });
+
+    document.getElementById('during-image-input').addEventListener('change', event => {
+        duringFiles = Array.from(event.target.files || []);
+        updatePhotoCount();
+    });
+
+    document.getElementById('after-image-input').addEventListener('change', event => {
+        afterFiles = Array.from(event.target.files || []);
+        updatePhotoCount();
+    });
 
     document.getElementById('btn-add-project-update').addEventListener('click', () => {
         updateModalBackdrop.style.display = 'flex';
@@ -300,7 +381,31 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
         if (window.navigateTo) window.navigateTo('facilities-projects', facility);
     });
 
+    async function saveProjectPhotos(savedUpdateId, photoType, files) {
+        for (const file of files) {
+            const imageUrl = await uploadImage(
+                file,
+                'locations-images',
+                `project_photos/project_${projectId}/${photoType}`
+            );
+
+            const { error } = await createProjectPhoto({
+                project_id: projectId,
+                project_update_id: savedUpdateId,
+                facilities_id: facilityId,
+                photo_type: photoType,
+                image_url: imageUrl,
+                caption: ''
+            });
+
+            if (error) {
+                throw error;
+            }
+        }
+    }
+
     document.getElementById('btn-save-project-update').addEventListener('click', async () => {
+        const updateTitle = document.getElementById('project-update-title-input').value.trim();
         const status = document.getElementById('project-update-status-input').value.trim();
         const workDone = document.getElementById('project-update-work-done-input').value.trim();
         const leftOffAt = document.getElementById('project-update-left-off-input').value.trim();
@@ -309,7 +414,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
         const vendorNeeded = document.getElementById('project-update-vendor-needed-input').checked;
         const notes = document.getElementById('project-update-notes-input').value.trim();
 
-        if (!status && !workDone && !leftOffAt && !materialsNeeded && !nextStep && !notes) {
+        if (!updateTitle && !status && !workDone && !leftOffAt && !materialsNeeded && !nextStep && !notes && !beforeFiles.length && !duringFiles.length && !afterFiles.length) {
             updateErrorBox.textContent = 'Enter at least one update detail.';
             return;
         }
@@ -317,6 +422,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
         const payload = {
             project_id: projectId,
             facilities_id: facilityId,
+            update_title: updateTitle,
             status,
             work_done: workDone,
             left_off_at: leftOffAt,
@@ -326,11 +432,21 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             notes
         };
 
-        const { error } = await createProjectUpdate(payload);
+        const { data: savedUpdate, error } = await createProjectUpdate(payload);
 
         if (error) {
             console.error('Insert project update error:', error);
             updateErrorBox.textContent = 'Could not save project update.';
+            return;
+        }
+
+        try {
+            await saveProjectPhotos(savedUpdate.id, 'before', beforeFiles);
+            await saveProjectPhotos(savedUpdate.id, 'during', duringFiles);
+            await saveProjectPhotos(savedUpdate.id, 'after', afterFiles);
+        } catch (photoError) {
+            console.error('Project photo upload error:', photoError);
+            updateErrorBox.textContent = 'Update saved, but image upload failed.';
             return;
         }
 
