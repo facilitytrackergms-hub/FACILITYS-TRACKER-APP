@@ -1,6 +1,6 @@
 /*================================================================
 FACILITY-PROJECT-DETAIL DATA
-VERSION: v2026_06_18_facility_project_detail_new
+VERSION: v2026_06_18_project_updates_added
 ================================================================*/
 
 import { supabase } from '../../global_engine/supabaseClient.js';
@@ -27,4 +27,27 @@ export async function deleteProjectDetail(projectId) {
         .from('projects')
         .delete()
         .eq('id', projectId);
+}
+
+export async function fetchProjectUpdates(projectId) {
+    const { data, error } = await supabase
+        .from('project_updates')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Fetch project updates error:', error);
+        return [];
+    }
+
+    return data || [];
+}
+
+export async function createProjectUpdate(payload) {
+    return await supabase
+        .from('project_updates')
+        .insert([payload])
+        .select('*')
+        .single();
 }
