@@ -386,7 +386,7 @@ export async function renderContactsGrid(containerId, context = {}) {
                 <div class="contact-detail-value">${escapeHtml(contact.notes || '')}</div>
             </div>
 
-            <button id="btn-add-project-from-contact" class="contact-detail-add-project-btn">ADD PROJECT FROM CONTACT</button>
+            <button id="btn-add-project-from-contact" class="contact-detail-add-project-btn">➕ ADD PROJECT</button>
 
             <div class="contact-detail-info-box">
                 <div class="contact-detail-label">PROJECTS ATTACHED TO THIS CONTACT</div>
