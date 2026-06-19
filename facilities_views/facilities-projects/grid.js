@@ -1,6 +1,7 @@
 /*================================================================
 FACILITIES-PROJECTS GRID
-VERSION: v2026_06_19_requested_by_custom_popup
+VERSION: v2026_06_19_requested_by_project_detail_flow
+UPDATED: 2026-06-19 @ 4:45 AM EDT
 ================================================================*/
 
 import {
@@ -98,7 +99,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
             <button id="btn-back-facility" class="projects-back-btn">⬅️ BACK</button>
 
-            <div class="projects-version-tag">facilities_views/facilities-projects/grid.js | v2026_06_19_requested_by_custom_popup</div>
+            <div class="projects-version-tag">facilities_views/facilities-projects/grid.js | v2026_06_19_requested_by_project_detail_flow | 2026-06-19 @ 4:45 AM EDT</div>
         </div>
 
         <div id="project-modal-backdrop" class="project-modal-backdrop">
@@ -143,7 +144,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
                 <div id="project-error" class="project-error"></div>
 
-                <div class="projects-version-tag">facilities_views/facilities-projects/grid.js | v2026_06_19_requested_by_custom_popup</div>
+                <div class="projects-version-tag">facilities_views/facilities-projects/grid.js | v2026_06_19_requested_by_project_detail_flow | 2026-06-19 @ 4:45 AM EDT</div>
             </div>
         </div>
 
@@ -272,7 +273,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
                     role: requestedByTitleInput.value.trim()
                 },
                 project_draft_prefill: getProjectDraft(),
-                return_to_projects_after_contact: true
+                return_to_project_detail_after_contact: true
             });
         }
     });
@@ -347,11 +348,19 @@ export async function renderProjectsGrid(containerId, context = {}) {
                 return;
             }
         } else {
-            const { error } = await createProject(payload);
+            const { data, error } = await createProject(payload);
 
             if (error) {
                 console.error('Insert project error:', error);
                 errorBox.textContent = 'Could not save project.';
+                return;
+            }
+
+            if (data?.id && window.navigateTo) {
+                window.navigateTo('facility-project-detail', {
+                    ...context,
+                    project_id: data.id
+                });
                 return;
             }
         }
