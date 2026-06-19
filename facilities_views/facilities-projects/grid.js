@@ -177,12 +177,15 @@ export async function renderProjectsGrid(containerId, context = {}) {
         button.addEventListener('click', () => {
             const projectId = button.dataset.id;
             const project = projects.find(p => String(p.id) === String(projectId));
+
             if (project && window.navigateTo) {
-    window.navigateTo('facility-project-detail', {
-        ...context,
-        project_id: project.id
+                window.navigateTo('facility-project-detail', {
+                    ...context,
+                    project_id: project.id
+                });
+            }
+        });
     });
-}
     document.getElementById('btn-cancel-project').addEventListener('click', () => {
         modalBackdrop.style.display = 'none';
     });
