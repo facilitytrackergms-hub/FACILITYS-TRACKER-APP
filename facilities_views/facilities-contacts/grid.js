@@ -362,29 +362,29 @@ export async function renderContactsGrid(containerId, context = {}) {
                 ? `<img class="contact-detail-img" src="${escapeHtml(contact.image_url)}" alt="${escapeHtml(contact.name)}">`
                 : `<div class="contact-detail-img"></div>`}
 
-            <div class="contact-detail-info-box">
-                <div class="contact-detail-label">CONTACT NAME</div>
-                <div class="contact-detail-value">${escapeHtml(contact.name || '')}</div>
+           <div class="contact-detail-info-box">
+    <div class="contact-detail-label">CONTACT NAME</div>
+    <div class="contact-detail-value">${escapeHtml(contact.name || '')}</div>
 
-                <div class="contact-detail-label">ROLE</div>
-                <div class="contact-detail-value">${escapeHtml(contact.role || '')}</div>
+    <div class="contact-detail-label">ROLE</div>
+    <div class="contact-detail-value">${escapeHtml(contact.role || '')}</div>
 
-                <div class="contact-detail-label">PHONE</div>
-                <div class="contact-detail-value">
-                    ${contact.phone ? `<button id="btn-contact-phone-options" class="contact-detail-link">${escapeHtml(contact.phone)}</button>` : ''}
-                </div>
+    <div class="contact-detail-label">PHONE</div>
+    <div class="contact-detail-value">
+        ${contact.phone ? `<button id="btn-contact-phone-options" class="contact-detail-link">${escapeHtml(contact.phone)}</button>` : ''}
+    </div>
 
-                <div class="contact-detail-label">EMAIL</div>
-                <div class="contact-detail-value">
-                    ${contact.email ? `<a class="contact-detail-link" href="mailto:${escapeHtml(contact.email)}">${escapeHtml(contact.email)}</a>` : ''}
-                </div>
+    <div class="contact-detail-label">EMAIL</div>
+    <div class="contact-detail-value">
+        ${contact.email ? `<a class="contact-detail-link" href="mailto:${escapeHtml(contact.email)}">${escapeHtml(contact.email)}</a>` : ''}
+    </div>
 
-                <div class="contact-detail-label">ADDRESS</div>
-                <div class="contact-detail-value">${escapeHtml(contact.address || '')}</div>
+    <div class="contact-detail-label">ADDRESS</div>
+    <div class="contact-detail-value">${escapeHtml(contact.address || '')}</div>
 
-                <div class="contact-detail-label">NOTES</div>
-                <div class="contact-detail-value">${escapeHtml(contact.notes || '')}</div>
-            </div>
+    <div class="contact-detail-label">NOTES</div>
+    <div class="contact-detail-value">${escapeHtml(contact.notes || '')}</div>
+</div>
 
             <button id="btn-add-project-from-contact" class="contact-detail-add-project-btn">➕ ADD PROJECT</button>
 
