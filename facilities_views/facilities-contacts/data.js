@@ -1,8 +1,8 @@
 /* ================================================================
    PURPOSE: Contact data service
    LOCATION: /facilities_views/facilities-contacts/data.js
-   VERSION: v2026_06_19_contact_detail_projects
-   UPDATED: 2026-06-19 @ 4:45 AM EDT
+   VERSION: v2026_06_19_contact_detail_center_project_button
+   UPDATED: 2026-06-19 @ 6:20 AM EDT
    ================================================================ */
 
 import { supabase } from '../../global_engine/supabaseClient.js';
