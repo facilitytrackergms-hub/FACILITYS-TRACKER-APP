@@ -1,6 +1,6 @@
 /*================================================================
 FACILITIES-CONTACTS GRID
-VERSION: v2026_06_18_view_on_button_contacts
+VERSION: v2026_06_19_requested_by_prefill
 ================================================================*/
 
 import {
@@ -110,6 +110,13 @@ export async function renderContactsGrid(containerId, context = {}) {
             .btn-cancel-contact { background: #777; color: white; }
             .btn-delete-contact { background: #dc2626; color: yellow; display: none; width: 100%; margin-top: 10px; padding: 11px; border: none; border-radius: 7px; font-weight: bold; cursor: pointer; }
             .contact-error { color: red; font-size: 13px; text-align: center; margin-top: 10px; min-height: 16px; }
+
+            .contact-custom-popup-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.55); display:none; align-items:center; justify-content:center; z-index:10000; }
+            .contact-custom-popup { background:white; width:88%; max-width:330px; border-radius:12px; padding:18px; box-shadow:0 4px 18px rgba(0,0,0,0.28); text-align:center; }
+            .contact-custom-popup-title { color:#003b73; font-size:18px; font-weight:bold; margin-bottom:10px; }
+            .contact-custom-popup-message { color:#1f2937; font-size:14px; line-height:1.35; margin-bottom:16px; }
+            .contact-custom-popup-buttons { display:grid; grid-template-columns:1fr; gap:8px; }
+            .contact-custom-popup-buttons button { border:none; border-radius:8px; padding:11px; font-size:14px; font-weight:bold; cursor:pointer; background:#22a843; color:white; }
         </style>
 
         <div class="contacts-card">
@@ -132,7 +139,7 @@ export async function renderContactsGrid(containerId, context = {}) {
 
             <button id="btn-back-facility" class="contacts-back-btn">⬅️ BACK</button>
 
-            <div class="contacts-version-tag">facilities-contacts/grid.js | v2026_06_18_view_on_button_contacts | 2026-06-18</div>
+            <div class="contacts-version-tag">facilities-contacts/grid.js | v2026_06_19_requested_by_prefill | 2026-06-19</div>
         </div>
 
         <div id="contact-modal-backdrop" class="contact-modal-backdrop">
@@ -181,7 +188,17 @@ export async function renderContactsGrid(containerId, context = {}) {
 
                 <div id="contact-error" class="contact-error"></div>
 
-                <div class="contacts-version-tag">contact modal | v2026_06_18_view_on_button_contacts | 2026-06-18</div>
+                <div class="contacts-version-tag">contact modal | v2026_06_19_requested_by_prefill | 2026-06-19</div>
+            </div>
+        </div>
+
+        <div id="contact-saved-popup-backdrop" class="contact-custom-popup-backdrop">
+            <div class="contact-custom-popup">
+                <div class="contact-custom-popup-title">Contact Saved</div>
+                <div class="contact-custom-popup-message">Contact was added. You can now finish saving the project.</div>
+                <div class="contact-custom-popup-buttons">
+                    <button id="btn-contact-saved-ok">OK</button>
+                </div>
             </div>
         </div>
     `;
@@ -199,6 +216,7 @@ export async function renderContactsGrid(containerId, context = {}) {
     const imagePreview = document.getElementById('contact-image-preview');
     const errorBox = document.getElementById('contact-error');
     const deleteButton = document.getElementById('btn-delete-contact');
+    const contactSavedPopupBackdrop = document.getElementById('contact-saved-popup-backdrop');
 
     function clearModal() {
         contactIdInput.value = '';
@@ -236,12 +254,22 @@ export async function renderContactsGrid(containerId, context = {}) {
             }
         }
 
+        if (!contact && context?.requested_contact_prefill) {
+            nameInput.value = context.requested_contact_prefill.name || '';
+            roleInput.value = context.requested_contact_prefill.role || '';
+            modalTitle.textContent = 'Add Requested By Contact';
+        }
+
         modalBackdrop.style.display = 'flex';
     }
 
     document.getElementById('btn-add-contact').addEventListener('click', () => {
         openModal();
     });
+
+    if (context?.requested_contact_prefill) {
+        openModal();
+    }
 
     document.querySelectorAll('.contact-record-button').forEach(button => {
         button.addEventListener('click', () => {
@@ -257,6 +285,18 @@ export async function renderContactsGrid(containerId, context = {}) {
 
     document.getElementById('btn-back-facility').addEventListener('click', () => {
         if (window.navigateTo) window.navigateTo('facilities-details', context);
+    });
+
+    document.getElementById('btn-contact-saved-ok').addEventListener('click', () => {
+        contactSavedPopupBackdrop.style.display = 'none';
+
+        if (context?.return_to_projects_after_contact && window.navigateTo) {
+            window.navigateTo('facilities-projects', {
+                ...context,
+                requested_contact_prefill: null,
+                return_to_projects_after_contact: false
+            });
+        }
     });
 
     imageInput.addEventListener('change', () => {
@@ -382,6 +422,12 @@ export async function renderContactsGrid(containerId, context = {}) {
         }
 
         modalBackdrop.style.display = 'none';
+
+        if (context?.return_to_projects_after_contact) {
+            contactSavedPopupBackdrop.style.display = 'flex';
+            return;
+        }
+
         await renderContactsGrid(containerId, context);
     });
 }
