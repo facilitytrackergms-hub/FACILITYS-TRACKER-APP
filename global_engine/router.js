@@ -2,7 +2,7 @@
    PURPOSE: Router to handle view navigation
    LOCATION: /global_engine/router.js
    DATE: 2026-06-18
-   VERSION: v2026_06_18_project_photos_route_added
+   VERSION: v2026_06_18_project_update_route_added
    ================================================================ */
 
 export async function navigateTo(view, context = {}) {
@@ -68,6 +68,19 @@ export async function navigateTo(view, context = {}) {
 
             console.error("No valid render function found in facility-project-detail/grid.js");
             app.innerHTML = `<div style="padding:20px;color:red;">Project detail view render function not found.</div>`;
+            return;
+        }
+
+        if (view === 'project-update') {
+            const module = await import(`${basePath}/facilities_views/project-update/grid.js`);
+
+            if (typeof module.renderProjectUpdateGrid === 'function') {
+                await module.renderProjectUpdateGrid('app-container', context);
+                return;
+            }
+
+            console.error("No valid render function found in project-update/grid.js");
+            app.innerHTML = `<div style="padding:20px;color:red;">Project update view render function not found.</div>`;
             return;
         }
 
