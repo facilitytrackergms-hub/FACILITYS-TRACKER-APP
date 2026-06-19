@@ -1,8 +1,8 @@
 /* ================================================================
    PURPOSE: Project data service
    LOCATION: /facilities_views/facilities-projects/data.js
-   VERSION: v2026_06_18_requested_by_contact_lookup
-   DATE: 2026-06-18
+   VERSION: v2026_06_19_requested_by_contact_lookup
+   DATE: 2026-06-19
    ================================================================ */
 
 import { supabase } from '../../global_engine/supabaseClient.js';
