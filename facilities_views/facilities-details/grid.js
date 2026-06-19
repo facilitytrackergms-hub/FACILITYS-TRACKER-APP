@@ -1,7 +1,6 @@
-
 /*================================================================
 FACILITIES-DETAILS GRID
-VERSION: v2026_06_18_facility_details_new
+VERSION: v2026_06_18_clickable_address_phone_tag_fix
 ================================================================*/
 
 import {
@@ -20,6 +19,15 @@ function escapeHtml(value) {
 
 function getFacilityName(facility) {
     return facility?.abbreviation || facility?.number_name || facility?.name || 'Facility';
+}
+
+function getMapUrl(address) {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || '')}`;
+}
+
+function getPhoneUrl(phone) {
+    const cleanPhone = String(phone || '').replace(/[^\d+]/g, '');
+    return `tel:${cleanPhone}`;
 }
 
 export async function renderFacilityDetailsGrid(containerId, context = {}) {
@@ -43,6 +51,7 @@ export async function renderFacilityDetailsGrid(containerId, context = {}) {
             .details-info-box { border:1px solid #d6dee8; border-radius:10px; padding:12px; text-align:left; margin-bottom:14px; background:#f8fbff; }
             .details-label { color:#003b73; font-size:11px; font-weight:bold; margin-top:6px; }
             .details-value { color:#111827; font-size:14px; margin-bottom:6px; }
+            .details-link { color:#003b73; text-decoration:underline; font-weight:bold; }
             .details-button-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
             .details-action-btn { background:#003b73; color:white; border:none; border-radius:9px; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; }
             .details-delete-btn { background:#dc2626; color:yellow; border:none; border-radius:9px; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; }
@@ -72,10 +81,18 @@ export async function renderFacilityDetailsGrid(containerId, context = {}) {
 
             <div class="details-info-box">
                 <div class="details-label">ADDRESS</div>
-                <div class="details-value">${escapeHtml(facility.address || '')}</div>
+                <div class="details-value">
+                    ${facility.address
+                        ? `<a class="details-link" href="${escapeHtml(getMapUrl(facility.address))}" target="_blank" rel="noopener noreferrer">${escapeHtml(facility.address)}</a>`
+                        : ''}
+                </div>
 
                 <div class="details-label">PHONE</div>
-                <div class="details-value">${escapeHtml(facility.phone || '')}</div>
+                <div class="details-value">
+                    ${facility.phone
+                        ? `<a class="details-link" href="${escapeHtml(getPhoneUrl(facility.phone))}">${escapeHtml(facility.phone)}</a>`
+                        : ''}
+                </div>
             </div>
 
             <div class="details-button-row">
@@ -87,7 +104,7 @@ export async function renderFacilityDetailsGrid(containerId, context = {}) {
             <button id="btn-go-projects" class="details-main-btn">📋 PROJECTS</button>
             <button id="btn-back-home" class="details-back-btn">⬅️ BACK</button>
 
-            <div class="details-version-tag">facilities-details/grid.js | v2026_06_18_facility_details_new | 2026-06-18</div>
+            <div class="details-version-tag">facilities_views/facilities-details/grid.js</div>
         </div>
 
         <div id="facility-modal-backdrop" class="facility-modal-backdrop">
@@ -113,7 +130,7 @@ export async function renderFacilityDetailsGrid(containerId, context = {}) {
 
                 <div id="facility-error" class="facility-error"></div>
 
-                <div class="details-version-tag">facility details modal | v2026_06_18_facility_details_new | 2026-06-18</div>
+                <div class="details-version-tag">facilities_views/facilities-details/grid.js</div>
             </div>
         </div>
     `;
