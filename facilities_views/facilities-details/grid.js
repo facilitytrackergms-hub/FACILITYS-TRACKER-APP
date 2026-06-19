@@ -185,7 +185,6 @@ export async function renderFacilityDetailsGrid(containerId, context = {}) {
 
         const payload = {
             number_name: numberName,
-            name: numberName,
             abbreviation,
             address,
             phone
