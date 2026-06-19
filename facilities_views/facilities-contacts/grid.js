@@ -256,7 +256,7 @@ export async function renderContactsGrid(containerId, context = {}) {
     });
 
     document.getElementById('btn-back-facility').addEventListener('click', () => {
-        if (window.navigateTo) window.navigateTo('facilities-projects', context);
+        if (window.navigateTo) window.navigateTo('facilities-details', context);
     });
 
     imageInput.addEventListener('change', () => {
