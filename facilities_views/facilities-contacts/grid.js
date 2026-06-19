@@ -112,7 +112,7 @@ export async function renderContactsGrid(containerId, context = {}) {
             .contact-detail-card { background:#ffffff; max-width:350px; margin:16px auto; padding:18px; border-radius:14px; box-shadow:0 4px 18px rgba(0,0,0,0.08); text-align:center; display:none; }
             .contact-detail-title { color:#003b73; font-size:24px; font-weight:bold; margin-bottom:2px; text-align:center; }
             .contact-detail-subtitle { color:#003b73; font-size:13px; font-weight:bold; margin-bottom:16px; letter-spacing:2px; text-align:center; }
-            .contact-detail-img { width:90px; height:90px; border-radius:50%; object-fit:cover; background:#dbe5ef; margin:0 auto 14px; display:block; }
+           .contact-detail-img { width:75px; height:75px; border-radius:50%; object-fit:cover; background:#dbe5ef; margin:0 auto 14px; display:block; }
 
             .contact-detail-info-box {
                 border:1px solid #c3d2e3;
