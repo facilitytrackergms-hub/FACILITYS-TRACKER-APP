@@ -1,7 +1,7 @@
 /* ================================================================
    PURPOSE: Project data service
    LOCATION: /facilities_views/facilities-projects/data.js
-   VERSION: v2026_06_18_view_on_button_projects
+   VERSION: v2026_06_18_requested_by_contact_lookup
    DATE: 2026-06-18
    ================================================================ */
 
@@ -44,4 +44,27 @@ export async function deleteProject(projectId) {
         .from('projects')
         .delete()
         .eq('id', projectId);
+}
+
+export async function findContactByName(facilityId, contactName) {
+    const cleanName = String(contactName || '').trim();
+
+    if (!facilityId || !cleanName) {
+        return { data: null, error: null };
+    }
+
+    return await supabase
+        .from('contacts')
+        .select('*')
+        .eq('facilities_id', facilityId)
+        .ilike('name', cleanName)
+        .maybeSingle();
+}
+
+export async function createRequestedByContact(payload) {
+    return await supabase
+        .from('contacts')
+        .insert([payload])
+        .select('*')
+        .single();
 }
