@@ -3,7 +3,7 @@ FACILITY-PROJECT-DETAIL GRID
 VERSION: v2026_06_19_clean_tag_project_description
 UPDATED: 2026-06-19 @ 4:45 AM EDT
 ================================================================*/
-
+import { openMaterialsPanel } from './materials-panel.js';
 import {
     fetchProjectDetail,
     updateProjectDetail,
@@ -168,6 +168,13 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             <button id="btn-open-materials" class="project-detail-main-btn">
     MATERIALS
 </button>
+document.getElementById('btn-open-materials').addEventListener('click', () => {
+    openMaterialsPanel({
+        id: projectId,
+        facilities_id: facilityId,
+        project_name: projectName
+    });
+});
             <div class="project-detail-button-row" style="margin-top:12px;">
                 <button id="btn-edit-project-detail" class="project-detail-action-btn">⚙️ Edit</button>
                 <button id="btn-delete-project-detail" class="project-detail-delete-btn">🗑 Delete</button>
