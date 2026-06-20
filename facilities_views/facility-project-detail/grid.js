@@ -84,6 +84,22 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             .project-detail-main-btn { background:#003b73; color:white; border:none; border-radius:9px; width:100%; min-height:50px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:8px; }
             .project-detail-back-btn { background:#747d8c; color:white; border:none; border-radius:9px; width:100%; min-height:48px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:12px; }
             .project-detail-version-tag { border-top:1px solid #d6dee8; margin-top:18px; padding-top:10px; font-size:10px; color:#7d8ba0; text-align:center; }
+       
+        .project-update-record-button {
+    width: 100%;
+    border: 1px solid #d6dee8;
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 10px;
+    background: #ffffff;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+        
+        
         </style>
 
         <div class="project-detail-card">
