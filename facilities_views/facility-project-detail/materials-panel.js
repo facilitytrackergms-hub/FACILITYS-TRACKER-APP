@@ -18,7 +18,6 @@ export function render(project) {
 export function openMaterialsPanel(project) {
     const container = document.getElementById('app-container');
 
-    // store current project globally (fix reload issues)
     window.currentProjectId = project.id;
 
     container.innerHTML = `
@@ -83,6 +82,12 @@ export function openMaterialsPanel(project) {
                 background:#ef4444;
             }
 
+            .amazon-btn{
+                background:#ff9900;
+                color:#111;
+                font-weight:700;
+            }
+
             select,input{
                 padding:4px;
                 border-radius:6px;
@@ -127,7 +132,7 @@ async function loadMaterials(projectId) {
         .from('project_materials')
         .select('*')
         .eq('project_id', projectId)
-        .order('created_at', { ascending: false }); // NEWEST ON TOP
+        .order('created_at', { ascending: false });
 
     const list = document.getElementById('materials-list');
     list.innerHTML = '';
@@ -152,6 +157,7 @@ async function loadMaterials(projectId) {
                 <button class="small-btn" onclick="saveMaterial('${m.id}')">Save</button>
                 <button class="small-btn delete-btn" onclick="deleteMaterial('${m.id}')">Delete</button>
                 <button class="small-btn" onclick="openMaterialDetail('${projectId}', '${m.id}')">Photos</button>
+                <button class="small-btn amazon-btn" onclick="openAmazon('${m.material_name}')">Amazon</button>
             </div>
 
             <div class="img-row" id="imgs-${m.id}"></div>
@@ -209,21 +215,20 @@ function addMaterial(projectId) {
 }
 
 /* =========================================================
-   MATERIAL DETAIL (PHOTOS FIXED)
+   AMAZON LINK
+========================================================= */
+window.openAmazon = function(materialName){
+    const query = encodeURIComponent(materialName);
+    window.open(`https://www.amazon.com/s?k=${query}`, '_blank');
+};
+
+/* =========================================================
+   MATERIAL DETAIL (PHOTOS)
 ========================================================= */
 window.openMaterialDetail = function(projectId, materialId){
     const box = document.getElementById(`imgs-${materialId}`);
-
     if (!box) return;
-
     box.scrollIntoView({ behavior: "smooth", block: "center" });
-
-    // simple toggle expand (placeholder behavior)
-    if (box.style.display === 'none') {
-        box.style.display = 'flex';
-    } else {
-        box.style.display = 'flex';
-    }
 };
 
 /* =========================================================
