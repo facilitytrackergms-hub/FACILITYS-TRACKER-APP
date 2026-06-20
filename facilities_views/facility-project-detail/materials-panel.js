@@ -19,6 +19,7 @@ export function openMaterialsPanel(project) {
     const container = document.getElementById('app-container');
 
     window.currentProjectId = project.id;
+    window.materialCollapseState = {}; // NEW STATE CONTROL
 
     container.innerHTML = `
         <div style="padding:12px;">
@@ -52,6 +53,7 @@ export function openMaterialsPanel(project) {
                 padding:12px;
                 border-radius:10px;
                 border:1px solid #e5e7eb;
+                cursor:pointer;
             }
 
             .material-title{
@@ -177,40 +179,47 @@ async function loadMaterials(projectId) {
     list.innerHTML = '';
 
     (data || []).forEach(m => {
+
+        const isCollapsed = window.materialCollapseState[m.id];
+
         const row = document.createElement('div');
         row.className = "material-card";
 
         row.innerHTML = `
-            <div class="material-title">${m.material_name}</div>
-
-            <!-- DESCRIPTION BOX -->
-            <textarea 
-                id="desc-${m.id}"
-                placeholder="Description..."
-                style="width:100%; margin:6px 0; min-height:50px;"
-            >${m.description || ''}</textarea>
-
-            <div class="row">
-                Qty:
-                <input type="number" value="${m.quantity || ''}" id="qty-${m.id}">
-
-                Status:
-                <select id="status-${m.id}">
-                    <option value="need_by" ${m.material_status === 'need_by' ? 'selected' : ''}>need by</option>
-                    <option value="both" ${m.material_status === 'both' ? 'selected' : ''}>both</option>
-                </select>
-
-                <button class="small-btn" onclick="saveMaterial('${m.id}')">Save</button>
-                <button class="small-btn delete-btn" onclick="deleteMaterial('${m.id}')">Delete</button>
-
-                <button class="small-btn" onclick="openMaterialDetail('${projectId}', '${m.id}')">See Pics</button>
-                <button class="small-btn" onclick="addImage('${m.id}')">Add Images</button>
-
-                <button class="small-btn amazon-btn" onclick="openAmazon('${m.material_name}')">Amazon</button>
+            <div class="material-title" onclick="toggleMaterial('${m.id}')">
+                ${m.material_name}
             </div>
 
-            <div class="img-actions" id="img-actions-${m.id}"></div>
-            <div class="img-row" id="imgs-${m.id}"></div>
+            <div id="body-${m.id}" style="display:${isCollapsed ? 'none' : 'block'}">
+
+                <textarea 
+                    id="desc-${m.id}"
+                    placeholder="Description..."
+                    style="width:100%; margin:6px 0; min-height:50px;"
+                >${m.description || ''}</textarea>
+
+                <div class="row">
+                    Qty:
+                    <input type="number" value="${m.quantity || ''}" id="qty-${m.id}">
+
+                    Status:
+                    <select id="status-${m.id}">
+                        <option value="need_by" ${m.material_status === 'need_by' ? 'selected' : ''}>need by</option>
+                        <option value="both" ${m.material_status === 'both' ? 'selected' : ''}>both</option>
+                    </select>
+
+                    <button class="small-btn" onclick="saveMaterial('${m.id}')">Save</button>
+                    <button class="small-btn delete-btn" onclick="deleteMaterial('${m.id}')">Delete</button>
+
+                    <button class="small-btn" onclick="openMaterialDetail('${m.id}')">See Pics</button>
+                    <button class="small-btn" onclick="addImage('${m.id}')">Add Images</button>
+
+                    <button class="small-btn amazon-btn" onclick="openAmazon('${m.material_name}')">Amazon</button>
+                </div>
+
+                <div class="img-actions" id="img-actions-${m.id}"></div>
+                <div class="img-row" id="imgs-${m.id}"></div>
+            </div>
         `;
 
         list.appendChild(row);
@@ -219,9 +228,18 @@ async function loadMaterials(projectId) {
 }
 
 /* =========================================================
+   COLLAPSE / OPEN MATERIAL
+========================================================= */
+window.toggleMaterial = function(id){
+    window.materialCollapseState[id] = !window.materialCollapseState[id];
+    loadMaterials(window.currentProjectId);
+};
+
+/* =========================================================
    SAVE / DELETE
 ========================================================= */
 window.saveMaterial = async function(id){
+
     const qty = document.getElementById(`qty-${id}`).value;
     const status = document.getElementById(`status-${id}`).value;
     const desc = document.getElementById(`desc-${id}`).value;
@@ -234,6 +252,7 @@ window.saveMaterial = async function(id){
         })
         .eq('id', id);
 
+    window.materialCollapseState[id] = true; // AUTO COLLAPSE AFTER SAVE
     loadMaterials(window.currentProjectId);
 };
 
@@ -279,16 +298,16 @@ window.addImage = function(materialId){
 };
 
 /* =========================================================
-   FIXED PHOTOS BUTTON (WORKING)
+   SEE PICS FIXED
 ========================================================= */
-window.openMaterialDetail = function(projectId, materialId){
+window.openMaterialDetail = function(materialId){
 
     const box = document.getElementById(`imgs-${materialId}`);
     if (!box) return;
 
-    loadMaterialImages(projectId, materialId);
+    const projectId = window.currentProjectId;
 
-    box.style.display = "flex";
+    loadMaterialImages(projectId, materialId);
 
     setTimeout(() => {
         box.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -299,6 +318,7 @@ window.openMaterialDetail = function(projectId, materialId){
    LOAD IMAGES
 ========================================================= */
 async function loadMaterialImages(projectId, materialId){
+
     const { data } = await supabase
         .from('projects_images')
         .select('*')
