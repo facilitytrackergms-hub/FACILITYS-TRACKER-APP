@@ -7,7 +7,7 @@ import { supabase } from '../../global_engine/supabaseClient.js';
    - material detail view
    - image handling (projects_images table)
 ========================================================= */
-
+import { openMaterialsPanel } from './materials-panel.js';
 export function openMaterialsPanel(project) {
     const container = document.getElementById('app-container');
 
