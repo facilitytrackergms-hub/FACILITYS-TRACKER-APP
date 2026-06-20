@@ -30,7 +30,6 @@ function getFacilityContext(context) {
     if (typeof context === 'object' && context !== null) {
         return context.facility || context;
     }
-
     return {};
 }
 
@@ -59,7 +58,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
     const { data: project, error } = await fetchProjectDetail(projectId);
 
     if (error || !project) {
-        console.error('Fetch project detail error:', error);
+        console.error(error);
         container.innerHTML = `<p style="color:red;text-align:center;">Could not load project.</p>`;
         return;
     }
@@ -72,34 +71,28 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
     container.innerHTML = `
         <style>
-            .project-detail-card { background:#ffffff; max-width:350px; margin:16px auto; padding:18px; border-radius:14px; box-shadow:0 4px 18px rgba(0,0,0,0.08); text-align:center; }
-            .project-detail-title { color:#003b73; font-size:24px; font-weight:bold; margin-bottom:2px; }
-            .project-detail-subtitle { color:#003b73; font-size:13px; font-weight:bold; margin-bottom:16px; letter-spacing:2px; }
+            .project-detail-card { background:#fff; max-width:350px; margin:16px auto; padding:18px; border-radius:14px; box-shadow:0 4px 18px rgba(0,0,0,0.08); text-align:center; }
+            .project-detail-title { color:#003b73; font-size:24px; font-weight:bold; }
+            .project-detail-subtitle { color:#003b73; font-size:13px; font-weight:bold; margin-bottom:16px; }
             .project-detail-info-box { border:1px solid #d6dee8; border-radius:10px; padding:12px; text-align:left; margin-bottom:14px; background:#f8fbff; }
             .project-detail-label { color:#003b73; font-size:11px; font-weight:bold; margin-top:8px; }
             .project-detail-value { color:#111827; font-size:14px; margin-bottom:8px; white-space:pre-wrap; }
-            .project-detail-button-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
-            .project-detail-action-btn { background:#003b73; color:white; border:none; border-radius:9px; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; }
-            .project-detail-delete-btn { background:#dc2626; color:yellow; border:none; border-radius:9px; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; }
-            .project-detail-main-btn { background:#003b73; color:white; border:none; border-radius:9px; width:100%; min-height:50px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:8px; }
-            .project-detail-back-btn { background:#747d8c; color:white; border:none; border-radius:9px; width:100%; min-height:48px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:12px; }
-            .project-detail-version-tag { border-top:1px solid #d6dee8; margin-top:18px; padding-top:10px; font-size:10px; color:#7d8ba0; text-align:center; }
-       
-        .project-update-record-button {
-    width: 100%;
-    border: 1px solid #d6dee8;
-    border-radius: 10px;
-    padding: 10px;
-    margin-top: 10px;
-    background: #ffffff;
-    text-align: left;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-        
-        
+            .project-detail-main-btn { background:#003b73; color:#fff; border:none; border-radius:9px; width:100%; min-height:50px; margin-top:8px; font-weight:bold; cursor:pointer; }
+            .project-detail-back-btn { background:#747d8c; color:#fff; border:none; border-radius:9px; width:100%; min-height:48px; margin-top:12px; font-weight:bold; cursor:pointer; }
+
+            .project-update-record-button {
+                width:100%;
+                border:1px solid #d6dee8;
+                border-radius:10px;
+                padding:10px;
+                margin-top:10px;
+                background:#fff;
+                text-align:left;
+                cursor:pointer;
+                display:flex;
+                flex-direction:column;
+                gap:4px;
+            }
         </style>
 
         <div class="project-detail-card">
@@ -109,28 +102,16 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             <div class="project-detail-info-box">
                 <div class="project-detail-label">PROJECT DESCRIPTION</div>
                 <div class="project-detail-value">${escapeHtml(project.description || '')}</div>
-
-                <div class="project-detail-label">TYPE</div>
-                <div class="project-detail-value">${escapeHtml(project.type || '')}</div>
-
-                <div class="project-detail-label">REQUESTED BY NAME</div>
-                <div class="project-detail-value">${escapeHtml(project.requested_by_name || '')}</div>
-
-                <div class="project-detail-label">REQUESTED BY TITLE</div>
-                <div class="project-detail-value">${escapeHtml(project.requested_by_title || '')}</div>
-
-                <div class="project-detail-label">NOTES</div>
-                <div class="project-detail-value">${escapeHtml(project.notes || '')}</div>
             </div>
 
             <div class="project-detail-info-box">
                 <div class="project-detail-label">PROJECT UPDATES</div>
 
                 ${projectUpdates.length ? projectUpdates.map(update => `
-                    <button type="button" class="project-update-record-button" data-id="${update.id}">
-                        <div class="project-update-record-button-title">${escapeHtml(update.update_title || 'Project Update')}</div>
-                        <div class="project-update-record-button-status">${escapeHtml(update.status || '')}</div>
-                        <div class="project-update-record-button-date">${escapeHtml(formatDate(update.created_at))}</div>
+                    <button class="project-update-record-button">
+                        <div><b>${escapeHtml(update.update_title || 'Project Update')}</b></div>
+                        <div>${escapeHtml(update.status || '')}</div>
+                        <div>${escapeHtml(formatDate(update.created_at))}</div>
                     </button>
                 `).join('') : `
                     <div class="project-detail-value">No project updates yet.</div>
@@ -139,37 +120,41 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
             <button id="btn-add-project-update" class="project-detail-main-btn">ADD PROJECT UPDATE</button>
 
-            <button id="btn-open-materials" class="project-detail-main-btn">
-                MATERIALS
-            </button>
+            <button id="btn-open-materials" class="project-detail-main-btn">MATERIALS</button>
 
-            <div class="project-detail-button-row" style="margin-top:12px;">
-                <button id="btn-edit-project-detail" class="project-detail-action-btn">⚙️ Edit</button>
-                <button id="btn-delete-project-detail" class="project-detail-delete-btn">🗑 Delete</button>
-            </div>
-
-            <button id="btn-back-projects" class="project-detail-back-btn">⬅️ BACK</button>
-
-            <div class="project-detail-version-tag">grid.js | 2026-06-19 @ 4:45 AM EDT</div>
+            <button id="btn-back-projects" class="project-detail-back-btn">BACK</button>
         </div>
     `;
 
-    const modalBackdrop = document.getElementById('project-detail-modal-backdrop');
     const updateModalBackdrop = document.getElementById('project-update-modal-backdrop');
 
-    document.getElementById('btn-add-project-update').addEventListener('click', () => {
-        updateModalBackdrop.style.display = 'flex';
-    });
+    function bindProjectButtons() {
+        const addBtn = document.getElementById('btn-add-project-update');
+        const materialsBtn = document.getElementById('btn-open-materials');
+        const backBtn = document.getElementById('btn-back-projects');
 
-    document.getElementById('btn-open-materials').addEventListener('click', () => {
-        openMaterialsPanel({
-            id: projectId,
-            facilities_id: facilityId,
-            project_name: projectName
-        });
-    });
+        if (addBtn) {
+            addBtn.onclick = () => {
+                updateModalBackdrop.style.display = 'flex';
+            };
+        }
 
-    document.getElementById('btn-back-projects').addEventListener('click', () => {
-        if (window.navigateTo) window.navigateTo('facilities-projects', facility);
-    });
+        if (materialsBtn) {
+            materialsBtn.onclick = () => {
+                openMaterialsPanel({
+                    id: projectId,
+                    facilities_id: facilityId,
+                    project_name: projectName
+                });
+            };
+        }
+
+        if (backBtn) {
+            backBtn.onclick = () => {
+                if (window.navigateTo) window.navigateTo('facilities-projects', facility);
+            };
+        }
+    }
+
+    bindProjectButtons();
 }
