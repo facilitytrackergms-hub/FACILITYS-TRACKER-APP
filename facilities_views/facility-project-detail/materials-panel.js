@@ -30,6 +30,9 @@ export function openMaterialsPanel(project) {
             <div id="materials-list"></div>
         </div>
 
+        <!-- hidden file input (camera opens on phone) -->
+        <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none;"/>
+
         <style>
             .blue-btn{
                 background:#1e6fff;
@@ -42,9 +45,7 @@ export function openMaterialsPanel(project) {
                 font-weight:600;
             }
 
-            .blue-btn.secondary{
-                background:#6b7280;
-            }
+            .blue-btn.secondary{ background:#6b7280; }
 
             .material-card{
                 background:#fff;
@@ -78,20 +79,12 @@ export function openMaterialsPanel(project) {
                 cursor:pointer;
             }
 
-            .delete-btn{
-                background:#ef4444;
-            }
+            .delete-btn{ background:#ef4444; }
 
             .amazon-btn{
                 background:#ff9900;
                 color:#111;
                 font-weight:700;
-            }
-
-            select,input{
-                padding:4px;
-                border-radius:6px;
-                border:1px solid #ccc;
             }
 
             .img-row{
@@ -108,6 +101,12 @@ export function openMaterialsPanel(project) {
                 border-radius:6px;
                 border:1px solid #ddd;
             }
+
+            .img-actions{
+                display:flex;
+                gap:6px;
+                margin-top:6px;
+            }
         </style>
     `;
 
@@ -121,7 +120,43 @@ export function openMaterialsPanel(project) {
         addMaterial(project.id);
     };
 
+    setupCamera(project.id);
+
     loadMaterials(project.id);
+}
+
+/* =========================================================
+   CAMERA UPLOAD SYSTEM
+========================================================= */
+let activeMaterialId = null;
+
+function setupCamera(projectId){
+    const input = document.getElementById('camera-input');
+
+    input.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file || !activeMaterialId) return;
+
+        const fileName = `${Date.now()}_${file.name}`;
+
+        const { data, error } = await supabase.storage
+            .from('project-materials')
+            .upload(fileName, file);
+
+        if (error) return;
+
+        const url = supabase.storage
+            .from('project-materials')
+            .getPublicUrl(fileName).data.publicUrl;
+
+        await supabase.from('projects_images').insert({
+            project_id: projectId,
+            material_id: activeMaterialId,
+            image_url: url
+        });
+
+        loadMaterialImages(projectId, activeMaterialId);
+    });
 }
 
 /* =========================================================
@@ -156,10 +191,14 @@ async function loadMaterials(projectId) {
 
                 <button class="small-btn" onclick="saveMaterial('${m.id}')">Save</button>
                 <button class="small-btn delete-btn" onclick="deleteMaterial('${m.id}')">Delete</button>
-                <button class="small-btn" onclick="openMaterialDetail('${projectId}', '${m.id}')">Photos</button>
+
+                <button class="small-btn" onclick="openMaterialDetail('${m.id}')">See Pics</button>
+                <button class="small-btn" onclick="addImage('${m.id}')">Add Images</button>
+
                 <button class="small-btn amazon-btn" onclick="openAmazon('${m.material_name}')">Amazon</button>
             </div>
 
+            <div class="img-actions" id="img-actions-${m.id}"></div>
             <div class="img-row" id="imgs-${m.id}"></div>
         `;
 
@@ -170,25 +209,19 @@ async function loadMaterials(projectId) {
 }
 
 /* =========================================================
-   SAVE MATERIAL
+   SAVE / DELETE
 ========================================================= */
 window.saveMaterial = async function(id){
     const qty = document.getElementById(`qty-${id}`).value;
     const status = document.getElementById(`status-${id}`).value;
 
     await supabase.from('project_materials')
-        .update({
-            quantity: qty,
-            material_status: status
-        })
+        .update({ quantity: qty, material_status: status })
         .eq('id', id);
 
     loadMaterials(window.currentProjectId);
 };
 
-/* =========================================================
-   DELETE MATERIAL
-========================================================= */
 window.deleteMaterial = async function(id){
     await supabase.from('project_materials')
         .delete()
@@ -200,7 +233,7 @@ window.deleteMaterial = async function(id){
 /* =========================================================
    ADD MATERIAL
 ========================================================= */
-function addMaterial(projectId) {
+function addMaterial(projectId){
     const name = prompt("Material name");
     if (!name) return;
 
@@ -215,26 +248,30 @@ function addMaterial(projectId) {
 }
 
 /* =========================================================
-   AMAZON LINK
+   AMAZON
 ========================================================= */
-window.openAmazon = function(materialName){
-    const query = encodeURIComponent(materialName);
-    window.open(`https://www.amazon.com/s?k=${query}`, '_blank');
+window.openAmazon = function(name){
+    window.open(`https://www.amazon.com/s?k=${encodeURIComponent(name)}`, '_blank');
 };
 
 /* =========================================================
-   MATERIAL DETAIL (PHOTOS)
+   IMAGE SYSTEM
 ========================================================= */
-window.openMaterialDetail = function(projectId, materialId){
+window.addImage = function(materialId){
+    activeMaterialId = materialId;
+    document.getElementById('camera-input').click();
+};
+
+window.openMaterialDetail = function(materialId){
     const box = document.getElementById(`imgs-${materialId}`);
     if (!box) return;
-    box.scrollIntoView({ behavior: "smooth", block: "center" });
+    box.scrollIntoView({ behavior: "smooth" });
 };
 
 /* =========================================================
-   LOAD IMAGES PER MATERIAL
+   LOAD IMAGES
 ========================================================= */
-async function loadMaterialImages(projectId, materialId) {
+async function loadMaterialImages(projectId, materialId){
     const { data } = await supabase
         .from('projects_images')
         .select('*')
@@ -242,6 +279,8 @@ async function loadMaterialImages(projectId, materialId) {
         .eq('material_id', materialId);
 
     const box = document.getElementById(`imgs-${materialId}`);
+    const actions = document.getElementById(`img-actions-${materialId}`);
+
     if (!box) return;
 
     box.innerHTML = '';
@@ -251,4 +290,8 @@ async function loadMaterialImages(projectId, materialId) {
         el.src = img.image_url;
         box.appendChild(el);
     });
+
+    if (actions) {
+        actions.innerHTML = `<small>${(data || []).length} images</small>`;
+    }
 }
