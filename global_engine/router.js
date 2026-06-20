@@ -1,8 +1,8 @@
 /* ================================================================
    PURPOSE: Router to handle view navigation
    LOCATION: /global_engine/router.js
-   DATE: 2026-06-18
-   VERSION: v2026_06_18_project_update_route_added
+   DATE: 2026-06-20
+   VERSION: v2026_06_20_materials_route_added
    ================================================================ */
 
 export async function navigateTo(view, context = {}) {
@@ -97,6 +97,19 @@ export async function navigateTo(view, context = {}) {
             return;
         }
 
+        if (view === 'materials') {
+            const module = await import(`${basePath}/facilities_views/materials-panel/grid.js`);
+
+            if (typeof module.renderMaterialsGrid === 'function') {
+                await module.renderMaterialsGrid('app-container', context);
+                return;
+            }
+
+            console.error("No valid render function found in materials-panel/grid.js");
+            app.innerHTML = `<div style="padding:20px;color:red;">Materials view render function not found.</div>`;
+            return;
+        }
+
         if (view === 'facilities-contacts') {
             const module = await import(`${basePath}/facilities_views/facilities-contacts/grid.js`);
 
@@ -126,7 +139,7 @@ export async function navigateTo(view, context = {}) {
     } catch (err) {
         console.error("Navigation error:", err);
         app.innerHTML = `<div style="padding:20px;color:red;">Navigation error. Check console.</div>`;
-        }
+    }
 }
 
 window.navigateTo = navigateTo;
