@@ -302,16 +302,42 @@ window.addImage = function(materialId){
 ========================================================= */
 window.openMaterialDetail = function(materialId){
 
-    const box = document.getElementById(`imgs-${materialId}`);
-    if (!box) return;
-
     const projectId = window.currentProjectId;
 
-    loadMaterialImages(projectId, materialId);
+    const images = document.querySelectorAll(`#imgs-${materialId} img`);
 
-    setTimeout(() => {
-        box.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 120);
+    if (!images.length) {
+        loadMaterialImages(projectId, materialId);
+        return;
+    }
+
+    let html = `<div style="
+        position:fixed;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background:black;
+        z-index:9999;
+        display:flex;
+        overflow:auto;
+        flex-wrap:wrap;
+        padding:10px;
+    " onclick="this.remove()">`;
+
+    images.forEach(img => {
+        html += `<img src="${img.src}" style="
+            width:100px;
+            height:100px;
+            object-fit:cover;
+            margin:4px;
+            border-radius:6px;
+        ">`;
+    });
+
+    html += `</div>`;
+
+    document.body.insertAdjacentHTML("beforeend", html);
 };
 
 /* =========================================================
