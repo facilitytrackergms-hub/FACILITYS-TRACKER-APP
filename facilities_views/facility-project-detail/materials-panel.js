@@ -18,6 +18,9 @@ export function render(project) {
 export function openMaterialsPanel(project) {
     const container = document.getElementById('app-container');
 
+    // store current project globally (fix reload issues)
+    window.currentProjectId = project.id;
+
     container.innerHTML = `
         <div style="padding:12px;">
             <h2>Materials</h2>
@@ -123,7 +126,8 @@ async function loadMaterials(projectId) {
     const { data } = await supabase
         .from('project_materials')
         .select('*')
-        .eq('project_id', projectId);
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false }); // NEWEST ON TOP
 
     const list = document.getElementById('materials-list');
     list.innerHTML = '';
@@ -138,17 +142,16 @@ async function loadMaterials(projectId) {
             <div class="row">
                 Qty:
                 <input type="number" value="${m.quantity || ''}" id="qty-${m.id}">
-                
+
                 Status:
                 <select id="status-${m.id}">
-                    <option value="normal" ${m.material_status === 'normal' ? 'selected' : ''}>normal</option>
-                    <option value="low" ${m.material_status === 'low' ? 'selected' : ''}>low</option>
-                    <option value="ordered" ${m.material_status === 'ordered' ? 'selected' : ''}>ordered</option>
+                    <option value="need_by" ${m.material_status === 'need_by' ? 'selected' : ''}>need by</option>
+                    <option value="both" ${m.material_status === 'both' ? 'selected' : ''}>both</option>
                 </select>
 
                 <button class="small-btn" onclick="saveMaterial('${m.id}')">Save</button>
                 <button class="small-btn delete-btn" onclick="deleteMaterial('${m.id}')">Delete</button>
-                <button class="small-btn" onclick="openMaterialDetail(${projectId}, ${m.id})">Photos</button>
+                <button class="small-btn" onclick="openMaterialDetail('${projectId}', '${m.id}')">Photos</button>
             </div>
 
             <div class="img-row" id="imgs-${m.id}"></div>
@@ -199,17 +202,28 @@ function addMaterial(projectId) {
         .insert({
             project_id: projectId,
             material_name: name,
-            material_status: 'normal',
+            material_status: 'need_by',
             quantity: 0
         })
         .then(() => loadMaterials(projectId));
 }
 
 /* =========================================================
-   MATERIAL DETAIL (PHOTOS)
+   MATERIAL DETAIL (PHOTOS FIXED)
 ========================================================= */
 window.openMaterialDetail = function(projectId, materialId){
-    openMaterialsPanel({ id: projectId });
+    const box = document.getElementById(`imgs-${materialId}`);
+
+    if (!box) return;
+
+    box.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    // simple toggle expand (placeholder behavior)
+    if (box.style.display === 'none') {
+        box.style.display = 'flex';
+    } else {
+        box.style.display = 'flex';
+    }
 };
 
 /* =========================================================
