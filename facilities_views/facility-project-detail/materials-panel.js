@@ -86,7 +86,7 @@ export function openMaterialsPanel(project) {
                 font-weight:700;
             }
 
-            select,input{
+            select,input,textarea{
                 padding:4px;
                 border-radius:6px;
                 border:1px solid #ccc;
@@ -183,6 +183,13 @@ async function loadMaterials(projectId) {
         row.innerHTML = `
             <div class="material-title">${m.material_name}</div>
 
+            <!-- DESCRIPTION BOX -->
+            <textarea 
+                id="desc-${m.id}"
+                placeholder="Description..."
+                style="width:100%; margin:6px 0; min-height:50px;"
+            >${m.description || ''}</textarea>
+
             <div class="row">
                 Qty:
                 <input type="number" value="${m.quantity || ''}" id="qty-${m.id}">
@@ -217,9 +224,14 @@ async function loadMaterials(projectId) {
 window.saveMaterial = async function(id){
     const qty = document.getElementById(`qty-${id}`).value;
     const status = document.getElementById(`status-${id}`).value;
+    const desc = document.getElementById(`desc-${id}`).value;
 
     await supabase.from('project_materials')
-        .update({ quantity: qty, material_status: status })
+        .update({
+            quantity: qty,
+            material_status: status,
+            description: desc
+        })
         .eq('id', id);
 
     loadMaterials(window.currentProjectId);
@@ -245,7 +257,8 @@ function addMaterial(projectId){
             project_id: projectId,
             material_name: name,
             material_status: 'need_by',
-            quantity: 0
+            quantity: 0,
+            description: ''
         })
         .then(() => loadMaterials(projectId));
 }
@@ -266,19 +279,20 @@ window.addImage = function(materialId){
 };
 
 /* =========================================================
-   FIXED PHOTOS BUTTON
+   FIXED PHOTOS BUTTON (WORKING)
 ========================================================= */
 window.openMaterialDetail = function(projectId, materialId){
 
     const box = document.getElementById(`imgs-${materialId}`);
     if (!box) return;
 
-    // force reload images first
     loadMaterialImages(projectId, materialId);
+
+    box.style.display = "flex";
 
     setTimeout(() => {
         box.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 100);
+    }, 120);
 };
 
 /* =========================================================
