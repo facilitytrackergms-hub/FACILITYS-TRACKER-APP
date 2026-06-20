@@ -307,8 +307,11 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
         updateModalBackdrop.style.display = 'none';
    
     });
+// Purpose: Updated Materials Event Listener
+// Location: grid.js
+
 document.getElementById('btn-open-materials').addEventListener('click', () => {
-    viewCart({
+    window.navigateTo('materials', {
         id: projectId,
         facilities_id: facilityId,
         project_name: projectName
