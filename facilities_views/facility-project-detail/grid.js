@@ -427,3 +427,6 @@ document.getElementById('btn-open-materials').addEventListener('click', () => {
         }
     });
 }
+export default renderFacilityProjectDetailGrid;
+
+
