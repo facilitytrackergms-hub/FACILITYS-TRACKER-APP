@@ -4,7 +4,7 @@ VERSION: v2026_06_19_clean_tag_project_description
 UPDATED: 2026-06-19 @ 4:45 AM EDT
 ================================================================*/
 import { viewCart } from '../materials-panel/view_card.js';
-import {
+
     fetchProjectDetail,
     updateProjectDetail,
     deleteProjectDetail,
