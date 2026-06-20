@@ -30,7 +30,6 @@ export function openMaterialsPanel(project) {
             <div id="materials-list"></div>
         </div>
 
-        <!-- hidden file input (camera opens on phone) -->
         <input type="file" id="camera-input" accept="image/*" capture="environment" style="display:none;"/>
 
         <style>
@@ -87,6 +86,12 @@ export function openMaterialsPanel(project) {
                 font-weight:700;
             }
 
+            select,input{
+                padding:4px;
+                border-radius:6px;
+                border:1px solid #ccc;
+            }
+
             .img-row{
                 display:flex;
                 gap:6px;
@@ -121,12 +126,11 @@ export function openMaterialsPanel(project) {
     };
 
     setupCamera(project.id);
-
     loadMaterials(project.id);
 }
 
 /* =========================================================
-   CAMERA UPLOAD SYSTEM
+   CAMERA
 ========================================================= */
 let activeMaterialId = null;
 
@@ -139,7 +143,7 @@ function setupCamera(projectId){
 
         const fileName = `${Date.now()}_${file.name}`;
 
-        const { data, error } = await supabase.storage
+        const { error } = await supabase.storage
             .from('project-materials')
             .upload(fileName, file);
 
@@ -192,7 +196,7 @@ async function loadMaterials(projectId) {
                 <button class="small-btn" onclick="saveMaterial('${m.id}')">Save</button>
                 <button class="small-btn delete-btn" onclick="deleteMaterial('${m.id}')">Delete</button>
 
-                <button class="small-btn" onclick="openMaterialDetail('${m.id}')">See Pics</button>
+                <button class="small-btn" onclick="openMaterialDetail('${projectId}', '${m.id}')">See Pics</button>
                 <button class="small-btn" onclick="addImage('${m.id}')">Add Images</button>
 
                 <button class="small-btn amazon-btn" onclick="openAmazon('${m.material_name}')">Amazon</button>
@@ -203,7 +207,6 @@ async function loadMaterials(projectId) {
         `;
 
         list.appendChild(row);
-
         loadMaterialImages(projectId, m.id);
     });
 }
@@ -255,17 +258,27 @@ window.openAmazon = function(name){
 };
 
 /* =========================================================
-   IMAGE SYSTEM
+   IMAGE TRIGGER
 ========================================================= */
 window.addImage = function(materialId){
     activeMaterialId = materialId;
     document.getElementById('camera-input').click();
 };
 
-window.openMaterialDetail = function(materialId){
+/* =========================================================
+   FIXED PHOTOS BUTTON
+========================================================= */
+window.openMaterialDetail = function(projectId, materialId){
+
     const box = document.getElementById(`imgs-${materialId}`);
     if (!box) return;
-    box.scrollIntoView({ behavior: "smooth" });
+
+    // force reload images first
+    loadMaterialImages(projectId, materialId);
+
+    setTimeout(() => {
+        box.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
 };
 
 /* =========================================================
