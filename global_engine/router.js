@@ -1,132 +1,165 @@
-/* ================================================================
-   PURPOSE: Router to handle view navigation
-   LOCATION: /global_engine/router.js
-   DATE: 2026-06-18
-   VERSION: v2026_06_18_project_update_route_added
-   ================================================================ */
+/* =========================================================
+   MATERIALS PANEL MODULE
+   Router Compatible Version
+========================================================= */
 
-export async function navigateTo(view, context = {}) {
-    const app = document.getElementById('app-container');
+import { supabase } from '../../global_engine/supabaseClient.js';
 
-    if (!app) {
-        console.error("App container (#app-container) not found.");
-        return;
-    }
-
-    try {
-        const basePath = '/FACILITYS-TRACKER-APP';
-
-        if (view === 'facilities-home') {
-            const module = await import(`${basePath}/facilities_views/facilities-home/grid.js`);
-            await module.renderDashboard('app-container');
-            return;
-        }
-
-        if (view === 'facilities-details') {
-            const module = await import(`${basePath}/facilities_views/facilities-details/grid.js`);
-
-            if (typeof module.renderFacilityDetailsGrid === 'function') {
-                await module.renderFacilityDetailsGrid('app-container', context);
-                return;
-            }
-
-            console.error("No valid render function found in facilities-details/grid.js");
-            app.innerHTML = `<div style="padding:20px;color:red;">Facility details view render function not found.</div>`;
-            return;
-        }
-
-        if (view === 'facilities-projects') {
-            const module = await import(`${basePath}/facilities_views/facilities-projects/grid.js`);
-
-            if (typeof module.renderProjectsGrid === 'function') {
-                await module.renderProjectsGrid('app-container', context);
-                return;
-            }
-
-            if (typeof module.renderProjects === 'function') {
-                await module.renderProjects('app-container', context);
-                return;
-            }
-
-            if (typeof module.renderDashboard === 'function') {
-                await module.renderDashboard('app-container', context);
-                return;
-            }
-
-            console.error("No valid render function found in facilities-projects/grid.js");
-            app.innerHTML = `<div style="padding:20px;color:red;">Projects view render function not found.</div>`;
-            return;
-        }
-
-        if (view === 'facility-project-detail') {
-            const module = await import(`${basePath}/facilities_views/facility-project-detail/grid.js`);
-
-            if (typeof module.renderFacilityProjectDetailGrid === 'function') {
-                await module.renderFacilityProjectDetailGrid('app-container', context);
-                return;
-            }
-
-            console.error("No valid render function found in facility-project-detail/grid.js");
-            app.innerHTML = `<div style="padding:20px;color:red;">Project detail view render function not found.</div>`;
-            return;
-        }
-
-        if (view === 'project-update') {
-            const module = await import(`${basePath}/facilities_views/project-update/grid.js`);
-
-            if (typeof module.renderProjectUpdateGrid === 'function') {
-                await module.renderProjectUpdateGrid('app-container', context);
-                return;
-            }
-
-            console.error("No valid render function found in project-update/grid.js");
-            app.innerHTML = `<div style="padding:20px;color:red;">Project update view render function not found.</div>`;
-            return;
-        }
-
-        if (view === 'project-photos') {
-            const module = await import(`${basePath}/facilities_views/project-photos/grid.js`);
-
-            if (typeof module.renderProjectPhotosGrid === 'function') {
-                await module.renderProjectPhotosGrid('app-container', context);
-                return;
-            }
-
-            console.error("No valid render function found in project-photos/grid.js");
-            app.innerHTML = `<div style="padding:20px;color:red;">Project photos view render function not found.</div>`;
-            return;
-        }
-
-        if (view === 'facilities-contacts') {
-            const module = await import(`${basePath}/facilities_views/facilities-contacts/grid.js`);
-
-            if (typeof module.renderContactsGrid === 'function') {
-                await module.renderContactsGrid('app-container', context);
-                return;
-            }
-
-            if (typeof module.renderContacts === 'function') {
-                await module.renderContacts('app-container', context);
-                return;
-            }
-
-            if (typeof module.renderDashboard === 'function') {
-                await module.renderDashboard('app-container', context);
-                return;
-            }
-
-            console.error("No valid render function found in facilities-contacts/grid.js");
-            app.innerHTML = `<div style="padding:20px;color:red;">Contacts view render function not found.</div>`;
-            return;
-        }
-
-        console.error("Unknown route:", view);
-        app.innerHTML = `<div style="padding:20px;color:red;">Unknown route: ${view}</div>`;
-
-    } catch (err) {
-        console.error("Navigation error:", err);
-        app.innerHTML = `<div style="padding:20px;color:red;">Navigation error. Check console.</div>`;
-        }
+/* =========================================================
+   ROUTER ENTRY POINTS
+========================================================= */
+export function render(project) {
+    openMaterialsPanel(project);
 }
 
-window.navigateTo = navigateTo;
+export function renderFacilityMaterialsGrid(project) {
+    openMaterialsPanel(project);
+}
+
+/* =========================================================
+   MAIN PANEL
+========================================================= */
+export function openMaterialsPanel(project) {
+    const container = document.getElementById('app-container');
+
+    container.innerHTML = `
+        <div style="padding:12px;">
+            <h2>Materials</h2>
+
+            <button id="add-material-btn">Add Material</button>
+            <button id="back-project-btn">Back</button>
+
+            <div id="materials-list"></div>
+        </div>
+    `;
+
+    document.getElementById('back-project-btn').onclick = () => {
+        window.navigateTo('facility-project-detail', {
+            project_id: project.id
+        });
+    };
+
+    document.getElementById('add-material-btn').onclick = () => {
+        addMaterial(project.id);
+    };
+
+    loadMaterials(project.id);
+}
+
+/* =========================================================
+   LOAD MATERIALS
+========================================================= */
+async function loadMaterials(projectId) {
+    const { data } = await supabase
+        .from('project_materials')
+        .select('*')
+        .eq('project_id', projectId);
+
+    const list = document.getElementById('materials-list');
+    list.innerHTML = '';
+
+    (data || []).forEach(m => {
+        const row = document.createElement('div');
+
+        row.style.padding = "10px";
+        row.style.borderBottom = "1px solid #ddd";
+        row.style.cursor = "pointer";
+
+        row.innerHTML = `
+            <div><b>${m.material_name}</b></div>
+            <div>${m.quantity || ''}</div>
+            <div>${m.material_status || ''}</div>
+        `;
+
+        row.onclick = () => openMaterialDetail(projectId, m);
+
+        list.appendChild(row);
+    });
+}
+
+/* =========================================================
+   ADD MATERIAL
+========================================================= */
+function addMaterial(projectId) {
+    const name = prompt("Material name");
+    if (!name) return;
+
+    supabase.from('project_materials')
+        .insert({
+            project_id: projectId,
+            material_name: name,
+            material_status: 'normal'
+        })
+        .then(() => loadMaterials(projectId));
+}
+
+/* =========================================================
+   MATERIAL DETAIL VIEW
+========================================================= */
+function openMaterialDetail(projectId, material) {
+    const container = document.getElementById('app-container');
+
+    container.innerHTML = `
+        <div style="padding:12px;">
+            <h2>${material.material_name}</h2>
+
+            <button id="add-photo-btn">Add Photo</button>
+            <button id="back-btn">Back</button>
+
+            <div id="photo-list"></div>
+        </div>
+    `;
+
+    document.getElementById('back-btn').onclick = () => {
+        window.navigateTo('facility-project-detail', {
+            project_id: projectId
+        });
+    };
+
+    document.getElementById('add-photo-btn').onclick = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const url = await uploadProjectImage(file, projectId);
+
+            await supabase.from('projects_images').insert({
+                project_id: projectId,
+                image_url: url,
+                image_type: 'material'
+            });
+
+            loadMaterialImages(projectId);
+        };
+
+        input.click();
+    };
+
+    loadMaterialImages(projectId);
+}
+
+/* =========================================================
+   LOAD MATERIAL IMAGES
+========================================================= */
+async function loadMaterialImages(projectId) {
+    const { data } = await supabase
+        .from('projects_images')
+        .select('*')
+        .eq('project_id', projectId)
+        .eq('image_type', 'material');
+
+    const list = document.getElementById('photo-list');
+    list.innerHTML = '';
+
+    (data || []).forEach(img => {
+        const el = document.createElement('img');
+        el.src = img.image_url;
+        el.style.width = "80px";
+        el.style.margin = "5px";
+
+        list.appendChild(el);
+    });
+}
