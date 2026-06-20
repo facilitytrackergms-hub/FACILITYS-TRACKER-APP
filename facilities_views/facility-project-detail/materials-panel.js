@@ -161,21 +161,29 @@ function setupCamera(projectId){
 
         const fileName = `${Date.now()}_${file.name}`;
 
-        const { error } = await supabase.storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
             .from('project-materials')
             .upload(fileName, file);
 
-        if (error) return;
+        if (uploadError) {
+            console.error('UPLOAD ERROR:', uploadError);
+            return;
+        }
 
         const url = supabase.storage
             .from('project-materials')
             .getPublicUrl(fileName).data.publicUrl;
 
-        await supabase.from('projects_images').insert({
+        const { error: insertError } = await supabase.from('projects_images').insert({
             project_id: projectId,
             material_id: activeMaterialId,
             image_url: url
         });
+
+        if (insertError) {
+            console.error('DB INSERT ERROR:', insertError);
+            return;
+        }
 
         loadMaterialImages(projectId, activeMaterialId);
     });
@@ -235,6 +243,7 @@ async function loadMaterials(projectId) {
         `;
 
         list.appendChild(row);
+
         loadMaterialImages(projectId, m.id);
     });
 }
@@ -310,19 +319,24 @@ window.addImage = function(materialId){
 };
 
 /* =========================================================
-   SEE PICS (FIXED WORKING)
+   SEE PICS (FIXED + RELIABLE)
 ========================================================= */
 window.openMaterialDetail = async function(materialId){
 
     const projectId = window.currentProjectId;
 
-    const { data } = await supabase
+    const { data, error } = await supabase
         .from('projects_images')
         .select('*')
         .eq('project_id', projectId)
         .eq('material_id', materialId);
 
-    if (!data || !data.length) return;
+    if (error) {
+        console.error('IMAGE FETCH ERROR:', error);
+        return;
+    }
+
+    if (!data || data.length === 0) return;
 
     let html = '';
 
@@ -345,15 +359,19 @@ window.openMaterialDetail = async function(materialId){
 };
 
 /* =========================================================
-   LOAD IMAGES
+   LOAD IMAGES (FIXED COUNT RELIABILITY)
 ========================================================= */
 async function loadMaterialImages(projectId, materialId){
 
-    const { data } = await supabase
+    const { data, error } = await supabase
         .from('projects_images')
         .select('*')
         .eq('project_id', projectId)
         .eq('material_id', materialId);
+
+    if (error) {
+        console.error('LOAD IMAGES ERROR:', error);
+    }
 
     const box = document.getElementById(`imgs-${materialId}`);
     const actions = document.getElementById(`img-actions-${materialId}`);
