@@ -305,15 +305,13 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
         updateModalBackdrop.style.display = 'none';
    
     });
-
 document.getElementById('btn-open-materials').addEventListener('click', () => {
-    openMaterialsPanel({
+    viewCart({
         id: projectId,
         facilities_id: facilityId,
         project_name: projectName
     });
 });
-  
 
     document.getElementById('btn-edit-project-detail').addEventListener('click', () => {
         modalBackdrop.style.display = 'flex';
