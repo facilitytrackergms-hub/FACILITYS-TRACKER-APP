@@ -302,8 +302,6 @@ document.getElementById('btn-open-materials').addEventListener('click', () => {
             }
         });
     });
-document.getElementById('btn-open-materials').addEventListener('click', () => {
-    openMaterialsPanel({
         project_id: projectId,
         facilities_id: facilityId,
         project_name: projectName
@@ -312,7 +310,13 @@ document.getElementById('btn-open-materials').addEventListener('click', () => {
     document.getElementById('btn-add-project-update').addEventListener('click', () => {
         updateModalBackdrop.style.display = 'flex';
     });
-
+document.getElementById('btn-open-materials').addEventListener('click', () => {
+    openMaterialsPanel({
+        id: projectId,
+        facilities_id: facilityId,
+        project_name: projectName
+    });
+});
     document.getElementById('btn-cancel-project-update').addEventListener('click', () => {
         updateModalBackdrop.style.display = 'none';
     });
