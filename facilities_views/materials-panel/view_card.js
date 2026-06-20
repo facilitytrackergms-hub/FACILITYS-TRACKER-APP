@@ -2,7 +2,7 @@
    Location: /materials/delete.js */
 
 import { supabase } from '../../global_engine/supabaseClient.js';
-
+import { saveMaterial } from './save.js';
 export async function deleteMaterial(id, currentProjectId, loadMaterialsCallback) {
     const { error } = await supabase.from('project_materials')
         .delete()
