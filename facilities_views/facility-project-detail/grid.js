@@ -165,7 +165,9 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             </div>
 
             <button id="btn-add-project-update" class="project-detail-main-btn">ADD PROJECT UPDATE</button>
-
+            <button id="btn-open-materials" class="project-detail-main-btn">
+    MATERIALS
+</button>
             <div class="project-detail-button-row" style="margin-top:12px;">
                 <button id="btn-edit-project-detail" class="project-detail-action-btn">⚙️ Edit</button>
                 <button id="btn-delete-project-detail" class="project-detail-delete-btn">🗑 Delete</button>
@@ -293,7 +295,13 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             }
         });
     });
-
+document.getElementById('btn-open-materials').addEventListener('click', () => {
+    openMaterialsPanel({
+        project_id: projectId,
+        facilities_id: facilityId,
+        project_name: projectName
+    });
+});
     document.getElementById('btn-add-project-update').addEventListener('click', () => {
         updateModalBackdrop.style.display = 'flex';
     });
