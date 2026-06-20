@@ -19,7 +19,7 @@ export function openMaterialsPanel(project) {
     const container = document.getElementById('app-container');
 
     window.currentProjectId = project.id;
-    window.materialCollapseState = {}; // NEW STATE CONTROL
+    window.materialCollapseState = {};
 
     container.innerHTML = `
         <div style="padding:12px;">
@@ -92,6 +92,7 @@ export function openMaterialsPanel(project) {
                 padding:4px;
                 border-radius:6px;
                 border:1px solid #ccc;
+                width:100%;
             }
 
             .img-row{
@@ -113,6 +114,21 @@ export function openMaterialsPanel(project) {
                 display:flex;
                 gap:6px;
                 margin-top:6px;
+            }
+
+            #photo-viewer{
+                position:fixed;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                background:rgba(0,0,0,0.95);
+                z-index:999999;
+                display:flex;
+                flex-wrap:wrap;
+                gap:6px;
+                padding:10px;
+                overflow:auto;
             }
         </style>
     `;
@@ -192,11 +208,7 @@ async function loadMaterials(projectId) {
 
             <div id="body-${m.id}" style="display:${isCollapsed ? 'none' : 'block'}">
 
-                <textarea 
-                    id="desc-${m.id}"
-                    placeholder="Description..."
-                    style="width:100%; margin:6px 0; min-height:50px;"
-                >${m.description || ''}</textarea>
+                <textarea id="desc-${m.id}" placeholder="Description...">${m.description || ''}</textarea>
 
                 <div class="row">
                     Qty:
@@ -228,7 +240,7 @@ async function loadMaterials(projectId) {
 }
 
 /* =========================================================
-   COLLAPSE / OPEN MATERIAL
+   COLLAPSE
 ========================================================= */
 window.toggleMaterial = function(id){
     window.materialCollapseState[id] = !window.materialCollapseState[id];
@@ -252,7 +264,7 @@ window.saveMaterial = async function(id){
         })
         .eq('id', id);
 
-    window.materialCollapseState[id] = true; // AUTO COLLAPSE AFTER SAVE
+    window.materialCollapseState[id] = true;
     loadMaterials(window.currentProjectId);
 };
 
@@ -290,7 +302,7 @@ window.openAmazon = function(name){
 };
 
 /* =========================================================
-   IMAGE TRIGGER
+   IMAGE UPLOAD
 ========================================================= */
 window.addImage = function(materialId){
     activeMaterialId = materialId;
@@ -298,46 +310,38 @@ window.addImage = function(materialId){
 };
 
 /* =========================================================
-   SEE PICS FIXED
+   SEE PICS (FIXED WORKING)
 ========================================================= */
-window.openMaterialDetail = function(materialId){
+window.openMaterialDetail = async function(materialId){
 
     const projectId = window.currentProjectId;
 
-    const images = document.querySelectorAll(`#imgs-${materialId} img`);
+    const { data } = await supabase
+        .from('projects_images')
+        .select('*')
+        .eq('project_id', projectId)
+        .eq('material_id', materialId);
 
-    if (!images.length) {
-        loadMaterialImages(projectId, materialId);
-        return;
-    }
+    if (!data || !data.length) return;
 
-    let html = `<div style="
-        position:fixed;
-        top:0;
-        left:0;
-        width:100%;
-        height:100%;
-        background:black;
-        z-index:9999;
-        display:flex;
-        overflow:auto;
-        flex-wrap:wrap;
-        padding:10px;
-    " onclick="this.remove()">`;
+    let html = '';
 
-    images.forEach(img => {
-        html += `<img src="${img.src}" style="
-            width:100px;
-            height:100px;
+    data.forEach(img => {
+        html += `<img src="${img.image_url}" style="
+            width:110px;
+            height:110px;
             object-fit:cover;
-            margin:4px;
             border-radius:6px;
         ">`;
     });
 
-    html += `</div>`;
+    const viewer = document.createElement('div');
+    viewer.id = "photo-viewer";
+    viewer.innerHTML = html;
 
-    document.body.insertAdjacentHTML("beforeend", html);
+    viewer.onclick = () => viewer.remove();
+
+    document.body.appendChild(viewer);
 };
 
 /* =========================================================
