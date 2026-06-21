@@ -2,9 +2,9 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Materials main screen
 LOCATION: /facilities_views/materials/screen.js
-VERSION: v2026_06_21_materials_screen_small_back_arrow
+VERSION: v2026_06_21_materials_screen_bottom_back_button
 UPDATED: 2026-06-21
-LINES: 61
+LINES: 66
 ================================================================*/
 
 import { renderCard } from './card.js';
@@ -19,32 +19,35 @@ export async function renderMaterialsScreen(containerId, context = {}) {
     if (!container) return;
 
     container.innerHTML = `
-        <div id="materials-screen-root" style="position:relative;">
-            <button
-                id="materials-back-project-detail-btn"
-                title="Back"
-                style="
-                    position:absolute;
-                    top:12px;
-                    left:12px;
-                    width:42px;
-                    height:42px;
-                    border:none;
-                    border-radius:50%;
-                    background:#1f6feb;
-                    color:white;
-                    font-size:26px;
-                    font-weight:bold;
-                    line-height:42px;
-                    cursor:pointer;
-                    z-index:20;
-                    box-shadow:0 2px 6px rgba(0,0,0,0.25);
-                "
-            >
-                ←
-            </button>
-
+        <div id="materials-screen-root">
             ${renderCard()}
+
+            <div style="
+                width:100%;
+                display:flex;
+                justify-content:center;
+                margin-top:14px;
+                margin-bottom:10px;
+            ">
+                <button
+                    id="materials-back-project-detail-btn"
+                    style="
+                        width:70%;
+                        max-width:260px;
+                        padding:12px;
+                        border:none;
+                        border-radius:8px;
+                        background:#7b8491;
+                        color:white;
+                        font-size:17px;
+                        font-weight:bold;
+                        cursor:pointer;
+                    "
+                >
+                    ⬅ BACK
+                </button>
+            </div>
+
             ${renderPopups()}
             ${renderMaterialPopup()}
             ${renderMaterialDetailPopup()}
