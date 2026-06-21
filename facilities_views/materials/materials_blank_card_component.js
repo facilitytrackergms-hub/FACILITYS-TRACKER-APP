@@ -6,6 +6,7 @@ VERSION: v2026_06_21_blank_card_component_owns_build
 
 UPDATED: 2026-06-21
 ================================================================*/
+import { renderMaterialsHelloButton } from './materials_hello_button_component.js';
 
 export function renderMaterialsBlankCard() {
     return `
