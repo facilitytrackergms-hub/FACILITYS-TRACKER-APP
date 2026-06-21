@@ -2,11 +2,11 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Materials add material button opens custom popup
 LOCATION: /facilities_views/materials/addmaterialsbuttom.js
-VERSION: v2026_06_21_add_materials_buttom_popup
+VERSION: v2026_06_21_add_materials_buttom_custom_popup_connected
 UPDATED: 2026-06-21
 ================================================================*/
 
-import { openOkPopup } from './popups.js';
+import { openMaterialPopup } from './material-popup.js';
 
 export function renderAddMaterialsButtom() {
     return `
@@ -31,11 +31,11 @@ export function renderAddMaterialsButtom() {
     `;
 }
 
-export function connectAddMaterialsButtom() {
+export function connectAddMaterialsButtom(context = {}) {
     const button = document.getElementById('materials-add-buttom');
     if (!button) return;
 
     button.addEventListener('click', () => {
-        openOkPopup('Add Material popup will open here.');
+        openMaterialPopup(context);
     });
 }
