@@ -1,35 +1,29 @@
 /*================================================================
 SYSTEM: Facility Tracker Modular View System
-PURPOSE: Materials hello button component
-LOCATION: /facilities_views/materials/materials_hello_button_component.js
-VERSION: v2026_06_21_materials_hello_button_component
+PURPOSE: Materials blank card component with hello button
+LOCATION: /facilities_views/materials/materials_blank_card_component.js
+VERSION: v2026_06_21_blank_card_export_fix
 UPDATED: 2026-06-21
 ================================================================*/
 
-export function renderMaterialsHelloButton() {
+import { renderMaterialsHelloButton } from './materials_hello_button_component.js';
+
+export function renderMaterialsBlankCard() {
     return `
         <style>
-            .materials-hello-button {
-                background:#003b73;
-                color:white;
-                border:none;
-                border-radius:9px;
-                width:100%;
-                min-height:48px;
-                font-size:15px;
-                font-weight:bold;
-                cursor:pointer;
-                margin-top:12px;
+            .materials-blank-card {
+                background:#d9fbe3;
+                max-width:350px;
+                min-height:200px;
+                margin:16px auto;
+                padding:18px;
+                border-radius:14px;
+                box-shadow:0 4px 18px rgba(0,0,0,0.08);
             }
         </style>
 
-        <button
-            id="btn-materials-hello"
-            class="materials-hello-button"
-            type="button"
-            onclick="alert('Hello')"
-        >
-            SAY HELLO
-        </button>
+        <div class="materials-blank-card">
+            ${renderMaterialsHelloButton()}
+        </div>
     `;
 }
