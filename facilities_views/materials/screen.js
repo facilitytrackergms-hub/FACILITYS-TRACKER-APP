@@ -2,9 +2,9 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Materials main screen
 LOCATION: /facilities_views/materials/screen.js
-VERSION: v2026_06_21_materials_screen_back_to_project_detail
+VERSION: v2026_06_21_materials_screen_small_back_arrow
 UPDATED: 2026-06-21
-LINES: 55
+LINES: 61
 ================================================================*/
 
 import { renderCard } from './card.js';
@@ -19,27 +19,32 @@ export async function renderMaterialsScreen(containerId, context = {}) {
     if (!container) return;
 
     container.innerHTML = `
-        <div id="materials-screen-root">
-            ${renderCard()}
-
+        <div id="materials-screen-root" style="position:relative;">
             <button
                 id="materials-back-project-detail-btn"
+                title="Back"
                 style="
-                    width:100%;
-                    margin-top:14px;
-                    padding:14px;
+                    position:absolute;
+                    top:12px;
+                    left:12px;
+                    width:42px;
+                    height:42px;
                     border:none;
-                    border-radius:10px;
+                    border-radius:50%;
                     background:#1f6feb;
                     color:white;
-                    font-size:18px;
+                    font-size:26px;
                     font-weight:bold;
+                    line-height:42px;
                     cursor:pointer;
+                    z-index:20;
+                    box-shadow:0 2px 6px rgba(0,0,0,0.25);
                 "
             >
-                BACK TO PROJECT DETAIL
+                ←
             </button>
 
+            ${renderCard()}
             ${renderPopups()}
             ${renderMaterialPopup()}
             ${renderMaterialDetailPopup()}
