@@ -2,12 +2,13 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Materials card component
 LOCATION: /facilities_views/materials/card.js
-VERSION: v2026_06_21_materials_card_initial
+VERSION: v2026_06_21_materials_card_list_added
 UPDATED: 2026-06-21
 ================================================================*/
+
 import { renderAddMaterialsButtom } from './addmaterialsbuttom.js';
 import { renderHelloButton } from './helloButton.js';
-import { renderPopups } from './popups.js';
+import { renderMaterialsListContainer } from './materials-list.js';
 
 export function renderCard() {
     return `
@@ -25,9 +26,8 @@ export function renderCard() {
 
         <div class="materials-card">
             ${renderHelloButton()}
-             ${renderAddMaterialsButtom()}
+            ${renderAddMaterialsButtom()}
+            ${renderMaterialsListContainer()}
         </div>
-
-        ${renderPopups()}
     `;
 }
