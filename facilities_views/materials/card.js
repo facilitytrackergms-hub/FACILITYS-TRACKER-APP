@@ -5,7 +5,7 @@ LOCATION: /facilities_views/materials/card.js
 VERSION: v2026_06_21_materials_card_initial
 UPDATED: 2026-06-21
 ================================================================*/
-
+import { renderAddMaterialsButtom } from './addmaterialsbuttom.js';
 import { renderHelloButton } from './helloButton.js';
 import { renderPopups } from './popups.js';
 
@@ -25,6 +25,7 @@ export function renderCard() {
 
         <div class="materials-card">
             ${renderHelloButton()}
+             ${renderAddMaterialsButtom()}
         </div>
 
         ${renderPopups()}
