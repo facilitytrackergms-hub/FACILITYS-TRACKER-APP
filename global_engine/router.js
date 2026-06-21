@@ -1,141 +1,39 @@
 /* ================================================================
    PURPOSE: Router to handle view navigation
    LOCATION: /global_engine/router.js
-   DATE: 2026-06-20
-   VERSION: v2026_06_20_materials_route_added
    ================================================================ */
+
+const ROUTE_MAP = {
+    'facilities-home': { path: 'facilities_views/facilities-home/grid.js', fn: 'renderDashboard' },
+    'facilities-details': { path: 'facilities_views/facilities-details/grid.js', fn: 'renderFacilityDetailsGrid' },
+    'facilities-projects': { path: 'facilities_views/facilities-projects/grid.js', fn: ['renderProjectsGrid', 'renderProjects', 'renderDashboard'] },
+    'facility-project-detail': { path: 'facilities_views/facility-project-detail/grid.js', fn: 'renderFacilityProjectDetailGrid' },
+    'project-update': { path: 'facilities_views/project-update/grid.js', fn: 'renderProjectUpdateGrid' },
+    'project-photos': { path: 'facilities_views/project-photos/grid.js', fn: 'renderProjectPhotosGrid' },
+    'materials': { path: 'facilities_views/materials-panel/grid.js', fn: 'renderMaterialsGrid' },
+    'facilities-contacts': { path: 'facilities_views/facilities-contacts/grid.js', fn: ['renderContactsGrid', 'renderContacts', 'renderDashboard'] }
+};
 
 export async function navigateTo(view, context = {}) {
     const app = document.getElementById('app-container');
+    if (!app) return console.error("App container not found.");
 
-    if (!app) {
-        console.error("App container (#app-container) not found.");
+    const route = ROUTE_MAP[view];
+    if (!route) {
+        app.innerHTML = `<div style="padding:20px;color:red;">Unknown route: ${view}</div>`;
         return;
     }
 
     try {
-        const basePath = '/FACILITYS-TRACKER-APP';
+        const module = await import(`/FACILITYS-TRACKER-APP/${route.path}`);
+        const fns = Array.isArray(route.fn) ? route.fn : [route.fn];
+        const targetFn = fns.find(fnName => typeof module[fnName] === 'function');
 
-        if (view === 'facilities-home') {
-            const module = await import(`${basePath}/facilities_views/facilities-home/grid.js`);
-            await module.renderDashboard('app-container');
-            return;
+        if (targetFn) {
+            await module[targetFn]('app-container', context);
+        } else {
+            throw new Error(`No valid render function found for ${view}`);
         }
-
-        if (view === 'facilities-details') {
-            const module = await import(`${basePath}/facilities_views/facilities-details/grid.js`);
-
-            if (typeof module.renderFacilityDetailsGrid === 'function') {
-                await module.renderFacilityDetailsGrid('app-container', context);
-                return;
-            }
-
-            console.error("No valid render function found in facilities-details/grid.js");
-            app.innerHTML = `<div style="padding:20px;color:red;">Facility details view render function not found.</div>`;
-            return;
-        }
-
-        if (view === 'facilities-projects') {
-            const module = await import(`${basePath}/facilities_views/facilities-projects/grid.js`);
-
-            if (typeof module.renderProjectsGrid === 'function') {
-                await module.renderProjectsGrid('app-container', context);
-                return;
-            }
-
-            if (typeof module.renderProjects === 'function') {
-                await module.renderProjects('app-container', context);
-                return;
-            }
-
-            if (typeof module.renderDashboard === 'function') {
-                await module.renderDashboard('app-container', context);
-                return;
-            }
-
-            console.error("No valid render function found in facilities-projects/grid.js");
-            app.innerHTML = `<div style="padding:20px;color:red;">Projects view render function not found.</div>`;
-            return;
-        }
-
-        if (view === 'facility-project-detail') {
-            const module = await import(`${basePath}/facilities_views/facility-project-detail/grid.js`);
-
-            if (typeof module.renderFacilityProjectDetailGrid === 'function') {
-                await module.renderFacilityProjectDetailGrid('app-container', context);
-                return;
-            }
-
-            console.error("No valid render function found in facility-project-detail/grid.js");
-            app.innerHTML = `<div style="padding:20px;color:red;">Project detail view render function not found.</div>`;
-            return;
-        }
-
-        if (view === 'project-update') {
-            const module = await import(`${basePath}/facilities_views/project-update/grid.js`);
-
-            if (typeof module.renderProjectUpdateGrid === 'function') {
-                await module.renderProjectUpdateGrid('app-container', context);
-                return;
-            }
-
-            console.error("No valid render function found in project-update/grid.js");
-            app.innerHTML = `<div style="padding:20px;color:red;">Project update view render function not found.</div>`;
-            return;
-        }
-
-        if (view === 'project-photos') {
-            const module = await import(`${basePath}/facilities_views/project-photos/grid.js`);
-
-            if (typeof module.renderProjectPhotosGrid === 'function') {
-                await module.renderProjectPhotosGrid('app-container', context);
-                return;
-            }
-
-            console.error("No valid render function found in project-photos/grid.js");
-            app.innerHTML = `<div style="padding:20px;color:red;">Project photos view render function not found.</div>`;
-            return;
-        }
-
-        if (view === 'materials') {
-            const module = await import(`${basePath}/facilities_views/materials-panel/grid.js`);
-
-            if (typeof module.renderMaterialsGrid === 'function') {
-                await module.renderMaterialsGrid('app-container', context);
-                return;
-            }
-
-            console.error("No valid render function found in materials-panel/grid.js");
-            app.innerHTML = `<div style="padding:20px;color:red;">Materials view render function not found.</div>`;
-            return;
-        }
-
-        if (view === 'facilities-contacts') {
-            const module = await import(`${basePath}/facilities_views/facilities-contacts/grid.js`);
-
-            if (typeof module.renderContactsGrid === 'function') {
-                await module.renderContactsGrid('app-container', context);
-                return;
-            }
-
-            if (typeof module.renderContacts === 'function') {
-                await module.renderContacts('app-container', context);
-                return;
-            }
-
-            if (typeof module.renderDashboard === 'function') {
-                await module.renderDashboard('app-container', context);
-                return;
-            }
-
-            console.error("No valid render function found in facilities-contacts/grid.js");
-            app.innerHTML = `<div style="padding:20px;color:red;">Contacts view render function not found.</div>`;
-            return;
-        }
-
-        console.error("Unknown route:", view);
-        app.innerHTML = `<div style="padding:20px;color:red;">Unknown route: ${view}</div>`;
-
     } catch (err) {
         console.error("Navigation error:", err);
         app.innerHTML = `<div style="padding:20px;color:red;">Navigation error. Check console.</div>`;
