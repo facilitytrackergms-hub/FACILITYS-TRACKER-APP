@@ -1,6 +1,6 @@
 /*================================================================
 FACILITIES-HOME GRID
-VERSION: v2026_06_18_fixed_structure
+VERSION: v2026_06_21_dev_materials_button
 ================================================================*/
 
 import { fetchFacilities } from './data.js';
@@ -18,6 +18,7 @@ export async function renderDashboard(containerId) {
             .home-page-title { text-align: center; color: #003b73; font-weight: bold; font-size: 20px; margin-bottom: 10px; }
             .facilities-home-container { background: #f7f9fb; border-radius: 0 0 14px 14px; padding: 24px 18px 32px; max-width: 320px; margin: 0 auto; text-align: center; border-top: 3px solid #003b73; }
             .btn-green { background: #22a843; color: white; border: none; border-radius: 8px; padding: 14px 18px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 24px; width: 100%; }
+            .btn-dev-materials { background: #003b73; color: white; border: none; border-radius: 8px; padding: 14px 18px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 24px; width: 100%; }
             .facilities-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
             .btn-facility { background: #003b73; color: white; border: none; border-radius: 8px; min-height: 56px; padding: 8px; font-size: 16px; font-weight: bold; cursor: pointer; line-height: 1.1; }
             .facility-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 9999; }
@@ -35,6 +36,7 @@ export async function renderDashboard(containerId) {
         <div class="home-page-title">FACILITY HOMES</div>
         <div class="facilities-home-container">
             <button id="btn-create-facility" class="btn-green">Create New Facility</button>
+            <button id="btn-dev-materials" class="btn-dev-materials">DEV MATERIALS</button>
             <div class="facilities-grid">
                 ${facilities.map(fac => `
                     <button class="btn-facility" data-id="${fac.id}">
@@ -109,6 +111,16 @@ export async function renderDashboard(containerId) {
 
     document.getElementById('btn-create-facility').addEventListener('click', () => {
         modalBackdrop.style.display = 'flex';
+    });
+
+    document.getElementById('btn-dev-materials').addEventListener('click', () => {
+        if (window.navigateTo) {
+            window.navigateTo('materials', {
+                project_id: 1,
+                facilities_id: 1,
+                project_name: 'TEST PROJECT'
+            });
+        }
     });
 
     document.getElementById('btn-cancel-facility').addEventListener('click', () => {
