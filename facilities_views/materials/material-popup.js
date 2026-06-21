@@ -262,12 +262,23 @@ async function saveMaterialFromPopup(context = {}, afterSave = null) {
         backdrop.style.display = 'none';
     }
 
-    if (typeof afterSave === 'function') {
-        await afterSave(result.data);
-    }
-
-    openOkPopup('Material saved.');
+ if (typeof afterSave === 'function') {
+    await afterSave(result.data);
+    return;
 }
+
+if (window.navigateTo && context.project_id) {
+    window.navigateTo('facility-project-detail', {
+        ...context,
+        id: context.project_id,
+        project_id: context.project_id,
+        facilities_id: context.facilities_id,
+        project_name: context.project_name
+    });
+    return;
+}
+
+openOkPopup('Material saved.');
 
 /*================================================================
 HELPERS
