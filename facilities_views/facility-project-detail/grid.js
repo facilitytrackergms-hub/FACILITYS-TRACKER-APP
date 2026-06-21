@@ -299,17 +299,30 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
         });
     });
 
-    document.getElementById('btn-add-project-update').addEventListener('click', () => {
-        updateModalBackdrop.style.display = 'flex';
-    });
-
-    document.getElementById('btn-cancel-project-update').addEventListener('click', () => {
-        updateModalBackdrop.style.display = 'none';
-   
-    });
-// Purpose: Updated Materials Event Listener
+// Purpose: Correct Event Listeners
 // Location: grid.js
 
+// 1. Single Listener for Update Buttons
+document.querySelectorAll('.project-update-record-button').forEach(button => {
+    button.addEventListener('click', () => {
+        if (window.navigateTo) {
+            window.navigateTo('project-update', {
+                ...facility,
+                project_id: projectId,
+                project_update_id: button.dataset.id,
+                project_name: projectName,
+                facilities_id: facilityId
+            });
+        }
+    });
+});
+
+// 2. Cancel Update Modal
+document.getElementById('btn-cancel-project-update').addEventListener('click', () => {
+    updateModalBackdrop.style.display = 'none';
+});
+
+// 3. Materials Button
 document.getElementById('btn-open-materials').addEventListener('click', () => {
     window.navigateTo('materials', {
         id: projectId,
@@ -318,32 +331,35 @@ document.getElementById('btn-open-materials').addEventListener('click', () => {
     });
 });
 
-    document.getElementById('btn-edit-project-detail').addEventListener('click', () => {
-        modalBackdrop.style.display = 'flex';
-    });
+// 4. Edit Modal
+document.getElementById('btn-edit-project-detail').addEventListener('click', () => {
+    modalBackdrop.style.display = 'flex';
+});
 
-    document.getElementById('btn-cancel-project-detail').addEventListener('click', () => {
-        modalBackdrop.style.display = 'none';
-    });
+// 5. Cancel Edit Modal
+document.getElementById('btn-cancel-project-detail').addEventListener('click', () => {
+    modalBackdrop.style.display = 'none';
+});
 
-    document.getElementById('btn-back-projects').addEventListener('click', () => {
-        if (window.navigateTo) window.navigateTo('facilities-projects', facility);
-    });
+// 6. Back Button
+document.getElementById('btn-back-projects').addEventListener('click', () => {
+    if (window.navigateTo) window.navigateTo('facilities-projects', facility);
+});
 
-    document.getElementById('btn-delete-project-detail').addEventListener('click', async () => {
-        if (!confirm('Are you sure you want to delete this project?')) return;
+// 7. Delete Button
+document.getElementById('btn-delete-project-detail').addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to delete this project?')) return;
 
-        const { error } = await deleteProjectDetail(projectId);
+    const { error } = await deleteProjectDetail(projectId);
 
-        if (error) {
-            console.error('Delete project detail error:', error);
-            alert('Could not delete project.');
-            return;
-        }
+    if (error) {
+        console.error('Delete project detail error:', error);
+        alert('Could not delete project.');
+        return;
+    }
 
-        if (window.navigateTo) window.navigateTo('facilities-projects', facility);
-    });
-
+    if (window.navigateTo) window.navigateTo('facilities-projects', facility);
+});
     document.getElementById('btn-save-project-update').addEventListener('click', async () => {
         const updateTitle = document.getElementById('project-update-title-input').value.trim();
         const status = document.getElementById('project-update-status-input').value.trim();
