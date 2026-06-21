@@ -2,15 +2,19 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Material detail popup for view/edit/delete
 LOCATION: /facilities_views/materials/material-detail-popup.js
-VERSION: v2026_06_21_material_detail_popup_take_picture_connected
+VERSION: v2026_06_21_material_detail_popup_picture_thumbnails
 UPDATED: 2026-06-21
-LINES: 366
+LINES: 383
 ================================================================*/
 
 import { updateMaterial, deleteMaterial } from './data.js';
 import { openOkPopup } from './popups.js';
 import { openAmazonMaterialSearch } from './material-amazon.js';
-import { openMaterialPicturePicker } from './material-pictures.js';
+import {
+    openMaterialPicturePicker,
+    renderMaterialPictureThumbnails,
+    openMaterialPictureViewer
+} from './material-pictures.js';
 
 /*================================================================
 RENDER MATERIAL DETAIL POPUP
@@ -181,6 +185,8 @@ export function renderMaterialDetailPopup() {
                     <button id="material-detail-delete-btn" class="material-detail-btn material-detail-delete-btn" type="button">Delete</button>
                     <button id="material-detail-close-btn" class="material-detail-btn material-detail-close-btn" type="button">Close</button>
                 </div>
+
+                <div id="material-picture-thumbnails"></div>
             </div>
         </div>
     `;
@@ -200,6 +206,8 @@ export function openMaterialDetailPopup(material = {}, afterChange = null) {
     fillMaterialDetailForm(material);
 
     backdrop.style.display = 'flex';
+
+    renderMaterialPictureThumbnails(material);
 
     const closeButton = document.getElementById('material-detail-close-btn');
     const saveButton = document.getElementById('material-detail-save-btn');
@@ -228,8 +236,7 @@ export function openMaterialDetailPopup(material = {}, afterChange = null) {
 
     if (amazonButton) {
         amazonButton.onclick = () => {
-            const materialName = getInputValue('material-detail-name-input');
-            const result = openAmazonMaterialSearch(materialName);
+            const result = openAmazonMaterialSearch();
 
             if (!result.success) {
                 openOkPopup(result.message);
@@ -238,14 +245,16 @@ export function openMaterialDetailPopup(material = {}, afterChange = null) {
     }
 
     if (pictureButton) {
-        pictureButton.onclick = () => {
-            openMaterialPicturePicker(material);
+        pictureButton.onclick = async () => {
+            await openMaterialPicturePicker(material, async () => {
+                await renderMaterialPictureThumbnails(material);
+            });
         };
     }
 
     if (imagesButton) {
-        imagesButton.onclick = () => {
-            openOkPopup('See Pictures will connect next.');
+        imagesButton.onclick = async () => {
+            await openMaterialPictureViewer(material);
         };
     }
 }
