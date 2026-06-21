@@ -113,15 +113,13 @@ export async function renderDashboard(containerId) {
         modalBackdrop.style.display = 'flex';
     });
 
- document.getElementById('btn-dev-materials').addEventListener('click', () => {
-    const devFacility = facilities[0] || null;
-
+document.getElementById('btn-dev-materials').addEventListener('click', () => {
     if (window.navigateTo) {
         window.navigateTo('materials', {
-            facilities_id: devFacility ? devFacility.id : null,
-            facility_id: devFacility ? devFacility.id : null,
-            facility_name: devFacility ? (devFacility.number_name || devFacility.name || 'DEV FACILITY') : 'DEV FACILITY',
-            project_name: 'DEV MATERIALS'
+            project_id: 18,
+            facilities_id: 5,
+            facility_id: 5,
+            project_name: 'Fix hole in the wall'
         });
     }
 });
