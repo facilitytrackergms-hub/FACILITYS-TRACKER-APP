@@ -16,7 +16,7 @@ const ROUTE_MAP = {
 
 export async function navigateTo(view, context = {}) {
     const app = document.getElementById('app-container');
-    if (!app) return console.error("App container not found.");
+   
 
     const route = ROUTE_MAP[view];
     if (!route) {
