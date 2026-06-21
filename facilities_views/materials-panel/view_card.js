@@ -1,8 +1,7 @@
-/* Purpose: Material Delete Logic
-   Location: /materials/delete.js */
-
+/* Purpose: Material Delete Logic | Location: /materials/delete.js */
 import { supabase } from '../../global_engine/supabaseClient.js';
 import { saveMaterial } from './save.js';
+
 export async function deleteMaterial(id, currentProjectId, loadMaterialsCallback) {
     const { error } = await supabase.from('project_materials')
         .delete()
@@ -13,5 +12,7 @@ export async function deleteMaterial(id, currentProjectId, loadMaterialsCallback
         return;
     }
 
-    loadMaterialsCallback(currentProjectId);
+    if (typeof loadMaterialsCallback === 'function') {
+        loadMaterialsCallback(currentProjectId);
+    }
 }
