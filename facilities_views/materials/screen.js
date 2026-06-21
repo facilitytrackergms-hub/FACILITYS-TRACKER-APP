@@ -8,6 +8,7 @@ UPDATED: 2026-06-21
 
 import { renderCard } from './card.js';
 import { connectHelloButton } from './helloButton.js';
+import { connectAddMaterialsButtom } from './addmaterialsbuttom.js';
 
 export async function renderMaterialsScreen(containerId, context = {}) {
     const container = document.getElementById(containerId);
@@ -20,4 +21,5 @@ export async function renderMaterialsScreen(containerId, context = {}) {
     `;
 
     connectHelloButton();
+    connectAddMaterialsButtom();
 }
