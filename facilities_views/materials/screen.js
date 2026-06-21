@@ -2,7 +2,7 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Materials main screen
 LOCATION: /facilities_views/materials/screen.js
-VERSION: v2026_06_21_materials_screen_popup_connected
+VERSION: v2026_06_21_materials_screen_list_connected
 UPDATED: 2026-06-21
 ================================================================*/
 
@@ -11,6 +11,7 @@ import { connectHelloButton } from './helloButton.js';
 import { connectAddMaterialsButtom } from './addmaterialsbuttom.js';
 import { renderPopups } from './popups.js';
 import { renderMaterialPopup } from './material-popup.js';
+import { connectMaterialsList } from './materials-list.js';
 
 export async function renderMaterialsScreen(containerId, context = {}) {
     const container = document.getElementById(containerId);
@@ -26,4 +27,5 @@ export async function renderMaterialsScreen(containerId, context = {}) {
 
     connectHelloButton();
     connectAddMaterialsButtom(context);
+    await connectMaterialsList(context);
 }
