@@ -2,13 +2,15 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Material detail popup for view/edit/delete
 LOCATION: /facilities_views/materials/material-detail-popup.js
-VERSION: v2026_06_21_material_detail_popup_amazon_connected
+VERSION: v2026_06_21_material_detail_popup_take_picture_connected
 UPDATED: 2026-06-21
+LINES: 366
 ================================================================*/
 
 import { updateMaterial, deleteMaterial } from './data.js';
 import { openOkPopup } from './popups.js';
 import { openAmazonMaterialSearch } from './material-amazon.js';
+import { openMaterialPicturePicker } from './material-pictures.js';
 
 /*================================================================
 RENDER MATERIAL DETAIL POPUP
@@ -237,7 +239,7 @@ export function openMaterialDetailPopup(material = {}, afterChange = null) {
 
     if (pictureButton) {
         pictureButton.onclick = () => {
-            openOkPopup('Take Picture will connect next.');
+            openMaterialPicturePicker(material);
         };
     }
 
