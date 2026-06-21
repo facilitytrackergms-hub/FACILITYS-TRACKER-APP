@@ -18,7 +18,7 @@ export function openAmazonMaterialSearch(materialName = '') {
 
     const amazonSearchUrl = `https://www.amazon.com/s?field-keywords=${encodeURIComponent(searchText)}&ref=nb_sb_noss`;
 
-    window.location.href = amazonSearchUrl;
+    window.open(amazonSearchUrl, '_blank', 'noopener,noreferrer');
 
     return {
         success: true,
