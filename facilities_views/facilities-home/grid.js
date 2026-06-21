@@ -113,15 +113,18 @@ export async function renderDashboard(containerId) {
         modalBackdrop.style.display = 'flex';
     });
 
-    document.getElementById('btn-dev-materials').addEventListener('click', () => {
-        if (window.navigateTo) {
-            window.navigateTo('materials', {
-                project_id: 1,
-                facilities_id: 1,
-                project_name: 'TEST PROJECT'
-            });
-        }
-    });
+ document.getElementById('btn-dev-materials').addEventListener('click', () => {
+    const devFacility = facilities[0] || null;
+
+    if (window.navigateTo) {
+        window.navigateTo('materials', {
+            facilities_id: devFacility ? devFacility.id : null,
+            facility_id: devFacility ? devFacility.id : null,
+            facility_name: devFacility ? (devFacility.number_name || devFacility.name || 'DEV FACILITY') : 'DEV FACILITY',
+            project_name: 'DEV MATERIALS'
+        });
+    }
+});
 
     document.getElementById('btn-cancel-facility').addEventListener('click', () => {
         modalBackdrop.style.display = 'none';
