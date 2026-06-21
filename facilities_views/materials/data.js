@@ -2,9 +2,9 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Materials data service
 LOCATION: /facilities_views/materials/data.js
-VERSION: v2026_06_21_materials_data_initial
+VERSION: v2026_06_21_materials_data_project_id_fix
 UPDATED: 2026-06-21
-LINES: 126
+LINES: 144
 ================================================================*/
 
 import { supabase } from '../../global_engine/supabaseClient.js';
@@ -13,7 +13,7 @@ import { supabase } from '../../global_engine/supabaseClient.js';
 FETCH MATERIALS
 ================================================================*/
 export async function fetchMaterials(context = {}) {
-    const projectId = context.project_id || context.id || null;
+    const projectId = context.project_id || null;
     const projectUpdateId = context.project_update_id || null;
     const facilityId = context.facilities_id || context.facility_id || null;
 
@@ -33,7 +33,7 @@ export async function fetchMaterials(context = {}) {
     const { data, error } = await query;
 
     if (error) {
-        console.error('Fetch materials error:', error);
+        console.error('Fetch materials error:', JSON.stringify(error, null, 2));
         return [];
     }
 
@@ -44,9 +44,18 @@ export async function fetchMaterials(context = {}) {
 CREATE MATERIAL
 ================================================================*/
 export async function createMaterial(context = {}, material = {}) {
-    const projectId = context.project_id || context.id || null;
+    const projectId = context.project_id || null;
     const projectUpdateId = context.project_update_id || null;
     const facilityId = context.facilities_id || context.facility_id || null;
+
+    if (!projectId && !projectUpdateId && !facilityId) {
+        console.error('Create material error: Missing project_id, project_update_id, and facilities_id.');
+        return {
+            success: false,
+            data: null,
+            error: 'Missing project context'
+        };
+    }
 
     const payload = {
         project_id: projectId,
@@ -68,7 +77,9 @@ export async function createMaterial(context = {}, material = {}) {
         .single();
 
     if (error) {
-       console.error('Create material error:', JSON.stringify(error, null, 2));
+        console.error('Create material error:', JSON.stringify(error, null, 2));
+        console.error('Create material payload:', JSON.stringify(payload, null, 2));
+
         return {
             success: false,
             data: null,
@@ -114,7 +125,7 @@ export async function updateMaterial(materialId, material = {}) {
         .single();
 
     if (error) {
-        console.error('Update material error:', error);
+        console.error('Update material error:', JSON.stringify(error, null, 2));
         return {
             success: false,
             data: null,
@@ -146,7 +157,7 @@ export async function deleteMaterial(materialId) {
         .eq('id', materialId);
 
     if (error) {
-        console.error('Delete material error:', error);
+        console.error('Delete material error:', JSON.stringify(error, null, 2));
         return {
             success: false,
             error
