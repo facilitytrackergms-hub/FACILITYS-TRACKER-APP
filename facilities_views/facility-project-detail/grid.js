@@ -3,9 +3,8 @@ FACILITY-PROJECT-DETAIL GRID
 VERSION: v2026_06_19_clean_tag_project_description
 UPDATED: 2026-06-19 @ 4:45 AM EDT
 ================================================================*/
-import { supabase } from '../../global_engine/supabaseClient.js';
 import { viewCart } from '../materials-panel/view_card.js';
-import { // <--- Added the missing '{'
+import {
     fetchProjectDetail,
     updateProjectDetail,
     deleteProjectDetail,
@@ -306,13 +305,15 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
         updateModalBackdrop.style.display = 'none';
    
     });
+
 document.getElementById('btn-open-materials').addEventListener('click', () => {
-    viewCart({
+    openMaterialsPanel({
         id: projectId,
         facilities_id: facilityId,
         project_name: projectName
     });
 });
+  
 
     document.getElementById('btn-edit-project-detail').addEventListener('click', () => {
         modalBackdrop.style.display = 'flex';
