@@ -3,6 +3,7 @@ SYSTEM: Facility Tracker Modular View System
 PURPOSE: Materials blank card component with own build code
 LOCATION: /facilities_views/materials/materials_blank_card_component.js
 VERSION: v2026_06_21_blank_card_component_owns_build
+
 UPDATED: 2026-06-21
 ================================================================*/
 
