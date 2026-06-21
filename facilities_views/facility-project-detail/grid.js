@@ -3,6 +3,7 @@ FACILITY-PROJECT-DETAIL GRID
 VERSION: v2026_06_19_clean_tag_project_description
 UPDATED: 2026-06-19 @ 4:45 AM EDT
 ================================================================*/
+
 import {
     fetchProjectDetail,
     updateProjectDetail,
@@ -164,9 +165,6 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             </div>
 
             <button id="btn-add-project-update" class="project-detail-main-btn">ADD PROJECT UPDATE</button>
-            <button id="btn-open-materials" class="project-detail-main-btn">
-    MATERIALS
-</button>
 
             <div class="project-detail-button-row" style="margin-top:12px;">
                 <button id="btn-edit-project-detail" class="project-detail-action-btn">⚙️ Edit</button>
@@ -302,17 +300,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
     document.getElementById('btn-cancel-project-update').addEventListener('click', () => {
         updateModalBackdrop.style.display = 'none';
-   
     });
-
-document.getElementById('btn-open-materials').addEventListener('click', () => {
-    openMaterialsPanel({
-        id: projectId,
-        facilities_id: facilityId,
-        project_name: projectName
-    });
-});
-  
 
     document.getElementById('btn-edit-project-detail').addEventListener('click', () => {
         modalBackdrop.style.display = 'flex';
@@ -426,5 +414,3 @@ document.getElementById('btn-open-materials').addEventListener('click', () => {
         }
     });
 }
-export default renderFacilityProjectDetailGrid;
-
