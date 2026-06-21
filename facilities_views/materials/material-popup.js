@@ -261,8 +261,7 @@ async function saveMaterialFromPopup(context = {}, afterSave = null) {
     if (backdrop) {
         backdrop.style.display = 'none';
     }
-
- if (typeof afterSave === 'function') {
+if (typeof afterSave === 'function') {
     await afterSave(result.data);
     return;
 }
@@ -272,7 +271,8 @@ if (window.navigateTo && context.project_id) {
         ...context,
         id: context.project_id,
         project_id: context.project_id,
-        facilities_id: context.facilities_id,
+        facilities_id: context.facilities_id || context.facility_id,
+        facility_id: context.facility_id || context.facilities_id,
         project_name: context.project_name
     });
     return;
