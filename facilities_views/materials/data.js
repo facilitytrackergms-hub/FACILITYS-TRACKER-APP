@@ -68,7 +68,7 @@ export async function createMaterial(context = {}, material = {}) {
         .single();
 
     if (error) {
-        console.error('Create material error:', error);
+       console.error('Create material error:', JSON.stringify(error, null, 2));
         return {
             success: false,
             data: null,
