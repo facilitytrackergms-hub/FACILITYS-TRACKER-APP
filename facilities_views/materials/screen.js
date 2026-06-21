@@ -7,7 +7,6 @@ UPDATED: 2026-06-21
 ================================================================*/
 
 import { renderCard } from './card.js';
-import { connectHelloButton } from './helloButton.js';
 import { connectAddMaterialsButtom } from './addmaterialsbuttom.js';
 import { renderPopups } from './popups.js';
 import { renderMaterialPopup } from './material-popup.js';
@@ -27,7 +26,7 @@ export async function renderMaterialsScreen(containerId, context = {}) {
         </div>
     `;
 
-    connectHelloButton();
+
     connectAddMaterialsButtom(context);
     await connectMaterialsList(context);
 }
