@@ -2,9 +2,8 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Custom Add Material popup with Supabase save
 LOCATION: /facilities_views/materials/material-popup.js
-VERSION: v2026_06_21_material_popup_initial
+VERSION: v2026_06_21_material_popup_back_to_project_fix
 UPDATED: 2026-06-21
-LINES: 214
 ================================================================*/
 
 import { createMaterial } from './data.js';
@@ -261,24 +260,26 @@ async function saveMaterialFromPopup(context = {}, afterSave = null) {
     if (backdrop) {
         backdrop.style.display = 'none';
     }
-if (typeof afterSave === 'function') {
-    await afterSave(result.data);
-    return;
-}
 
-if (window.navigateTo && context.project_id) {
-    window.navigateTo('facility-project-detail', {
-        ...context,
-        id: context.project_id,
-        project_id: context.project_id,
-        facilities_id: context.facilities_id || context.facility_id,
-        facility_id: context.facility_id || context.facilities_id,
-        project_name: context.project_name
-    });
-    return;
-}
+    if (typeof afterSave === 'function') {
+        await afterSave(result.data);
+        return;
+    }
 
-openOkPopup('Material saved.');
+    if (window.navigateTo && context.project_id) {
+        window.navigateTo('facility-project-detail', {
+            ...context,
+            id: context.project_id,
+            project_id: context.project_id,
+            facilities_id: context.facilities_id || context.facility_id,
+            facility_id: context.facility_id || context.facilities_id,
+            project_name: context.project_name
+        });
+        return;
+    }
+
+    openOkPopup('Material saved.');
+}
 
 /*================================================================
 HELPERS
