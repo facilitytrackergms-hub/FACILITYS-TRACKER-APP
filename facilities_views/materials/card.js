@@ -7,7 +7,7 @@ UPDATED: 2026-06-21
 ================================================================*/
 
 import { renderAddMaterialsButtom } from './addmaterialsbuttom.js';
-import { renderHelloButton } from './helloButton.js';
+
 import { renderMaterialsListContainer } from './materials-list.js';
 
 export function renderCard() {
@@ -25,7 +25,7 @@ export function renderCard() {
         </style>
 
         <div class="materials-card">
-            ${renderHelloButton()}
+        
             ${renderAddMaterialsButtom()}
             ${renderMaterialsListContainer()}
         </div>
