@@ -17,7 +17,7 @@ export async function renderDashboard(containerId) {
         <style>
             .home-page-title { text-align: center; color: #003b73; font-weight: bold; font-size: 20px; margin-bottom: 10px; }
             .facilities-home-container { background: #f7f9fb; border-radius: 0 0 14px 14px; padding: 24px 18px 32px; max-width: 320px; margin: 0 auto; text-align: center; border-top: 3px solid #003b73; }
-            .btn-green { background: #22a843; color: white; border: none; border-radius: 8px; padding: 14px 18px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 24px; width: 100%; }
+            .btn-green { background: #22a843; color: white; border: none; border-radius: 8px; padding: 14px 18px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 12px; width: 100%; }
             .btn-dev-materials { background: #003b73; color: white; border: none; border-radius: 8px; padding: 14px 18px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 24px; width: 100%; }
             .facilities-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
             .btn-facility { background: #003b73; color: white; border: none; border-radius: 8px; min-height: 56px; padding: 8px; font-size: 16px; font-weight: bold; cursor: pointer; line-height: 1.1; }
