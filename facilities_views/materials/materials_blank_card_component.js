@@ -11,7 +11,7 @@ export function renderMaterialsBlankCard() {
     return `
         <style>
             .materials-blank-card {
-                background:#ffffff;
+               background:#d9fbe3;
                 max-width:350px;
                 min-height:200px;
                 margin:16px auto;
