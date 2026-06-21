@@ -1,7 +1,8 @@
 /*================================================================
 FACILITY-PROJECT-DETAIL GRID
-VERSION: v2026_06_19_clean_tag_project_description
-UPDATED: 2026-06-19 @ 4:45 AM EDT
+LOCATION: /facilities_views/facility-project-detail/grid.js
+VERSION: v2026_06_21_materials_button_updates_reorder
+UPDATED: 2026-06-21 @ 12:00 PM EDT
 ================================================================*/
 
 import {
@@ -150,7 +151,10 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
                 <div class="project-detail-value">${escapeHtml(project.notes || '')}</div>
             </div>
 
-            <div class="project-detail-info-box">
+            <button id="btn-open-materials" class="project-detail-main-btn">MATERIALS</button>
+            <button id="btn-add-project-update" class="project-detail-main-btn">ADD PROJECT UPDATE</button>
+
+            <div class="project-detail-info-box" style="margin-top:14px;">
                 <div class="project-detail-label">PROJECT UPDATES</div>
 
                 ${projectUpdates.length ? projectUpdates.map(update => `
@@ -164,8 +168,6 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
                 `}
             </div>
 
-            <button id="btn-add-project-update" class="project-detail-main-btn">ADD PROJECT UPDATE</button>
-
             <div class="project-detail-button-row" style="margin-top:12px;">
                 <button id="btn-edit-project-detail" class="project-detail-action-btn">⚙️ Edit</button>
                 <button id="btn-delete-project-detail" class="project-detail-delete-btn">🗑 Delete</button>
@@ -173,7 +175,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
             <button id="btn-back-projects" class="project-detail-back-btn">⬅️ BACK</button>
 
-            <div class="project-detail-version-tag">grid.js | 2026-06-19 @ 4:45 AM EDT</div>
+            <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_21_materials_button_updates_reorder | 2026-06-21 @ 12:00 PM EDT</div>
         </div>
 
         <div id="project-detail-modal-backdrop" class="project-detail-modal-backdrop">
@@ -208,7 +210,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-detail-error" class="project-detail-error"></div>
 
-                <div class="project-detail-version-tag">grid.js | 2026-06-19 @ 4:45 AM EDT</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_21_materials_button_updates_reorder | 2026-06-21 @ 12:00 PM EDT</div>
             </div>
         </div>
 
@@ -270,7 +272,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-update-error" class="project-update-error"></div>
 
-                <div class="project-detail-version-tag">grid.js | 2026-06-19 @ 4:45 AM EDT</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_21_materials_button_updates_reorder | 2026-06-21 @ 12:00 PM EDT</div>
             </div>
         </div>
     `;
@@ -292,6 +294,17 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
                 });
             }
         });
+    });
+
+    document.getElementById('btn-open-materials').addEventListener('click', () => {
+        if (window.navigateTo) {
+            window.navigateTo('materials', {
+                ...facility,
+                project_id: projectId,
+                project_name: projectName,
+                facilities_id: facilityId
+            });
+        }
     });
 
     document.getElementById('btn-add-project-update').addEventListener('click', () => {
