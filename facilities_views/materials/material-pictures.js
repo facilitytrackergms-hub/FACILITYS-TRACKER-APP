@@ -2,9 +2,9 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Material picture upload helper
 LOCATION: /facilities_views/materials/material-pictures.js
-VERSION: v2026_06_21_material_pictures_take_picture_connected
+VERSION: v2026_06_21_material_pictures_schema_match
 UPDATED: 2026-06-21
-LINES: 184
+LINES: 123
 ================================================================*/
 
 import { supabase } from '../../global_engine/supabaseClient.js';
@@ -55,6 +55,12 @@ async function uploadMaterialPicture(file, material = {}) {
     const materialId = material?.id || '';
     const projectId = material?.project_id || window.currentProjectId || '';
     const facilitiesId = material?.facilities_id || material?.facility_id || window.currentFacilityId || '';
+
+    if (!projectId) {
+        openOkPopup('Missing project id.');
+        return;
+    }
+
     const cleanName = cleanFileName(file.name);
     const imagePath = buildImagePath(projectId, materialId, cleanName);
 
@@ -84,10 +90,7 @@ async function uploadMaterialPicture(file, material = {}) {
     const saved = await saveMaterialPictureRecord({
         projectId,
         facilitiesId,
-        materialId,
-        imageUrl,
-        imagePath,
-        imageName: cleanName
+        imageUrl
     });
 
     if (!saved) {
@@ -102,57 +105,27 @@ async function uploadMaterialPicture(file, material = {}) {
 SAVE IMAGE RECORD
 ================================================================*/
 async function saveMaterialPictureRecord(payload = {}) {
-    const projectId = payload.projectId ? Number(payload.projectId) : null;
-    const facilitiesId = payload.facilitiesId ? Number(payload.facilitiesId) : null;
-    const materialId = payload.materialId ? Number(payload.materialId) : null;
+    const record = {
+        project_id: Number(payload.projectId),
+        facilities_id: payload.facilitiesId ? Number(payload.facilitiesId) : null,
+        image_url: payload.imageUrl,
+        image_type: 'material'
+    };
 
-    const attempts = [
-        {
-            project_id: projectId,
-            facilities_id: facilitiesId,
-            material_id: materialId,
-            image_type: 'material',
-            image_url: payload.imageUrl,
-            image_path: payload.imagePath,
-            image_name: payload.imageName
-        },
-        {
-            project_id: projectId,
-            material_id: materialId,
-            image_type: 'material',
-            image_url: payload.imageUrl,
-            image_path: payload.imagePath,
-            image_name: payload.imageName
-        },
-        {
-            project_id: projectId,
-            image_type: 'material',
-            image_url: payload.imageUrl,
-            image_path: payload.imagePath,
-            image_name: payload.imageName
-        },
-        {
-            project_id: projectId,
-            image_type: 'material',
-            image_url: payload.imageUrl
-        }
-    ];
-
-    for (const attempt of attempts) {
-        const cleanAttempt = removeEmptyValues(attempt);
-
-        const { error } = await supabase
-            .from(IMAGE_TABLE)
-            .insert([cleanAttempt]);
-
-        if (!error) {
-            return true;
-        }
-
-        console.error('Material image record insert error:', error);
+    if (!record.facilities_id) {
+        delete record.facilities_id;
     }
 
-    return false;
+    const { error } = await supabase
+        .from(IMAGE_TABLE)
+        .insert([record]);
+
+    if (error) {
+        console.error('Material image record insert error:', error);
+        return false;
+    }
+
+    return true;
 }
 
 /*================================================================
@@ -169,16 +142,4 @@ function cleanFileName(fileName = '') {
     return String(fileName || 'material-picture.jpg')
         .replace(/[^a-zA-Z0-9._-]/g, '_')
         .toLowerCase();
-}
-
-function removeEmptyValues(source = {}) {
-    const clean = {};
-
-    Object.keys(source).forEach(key => {
-        if (source[key] !== null && source[key] !== undefined && source[key] !== '') {
-            clean[key] = source[key];
-        }
-    });
-
-    return clean;
 }
