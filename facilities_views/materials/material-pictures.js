@@ -2,9 +2,9 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Material picture upload helper
 LOCATION: /facilities_views/materials/material-pictures.js
-VERSION: v2026_06_21_material_pictures_schema_match
+VERSION: v2026_06_21_material_pictures_material_id_connected
 UPDATED: 2026-06-21
-LINES: 123
+LINES: 125
 ================================================================*/
 
 import { supabase } from '../../global_engine/supabaseClient.js';
@@ -61,6 +61,11 @@ async function uploadMaterialPicture(file, material = {}) {
         return;
     }
 
+    if (!materialId) {
+        openOkPopup('Missing material id.');
+        return;
+    }
+
     const cleanName = cleanFileName(file.name);
     const imagePath = buildImagePath(projectId, materialId, cleanName);
 
@@ -90,6 +95,7 @@ async function uploadMaterialPicture(file, material = {}) {
     const saved = await saveMaterialPictureRecord({
         projectId,
         facilitiesId,
+        materialId,
         imageUrl
     });
 
@@ -107,6 +113,7 @@ SAVE IMAGE RECORD
 async function saveMaterialPictureRecord(payload = {}) {
     const record = {
         project_id: Number(payload.projectId),
+        material_id: Number(payload.materialId),
         facilities_id: payload.facilitiesId ? Number(payload.facilitiesId) : null,
         image_url: payload.imageUrl,
         image_type: 'material'
