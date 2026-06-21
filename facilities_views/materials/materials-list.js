@@ -2,12 +2,12 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Materials list component
 LOCATION: /facilities_views/materials/materials-list.js
-VERSION: v2026_06_21_materials_list_initial
+VERSION: v2026_06_21_materials_list_detail_popup_connected
 UPDATED: 2026-06-21
 ================================================================*/
 
 import { fetchMaterials } from './data.js';
-import { openOkPopup } from './popups.js';
+import { openMaterialDetailPopup } from './material-detail-popup.js';
 
 export function renderMaterialsListContainer() {
     return `
@@ -94,7 +94,14 @@ export async function connectMaterialsList(context = {}) {
 
     document.querySelectorAll('.materials-list-button').forEach(button => {
         button.addEventListener('click', () => {
-            openOkPopup('Material detail popup will open here.');
+            const materialId = button.dataset.materialId;
+            const selectedMaterial = materials.find(material => String(material.id) === String(materialId));
+
+            if (!selectedMaterial) return;
+
+            openMaterialDetailPopup(selectedMaterial, async () => {
+                await connectMaterialsList(context);
+            });
         });
     });
 }
