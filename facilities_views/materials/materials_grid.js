@@ -1,8 +1,8 @@
 /*================================================================
 SYSTEM: Facility Tracker Modular View System
-PURPOSE: Materials view blank starter screen
+PURPOSE: Materials view blank UI from grid file
 LOCATION: /facilities_views/materials/materials_grid.js
-VERSION: v2026_06_21_materials_blank_view_connected
+VERSION: v2026_06_21_materials_blank_ui_from_grid
 UPDATED: 2026-06-21
 ================================================================*/
 
@@ -92,13 +92,13 @@ export async function renderMaterialsGrid(containerId, context = {}) {
             <div class="materials-subtitle">${escapeHtml(projectName)}</div>
 
             <div class="materials-info-box">
-                Materials view connected.
+                Blank Materials UI from grid file.
             </div>
 
             <button id="btn-back-materials" class="materials-back-btn">⬅️ BACK</button>
 
             <div class="materials-version-tag">
-                materials_grid.js | Facility Tracker Modular View System | v2026_06_21_materials_blank_view_connected | 2026-06-21
+                materials_grid.js | Facility Tracker Modular View System | v2026_06_21_materials_blank_ui_from_grid | 2026-06-21
             </div>
         </div>
     `;
