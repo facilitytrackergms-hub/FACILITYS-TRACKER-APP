@@ -1,6 +1,7 @@
 /*================================================================
 FACILITY-PROJECT-DETAIL DATA
-VERSION: v2026_06_18_project_update_images_added
+VERSION: v2026_06_22_update_406_fix
+UPDATED: 2026-06-22 @ 7:30 AM EDT
 ================================================================*/
 
 import { supabase } from '../../global_engine/supabaseClient.js';
@@ -10,16 +11,23 @@ export async function fetchProjectDetail(projectId) {
         .from('projects')
         .select('*')
         .eq('id', projectId)
-        .single();
+        .maybeSingle();
 }
 
 export async function updateProjectDetail(projectId, payload) {
-    return await supabase
+    const { error } = await supabase
         .from('projects')
         .update(payload)
-        .eq('id', projectId)
-        .select('*')
-        .single();
+        .eq('id', projectId);
+
+    if (error) {
+        return { data: null, error };
+    }
+
+    return {
+        data: { id: projectId },
+        error: null
+    };
 }
 
 export async function deleteProjectDetail(projectId) {
