@@ -2,9 +2,9 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Materials data service
 LOCATION: /facilities_views/materials/data.js
-VERSION: v2026_06_21_materials_data_purchased_at_connected
+VERSION: v2026_06_21_materials_data_status_timestamp_connected
 UPDATED: 2026-06-21
-LINES: 150
+LINES: 154
 ================================================================*/
 
 import { supabase } from '../../global_engine/supabaseClient.js';
@@ -68,7 +68,8 @@ export async function createMaterial(context = {}, material = {}) {
         material_status: material.material_status || 'Needed',
         description: material.description || '',
         notes: material.notes || '',
-        purchased_at: material.purchased_at || null
+        purchased_at: material.purchased_at || null,
+        status_updated_at: material.status_updated_at || null
     };
 
     const { data, error } = await supabase
@@ -120,6 +121,10 @@ export async function updateMaterial(materialId, material = {}) {
 
     if (material.purchased_at !== undefined) {
         payload.purchased_at = material.purchased_at;
+    }
+
+    if (material.status_updated_at !== undefined) {
+        payload.status_updated_at = material.status_updated_at;
     }
 
     const { data, error } = await supabase
