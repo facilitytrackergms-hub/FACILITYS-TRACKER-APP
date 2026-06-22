@@ -2,9 +2,9 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Material detail popup for view/edit/delete
 LOCATION: /facilities_views/materials/material-detail-popup.js
-VERSION: v2026_06_21_material_detail_popup_status_timestamp
+VERSION: v2026_06_21_material_detail_popup_edit_mode
 UPDATED: 2026-06-21
-LINES: 489
+LINES: 496
 ================================================================*/
 
 import { updateMaterial, deleteMaterial } from './data.js';
@@ -70,6 +70,14 @@ export function renderMaterialDetailPopup() {
                 background:#ffffff;
             }
 
+            .material-detail-input:disabled,
+            .material-detail-textarea:disabled,
+            .material-detail-select:disabled {
+                background:#f3f4f6;
+                color:#374151;
+                opacity:1;
+            }
+
             .material-detail-textarea {
                 min-height:70px;
                 resize:vertical;
@@ -88,12 +96,6 @@ export function renderMaterialDetailPopup() {
                 margin-top:12px;
             }
 
-            .material-detail-close-row {
-                display:flex;
-                justify-content:center;
-                margin-top:12px;
-            }
-
             .material-detail-btn {
                 border:none;
                 border-radius:8px;
@@ -104,14 +106,16 @@ export function renderMaterialDetailPopup() {
                 color:white;
             }
 
+            .material-detail-edit-btn {
+                background:#003b73;
+            }
+
             .material-detail-save-btn {
                 background:#003b73;
             }
 
-            .material-detail-close-btn {
+            .material-detail-cancel-btn {
                 background:#6b7280;
-                width:50%;
-                min-width:130px;
             }
 
             .material-detail-amazon-btn {
@@ -127,6 +131,10 @@ export function renderMaterialDetailPopup() {
                 background:#b91c1c;
                 color:#ffff00;
             }
+
+            .material-detail-hidden {
+                display:none !important;
+            }
         </style>
 
         <div id="material-detail-popup-backdrop" class="material-detail-popup-backdrop">
@@ -139,17 +147,17 @@ export function renderMaterialDetailPopup() {
                 <input id="material-detail-original-status-input" type="hidden">
 
                 <label class="material-detail-label" for="material-detail-name-input">Material</label>
-                <input id="material-detail-name-input" class="material-detail-input" type="text">
+                <input id="material-detail-name-input" class="material-detail-input material-detail-edit-field" type="text">
 
                 <div class="material-detail-row">
                     <div>
                         <label class="material-detail-label" for="material-detail-quantity-input">Quantity</label>
-                        <input id="material-detail-quantity-input" class="material-detail-input" type="text">
+                        <input id="material-detail-quantity-input" class="material-detail-input material-detail-edit-field" type="text">
                     </div>
 
                     <div>
                         <label class="material-detail-label" for="material-detail-status-input">Status</label>
-                        <select id="material-detail-status-input" class="material-detail-select">
+                        <select id="material-detail-status-input" class="material-detail-select material-detail-edit-field">
                             <option value="Needed">Needed</option>
                             <option value="Ordered">Ordered</option>
                             <option value="Purchased">Purchased</option>
@@ -163,20 +171,20 @@ export function renderMaterialDetailPopup() {
                 <div class="material-detail-row">
                     <div>
                         <label class="material-detail-label" for="material-detail-estimated-cost-input">Estimated Cost</label>
-                        <input id="material-detail-estimated-cost-input" class="material-detail-input" type="number" step="0.01">
+                        <input id="material-detail-estimated-cost-input" class="material-detail-input material-detail-edit-field" type="number" step="0.01">
                     </div>
 
                     <div>
                         <label class="material-detail-label" for="material-detail-actual-cost-input">Actual Cost</label>
-                        <input id="material-detail-actual-cost-input" class="material-detail-input" type="number" step="0.01">
+                        <input id="material-detail-actual-cost-input" class="material-detail-input material-detail-edit-field" type="number" step="0.01">
                     </div>
                 </div>
 
                 <label class="material-detail-label" for="material-detail-description-input">Description</label>
-                <textarea id="material-detail-description-input" class="material-detail-textarea"></textarea>
+                <textarea id="material-detail-description-input" class="material-detail-textarea material-detail-edit-field"></textarea>
 
                 <label class="material-detail-label" for="material-detail-notes-input">Notes</label>
-                <textarea id="material-detail-notes-input" class="material-detail-textarea"></textarea>
+                <textarea id="material-detail-notes-input" class="material-detail-textarea material-detail-edit-field"></textarea>
 
                 <div class="material-detail-buttons">
                     <button id="material-detail-amazon-btn" class="material-detail-btn material-detail-amazon-btn" type="button">Amazon</button>
@@ -184,12 +192,13 @@ export function renderMaterialDetailPopup() {
                 </div>
 
                 <div class="material-detail-buttons">
-                    <button id="material-detail-save-btn" class="material-detail-btn material-detail-save-btn" type="button">Save Changes</button>
-                    <button id="material-detail-delete-btn" class="material-detail-btn material-detail-delete-btn" type="button">Delete</button>
+                    <button id="material-detail-edit-btn" class="material-detail-btn material-detail-edit-btn" type="button">Edit</button>
+                    <button id="material-detail-save-btn" class="material-detail-btn material-detail-save-btn material-detail-hidden" type="button">Save</button>
+                    <button id="material-detail-cancel-btn" class="material-detail-btn material-detail-cancel-btn" type="button">Cancel</button>
                 </div>
 
-                <div class="material-detail-close-row">
-                    <button id="material-detail-close-btn" class="material-detail-btn material-detail-close-btn" type="button">Close</button>
+                <div class="material-detail-buttons">
+                    <button id="material-detail-delete-btn" class="material-detail-btn material-detail-delete-btn" type="button">Delete</button>
                 </div>
 
                 <div id="material-picture-thumbnails"></div>
@@ -210,46 +219,34 @@ export function openMaterialDetailPopup(material = {}, afterChange = null) {
     }
 
     fillMaterialDetailForm(material);
+    setMaterialEditMode(false);
 
     backdrop.style.display = 'flex';
 
     renderMaterialPictureThumbnails(material);
 
-    const closeButton = document.getElementById('material-detail-close-btn');
+    const editButton = document.getElementById('material-detail-edit-btn');
+    const cancelButton = document.getElementById('material-detail-cancel-btn');
     const saveButton = document.getElementById('material-detail-save-btn');
     const deleteButton = document.getElementById('material-detail-delete-btn');
     const amazonButton = document.getElementById('material-detail-amazon-btn');
     const pictureButton = document.getElementById('material-detail-picture-btn');
 
-    if (closeButton) {
-        closeButton.onclick = () => {
+    if (editButton) {
+        editButton.onclick = () => {
+            setMaterialEditMode(true);
+        };
+    }
+
+    if (cancelButton) {
+        cancelButton.onclick = () => {
             backdrop.style.display = 'none';
         };
     }
 
     if (saveButton) {
         saveButton.onclick = async () => {
-            const pictureMaterial = getMaterialPictureContext(material);
-
-            const saved = await saveMaterialDetail(afterChange, {
-                closeAfterSave: false,
-                showMessage: false
-            });
-
-            if (!saved) return;
-
-            const addImages = await askAddImagesPopup();
-
-            if (addImages) {
-                await openMaterialPicturePicker(pictureMaterial, async () => {
-                    await renderMaterialPictureThumbnails(pictureMaterial);
-                });
-
-                return;
-            }
-
-            closeMaterialDetailPopup();
-            goBackToProjectDetail(pictureMaterial);
+            await saveMaterialDetail(afterChange);
         };
     }
 
@@ -281,10 +278,8 @@ export function openMaterialDetailPopup(material = {}, afterChange = null) {
 /*================================================================
 SAVE MATERIAL DETAIL
 ================================================================*/
-async function saveMaterialDetail(afterChange = null, options = {}) {
+async function saveMaterialDetail(afterChange = null) {
     const materialId = getInputValue('material-detail-id-input');
-    const closeAfterSave = options.closeAfterSave !== false;
-    const showMessage = options.showMessage !== false;
 
     if (!materialId) {
         openOkPopup('Missing material id.');
@@ -326,27 +321,14 @@ async function saveMaterialDetail(afterChange = null, options = {}) {
         return false;
     }
 
-    if (material.status_updated_at) {
-        setInputValue('material-detail-status-updated-at-input', material.status_updated_at);
-        setInputValue('material-detail-original-status-input', status);
-    }
-
-    if (status === 'Purchased' && material.purchased_at) {
-        setInputValue('material-detail-purchased-at-input', material.purchased_at);
-    }
-
     const backdrop = document.getElementById('material-detail-popup-backdrop');
 
-    if (closeAfterSave && backdrop) {
+    if (backdrop) {
         backdrop.style.display = 'none';
     }
 
     if (typeof afterChange === 'function') {
         await afterChange();
-    }
-
-    if (showMessage) {
-        openOkPopup('Material updated.');
     }
 
     return true;
@@ -406,121 +388,21 @@ function fillMaterialDetailForm(material = {}) {
     setInputValue('material-detail-notes-input', material.notes || '');
 }
 
-function getMaterialPictureContext(material = {}) {
-    return {
-        ...material,
-        id: getInputValue('material-detail-id-input') || material.id,
-        project_id: material.project_id || window.currentProjectId || '',
-        facilities_id: material.facilities_id || material.facility_id || window.currentFacilityId || ''
-    };
-}
-
-function askAddImagesPopup() {
-    return new Promise(resolve => {
-        const oldPopup = document.getElementById('material-add-images-confirm-backdrop');
-
-        if (oldPopup) {
-            oldPopup.remove();
-        }
-
-        const popup = document.createElement('div');
-        popup.id = 'material-add-images-confirm-backdrop';
-        popup.style.cssText = `
-            position:fixed;
-            inset:0;
-            background:rgba(0,0,0,0.45);
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            z-index:10050;
-        `;
-
-        popup.innerHTML = `
-            <div style="
-                background:white;
-                width:86%;
-                max-width:320px;
-                border-radius:12px;
-                padding:18px;
-                text-align:center;
-                box-shadow:0 4px 18px rgba(0,0,0,0.25);
-            ">
-                <div style="
-                    font-size:20px;
-                    font-weight:bold;
-                    color:#111827;
-                    margin-bottom:16px;
-                ">
-                    Add images?
-                </div>
-
-                <div style="
-                    display:grid;
-                    grid-template-columns:1fr 1fr;
-                    gap:10px;
-                ">
-                    <button id="material-add-images-yes-btn" style="
-                        border:none;
-                        border-radius:8px;
-                        min-height:44px;
-                        background:#22a843;
-                        color:white;
-                        font-size:16px;
-                        font-weight:bold;
-                        cursor:pointer;
-                    ">
-                        YES
-                    </button>
-
-                    <button id="material-add-images-no-btn" style="
-                        border:none;
-                        border-radius:8px;
-                        min-height:44px;
-                        background:#6b7280;
-                        color:white;
-                        font-size:16px;
-                        font-weight:bold;
-                        cursor:pointer;
-                    ">
-                        NO
-                    </button>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(popup);
-
-        document.getElementById('material-add-images-yes-btn').onclick = () => {
-            popup.remove();
-            resolve(true);
-        };
-
-        document.getElementById('material-add-images-no-btn').onclick = () => {
-            popup.remove();
-            resolve(false);
-        };
+function setMaterialEditMode(isEditing) {
+    document.querySelectorAll('.material-detail-edit-field').forEach(field => {
+        field.disabled = !isEditing;
     });
-}
 
-function closeMaterialDetailPopup() {
-    const backdrop = document.getElementById('material-detail-popup-backdrop');
+    const editButton = document.getElementById('material-detail-edit-btn');
+    const saveButton = document.getElementById('material-detail-save-btn');
 
-    if (backdrop) {
-        backdrop.style.display = 'none';
-    }
-}
-
-function goBackToProjectDetail(material = {}) {
-    if (!window.navigateTo) {
-        console.error('window.navigateTo not found.');
-        return;
+    if (editButton) {
+        editButton.classList.toggle('material-detail-hidden', isEditing);
     }
 
-    window.navigateTo('facility-project-detail', {
-        ...material,
-        project_id: material.project_id || window.currentProjectId || '',
-        facilities_id: material.facilities_id || material.facility_id || window.currentFacilityId || ''
-    });
+    if (saveButton) {
+        saveButton.classList.toggle('material-detail-hidden', !isEditing);
+    }
 }
 
 function getInputValue(id) {
