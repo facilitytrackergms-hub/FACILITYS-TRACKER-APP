@@ -152,11 +152,15 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
                 <div class="project-detail-label">REQUESTED BY TITLE</div>
                 <div class="project-detail-value">${escapeHtml(project.requested_by_title || '')}</div>
 
-                <div class="project-detail-label">CONTACT PHONE NUMBER</div>
-                <div class="project-detail-value">${escapeHtml(project.phone_number || '')}</div>
+             <div class="project-detail-label">CONTACT PHONE NUMBER</div>
+<div class="project-detail-value">
+    ${project.phone_number ? `<a href="tel:${escapeHtml(project.phone_number)}" style="color:#003b73;font-weight:bold;text-decoration:underline;">${escapeHtml(project.phone_number)}</a>` : ''}
+</div>
 
-                <div class="project-detail-label">ADDRESS</div>
-                <div class="project-detail-value">${escapeHtml(project.address || '')}</div>
+<div class="project-detail-label">ADDRESS</div>
+<div class="project-detail-value">
+    ${project.address ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(project.address)}" target="_blank" style="color:#003b73;font-weight:bold;text-decoration:underline;">${escapeHtml(project.address)}</a>` : ''}
+</div>
 
                 <div class="project-detail-label">APPOINTMENT TIME</div>
                 <div class="project-detail-value">${escapeHtml(formatDate(project.appointment_time))}</div>
