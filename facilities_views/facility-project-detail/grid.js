@@ -13,6 +13,8 @@ import {
     createProjectUpdate
 } from './data.js';
 
+import { renderProjectPicturesPopup } from './project-pictures.js';
+
 function escapeHtml(value) {
     return String(value || '')
         .replaceAll('&', '&amp;')
@@ -370,21 +372,33 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
         updateModalBackdrop.style.display = 'flex';
     });
 
-    document.getElementById('btn-open-pictures').addEventListener('click', () => {
-        pictureActions.style.display = pictureActions.style.display === 'grid' ? 'none' : 'grid';
+  document.getElementById('btn-open-pictures').addEventListener('click', () => {
+    renderProjectPicturesPopup({
+        projectId,
+        facilitiesId: facilityId,
+        projectName
     });
+});
 
-    document.getElementById('btn-open-inspections').addEventListener('click', () => {
-        alert('Inspections button is added. We will connect this next.');
-    });
+document.getElementById('btn-open-inspections').addEventListener('click', () => {
+    alert('Inspections button is added. We will connect this next.');
+});
 
-    document.getElementById('btn-take-project-picture').addEventListener('click', () => {
-        alert('Take Picture button is added. We will connect the camera next.');
+document.getElementById('btn-take-project-picture').addEventListener('click', () => {
+    renderProjectPicturesPopup({
+        projectId,
+        facilitiesId: facilityId,
+        projectName
     });
+});
 
-    document.getElementById('btn-see-project-pictures').addEventListener('click', () => {
-        alert('See Pictures button is added. We will connect the image list next.');
+document.getElementById('btn-see-project-pictures').addEventListener('click', () => {
+    renderProjectPicturesPopup({
+        projectId,
+        facilitiesId: facilityId,
+        projectName
     });
+});
 
     document.getElementById('btn-cancel-project-update').addEventListener('click', () => {
         updateModalBackdrop.style.display = 'none';
