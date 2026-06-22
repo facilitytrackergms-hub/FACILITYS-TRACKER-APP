@@ -103,8 +103,9 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             .project-detail-modal label,
             .project-update-modal label { display:block; font-size:13px; font-weight:bold; margin:10px 0 4px; color:#003b73; }
 
-            .project-detail-modal input,
+                       .project-detail-modal input,
             .project-detail-modal textarea,
+            .project-detail-modal select,
             .project-update-modal input,
             .project-update-modal textarea { width:100%; padding:9px; border:1px solid #bbb; border-radius:6px; font-size:15px; box-sizing:border-box; }
 
@@ -141,6 +142,9 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
                 <div class="project-detail-label">TYPE</div>
                 <div class="project-detail-value">${escapeHtml(project.type || '')}</div>
 
+                  <div class="project-detail-label">STATUS</div>
+                <div class="project-detail-value">${escapeHtml(project.status || 'Open')}</div>
+
                 <div class="project-detail-label">REQUESTED BY NAME</div>
                 <div class="project-detail-value">${escapeHtml(project.requested_by_name || '')}</div>
 
@@ -149,6 +153,10 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div class="project-detail-label">NOTES</div>
                 <div class="project-detail-value">${escapeHtml(project.notes || '')}</div>
+          
+              
+            
+            
             </div>
 
             <button id="btn-open-materials" class="project-detail-main-btn">MATERIALS</button>
@@ -187,6 +195,19 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <label>Type</label>
                 <input id="project-detail-type-input" type="text" list="project-detail-type-options" value="${escapeHtml(project.type || '')}">
+
+                <label>Status</label>
+                <select id="project-detail-status-input">
+                    <option value="Open" ${project.status === 'Open' ? 'selected' : ''}>Open</option>
+                    <option value="In Progress" ${project.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                    <option value="Waiting on Materials" ${project.status === 'Waiting on Materials' ? 'selected' : ''}>Waiting on Materials</option>
+                    <option value="Waiting on Vendor" ${project.status === 'Waiting on Vendor' ? 'selected' : ''}>Waiting on Vendor</option>
+                    <option value="On Hold" ${project.status === 'On Hold' ? 'selected' : ''}>On Hold</option>
+                    <option value="Completed" ${project.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                    <option value="Cancelled" ${project.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+                </select>
+
+                
 
                 <datalist id="project-detail-type-options">
                     <option value="Repair"></option>
@@ -391,20 +412,21 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
     });
 
     document.getElementById('btn-save-project-detail').addEventListener('click', async () => {
-        const projectNameInput = document.getElementById('project-detail-name-input').value.trim();
+             const projectNameInput = document.getElementById('project-detail-name-input').value.trim();
         const typeInput = document.getElementById('project-detail-type-input').value.trim();
+        const statusInput = document.getElementById('project-detail-status-input').value.trim();
         const descriptionInput = document.getElementById('project-detail-description-input').value.trim();
         const notesInput = document.getElementById('project-detail-notes-input').value.trim();
-
         if (!projectNameInput) {
             errorBox.textContent = 'Project name required.';
             return;
         }
 
-        const payload = {
+              const payload = {
             name: projectNameInput,
             project_name: projectNameInput,
             type: typeInput,
+            status: statusInput,
             description: descriptionInput,
             notes: notesInput
         };
