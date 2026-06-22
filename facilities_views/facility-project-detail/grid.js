@@ -1,8 +1,8 @@
 /*================================================================
 FACILITY-PROJECT-DETAIL GRID
 LOCATION: /facilities_views/facility-project-detail/grid.js
-VERSION: v2026_06_22_project_pictures_inspections_buttons
-UPDATED: 2026-06-22 @ 9:25 AM EDT
+VERSION: v2026_06_22_inspections_route_connected
+UPDATED: 2026-06-22 @ 10:20 AM EDT
 ================================================================*/
 
 import {
@@ -212,7 +212,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
             <button id="btn-back-projects" class="project-detail-back-btn">⬅️ BACK</button>
 
-            <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_22_project_pictures_inspections_buttons | 2026-06-22 @ 9:25 AM EDT</div>
+            <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_22_inspections_route_connected | 2026-06-22 @ 10:20 AM EDT</div>
         </div>
 
         <div id="project-detail-modal-backdrop" class="project-detail-modal-backdrop">
@@ -270,7 +270,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-detail-error" class="project-detail-error"></div>
 
-                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_22_project_pictures_inspections_buttons | 2026-06-22 @ 9:25 AM EDT</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_22_inspections_route_connected | 2026-06-22 @ 10:20 AM EDT</div>
             </div>
         </div>
 
@@ -332,7 +332,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-update-error" class="project-update-error"></div>
 
-                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_22_project_pictures_inspections_buttons | 2026-06-22 @ 9:25 AM EDT</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_22_inspections_route_connected | 2026-06-22 @ 10:20 AM EDT</div>
             </div>
         </div>
     `;
@@ -341,7 +341,6 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
     const updateModalBackdrop = document.getElementById('project-update-modal-backdrop');
     const errorBox = document.getElementById('project-detail-error');
     const updateErrorBox = document.getElementById('project-update-error');
-    const pictureActions = document.getElementById('project-picture-actions');
 
     document.querySelectorAll('.project-update-record-button').forEach(button => {
         button.addEventListener('click', () => {
@@ -372,33 +371,40 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
         updateModalBackdrop.style.display = 'flex';
     });
 
-  document.getElementById('btn-open-pictures').addEventListener('click', () => {
-    renderProjectPicturesPopup({
-        projectId,
-        facilitiesId: facilityId,
-        projectName
+    document.getElementById('btn-open-pictures').addEventListener('click', () => {
+        renderProjectPicturesPopup({
+            projectId,
+            facilitiesId: facilityId,
+            projectName
+        });
     });
-});
 
-document.getElementById('btn-open-inspections').addEventListener('click', () => {
-    alert('Inspections button is added. We will connect this next.');
-});
-
-document.getElementById('btn-take-project-picture').addEventListener('click', () => {
-    renderProjectPicturesPopup({
-        projectId,
-        facilitiesId: facilityId,
-        projectName
+    document.getElementById('btn-open-inspections').addEventListener('click', () => {
+        if (window.navigateTo) {
+            window.navigateTo('facility-inspections', {
+                ...facility,
+                project_id: projectId,
+                project_name: projectName,
+                facilities_id: facilityId
+            });
+        }
     });
-});
 
-document.getElementById('btn-see-project-pictures').addEventListener('click', () => {
-    renderProjectPicturesPopup({
-        projectId,
-        facilitiesId: facilityId,
-        projectName
+    document.getElementById('btn-take-project-picture').addEventListener('click', () => {
+        renderProjectPicturesPopup({
+            projectId,
+            facilitiesId: facilityId,
+            projectName
+        });
     });
-});
+
+    document.getElementById('btn-see-project-pictures').addEventListener('click', () => {
+        renderProjectPicturesPopup({
+            projectId,
+            facilitiesId: facilityId,
+            projectName
+        });
+    });
 
     document.getElementById('btn-cancel-project-update').addEventListener('click', () => {
         updateModalBackdrop.style.display = 'none';
