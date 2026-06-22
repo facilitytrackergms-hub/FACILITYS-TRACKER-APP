@@ -15,19 +15,28 @@ export async function fetchProjectDetail(projectId) {
 }
 
 export async function updateProjectDetail(projectId, payload) {
-    const { error } = await supabase
+    const { data, error } = await supabase
         .from('projects')
         .update(payload)
-        .eq('id', projectId);
+        .eq('id', projectId)
+        .select('*')
+        .maybeSingle();
 
     if (error) {
+        console.error('Supabase project update failed:', error);
         return { data: null, error };
     }
 
-    return {
-        data: { id: projectId },
-        error: null
-    };
+    if (!data) {
+        return {
+            data: null,
+            error: {
+                message: 'No project row was updated. Check project ID or Supabase UPDATE policy.'
+            }
+        };
+    }
+
+    return { data, error: null };
 }
 
 export async function deleteProjectDetail(projectId) {
