@@ -1,7 +1,7 @@
 /*================================================================
 FACILITIES-PROJECTS GRID
-VERSION: v2026_06_19_project_button_date_status
-UPDATED: 2026-06-19 @ 6:24 AM EDT
+VERSION: v2026_06_22_project_extra_fields_added
+UPDATED: 2026-06-22 @ 7:05 AM EDT
 ================================================================*/
 
 import {
@@ -112,7 +112,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
             <button id="btn-back-facility" class="projects-back-btn">⬅️ BACK</button>
 
-            <div class="projects-version-tag">grid.js | 2026-06-19 @ 6:24 AM EDT</div>
+            <div class="projects-version-tag">grid.js | 2026-06-22 @ 7:05 AM EDT</div>
         </div>
 
         <div id="project-modal-backdrop" class="project-modal-backdrop">
@@ -142,6 +142,18 @@ export async function renderProjectsGrid(containerId, context = {}) {
                 <label>Requested By Title</label>
                 <input id="requested-by-title-input" type="text">
 
+                <label>Contact Phone Number</label>
+                <input id="project-phone-number-input" type="tel">
+
+                <label>Address</label>
+                <input id="project-address-input" type="text">
+
+                <label>Appointment Time</label>
+                <input id="project-appointment-time-input" type="datetime-local">
+
+                <label>Reminder</label>
+                <input id="project-reminder-input" type="text">
+
                 <label>Description</label>
                 <textarea id="project-description-input"></textarea>
 
@@ -157,7 +169,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
                 <div id="project-error" class="project-error"></div>
 
-                <div class="projects-version-tag">grid.js | 2026-06-19 @ 6:24 AM EDT</div>
+                <div class="projects-version-tag">grid.js | 2026-06-22 @ 7:05 AM EDT</div>
             </div>
         </div>
 
@@ -180,6 +192,10 @@ export async function renderProjectsGrid(containerId, context = {}) {
     const typeInput = document.getElementById('project-type-input');
     const requestedByNameInput = document.getElementById('requested-by-name-input');
     const requestedByTitleInput = document.getElementById('requested-by-title-input');
+    const phoneNumberInput = document.getElementById('project-phone-number-input');
+    const addressInput = document.getElementById('project-address-input');
+    const appointmentTimeInput = document.getElementById('project-appointment-time-input');
+    const reminderInput = document.getElementById('project-reminder-input');
     const descriptionInput = document.getElementById('project-description-input');
     const notesInput = document.getElementById('project-notes-input');
     const errorBox = document.getElementById('project-error');
@@ -192,6 +208,10 @@ export async function renderProjectsGrid(containerId, context = {}) {
         typeInput.value = '';
         requestedByNameInput.value = '';
         requestedByTitleInput.value = '';
+        phoneNumberInput.value = '';
+        addressInput.value = '';
+        appointmentTimeInput.value = '';
+        reminderInput.value = '';
         descriptionInput.value = '';
         notesInput.value = '';
         errorBox.textContent = '';
@@ -208,6 +228,10 @@ export async function renderProjectsGrid(containerId, context = {}) {
             typeInput.value = project.type || '';
             requestedByNameInput.value = project.requested_by_name || '';
             requestedByTitleInput.value = project.requested_by_title || '';
+            phoneNumberInput.value = project.phone_number || '';
+            addressInput.value = project.address || '';
+            appointmentTimeInput.value = project.appointment_time ? String(project.appointment_time).slice(0, 16) : '';
+            reminderInput.value = project.reminder || '';
             descriptionInput.value = project.description || '';
             notesInput.value = project.notes || '';
             modalTitle.textContent = `Edit Project for ${facilityName}`;
@@ -219,6 +243,10 @@ export async function renderProjectsGrid(containerId, context = {}) {
             typeInput.value = context.project_draft_prefill.type || '';
             requestedByNameInput.value = context.project_draft_prefill.requested_by_name || '';
             requestedByTitleInput.value = context.project_draft_prefill.requested_by_title || '';
+            phoneNumberInput.value = context.project_draft_prefill.phone_number || '';
+            addressInput.value = context.project_draft_prefill.address || '';
+            appointmentTimeInput.value = context.project_draft_prefill.appointment_time ? String(context.project_draft_prefill.appointment_time).slice(0, 16) : '';
+            reminderInput.value = context.project_draft_prefill.reminder || '';
             descriptionInput.value = context.project_draft_prefill.description || '';
             notesInput.value = context.project_draft_prefill.notes || '';
         }
@@ -228,6 +256,10 @@ export async function renderProjectsGrid(containerId, context = {}) {
             typeInput.value = context.project_prefill.type || typeInput.value;
             requestedByNameInput.value = context.project_prefill.requested_by_name || requestedByNameInput.value;
             requestedByTitleInput.value = context.project_prefill.requested_by_title || requestedByTitleInput.value;
+            phoneNumberInput.value = context.project_prefill.phone_number || phoneNumberInput.value;
+            addressInput.value = context.project_prefill.address || addressInput.value;
+            appointmentTimeInput.value = context.project_prefill.appointment_time ? String(context.project_prefill.appointment_time).slice(0, 16) : appointmentTimeInput.value;
+            reminderInput.value = context.project_prefill.reminder || reminderInput.value;
             descriptionInput.value = context.project_prefill.description || descriptionInput.value;
             notesInput.value = context.project_prefill.notes || notesInput.value;
         }
@@ -238,6 +270,10 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
         if (context?.requested_by_title) {
             requestedByTitleInput.value = context.requested_by_title || '';
+        }
+
+        if (context?.phone_number) {
+            phoneNumberInput.value = context.phone_number || '';
         }
 
         modalBackdrop.style.display = 'flex';
@@ -252,6 +288,10 @@ export async function renderProjectsGrid(containerId, context = {}) {
             type: typeInput.value.trim(),
             requested_by_name: requestedByNameInput.value.trim(),
             requested_by_title: requestedByTitleInput.value.trim(),
+            phone_number: phoneNumberInput.value.trim(),
+            address: addressInput.value.trim(),
+            appointment_time: appointmentTimeInput.value || null,
+            reminder: reminderInput.value.trim(),
             description: descriptionInput.value.trim(),
             notes: notesInput.value.trim()
         };
@@ -300,7 +340,8 @@ export async function renderProjectsGrid(containerId, context = {}) {
                 ...context,
                 requested_contact_prefill: {
                     name: requestedByNameInput.value.trim(),
-                    role: requestedByTitleInput.value.trim()
+                    role: requestedByTitleInput.value.trim(),
+                    phone: phoneNumberInput.value.trim()
                 },
                 project_draft_prefill: getProjectDraft(),
                 return_to_project_detail_after_contact: true
@@ -365,6 +406,10 @@ export async function renderProjectsGrid(containerId, context = {}) {
             requested_by_name: requestedByName,
             requested_by_title: requestedByTitle,
             requested_by_contact_id: requestedByContactId,
+            phone_number: phoneNumberInput.value.trim(),
+            address: addressInput.value.trim(),
+            appointment_time: appointmentTimeInput.value || null,
+            reminder: reminderInput.value.trim(),
             description: descriptionInput.value.trim(),
             notes: notesInput.value.trim()
         };
