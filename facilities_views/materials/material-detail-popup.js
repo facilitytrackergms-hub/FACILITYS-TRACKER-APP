@@ -2,9 +2,9 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Material detail popup for view/edit/delete
 LOCATION: /facilities_views/materials/material-detail-popup.js
-VERSION: v2026_06_21_material_detail_popup_four_buttons_close_center
+VERSION: v2026_06_21_material_detail_popup_save_opens_camera
 UPDATED: 2026-06-21
-LINES: 378
+LINES: 400
 ================================================================*/
 
 import { updateMaterial, deleteMaterial } from './data.js';
@@ -225,7 +225,18 @@ export function openMaterialDetailPopup(material = {}, afterChange = null) {
 
     if (saveButton) {
         saveButton.onclick = async () => {
-            await saveMaterialDetail(afterChange);
+            const pictureMaterial = getMaterialPictureContext(material);
+
+            const saved = await saveMaterialDetail(afterChange, {
+                closeAfterSave: false,
+                showMessage: false
+            });
+
+            if (!saved) return;
+
+            await openMaterialPicturePicker(pictureMaterial, async () => {
+                await renderMaterialPictureThumbnails(pictureMaterial);
+            });
         };
     }
 
@@ -257,12 +268,14 @@ export function openMaterialDetailPopup(material = {}, afterChange = null) {
 /*================================================================
 SAVE MATERIAL DETAIL
 ================================================================*/
-async function saveMaterialDetail(afterChange = null) {
+async function saveMaterialDetail(afterChange = null, options = {}) {
     const materialId = getInputValue('material-detail-id-input');
+    const closeAfterSave = options.closeAfterSave !== false;
+    const showMessage = options.showMessage !== false;
 
     if (!materialId) {
         openOkPopup('Missing material id.');
-        return;
+        return false;
     }
 
     const material = {
@@ -277,19 +290,19 @@ async function saveMaterialDetail(afterChange = null) {
 
     if (!material.material_name) {
         openOkPopup('Material name is required.');
-        return;
+        return false;
     }
 
     const result = await updateMaterial(materialId, material);
 
     if (!result.success) {
         openOkPopup('Material was not updated.');
-        return;
+        return false;
     }
 
     const backdrop = document.getElementById('material-detail-popup-backdrop');
 
-    if (backdrop) {
+    if (closeAfterSave && backdrop) {
         backdrop.style.display = 'none';
     }
 
@@ -297,7 +310,11 @@ async function saveMaterialDetail(afterChange = null) {
         await afterChange();
     }
 
-    openOkPopup('Material updated.');
+    if (showMessage) {
+        openOkPopup('Material updated.');
+    }
+
+    return true;
 }
 
 /*================================================================
@@ -347,6 +364,15 @@ function fillMaterialDetailForm(material = {}) {
     setInputValue('material-detail-status-input', material.material_status || 'Needed');
     setInputValue('material-detail-description-input', material.description || '');
     setInputValue('material-detail-notes-input', material.notes || '');
+}
+
+function getMaterialPictureContext(material = {}) {
+    return {
+        ...material,
+        id: getInputValue('material-detail-id-input') || material.id,
+        project_id: material.project_id || window.currentProjectId || '',
+        facilities_id: material.facilities_id || material.facility_id || window.currentFacilityId || ''
+    };
 }
 
 function getInputValue(id) {
