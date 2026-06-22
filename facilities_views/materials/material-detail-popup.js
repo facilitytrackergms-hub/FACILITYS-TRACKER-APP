@@ -345,9 +345,9 @@ async function deleteMaterialDetail(afterChange = null) {
         return;
     }
 
-    const confirmed = window.confirm('Delete this material?');
+   const confirmed = await openMaterialDeleteConfirmPopup();
 
-    if (!confirmed) return;
+if (!confirmed) return;
 
     const result = await deleteMaterial(materialId);
 
@@ -404,6 +404,106 @@ function setMaterialEditMode(isEditing) {
         saveButton.classList.toggle('material-detail-hidden', !isEditing);
     }
 }
+
+function openMaterialDeleteConfirmPopup() {
+    return new Promise(resolve => {
+        const oldPopup = document.getElementById('material-delete-confirm-backdrop');
+
+        if (oldPopup) {
+            oldPopup.remove();
+        }
+
+        const popup = document.createElement('div');
+        popup.id = 'material-delete-confirm-backdrop';
+        popup.style.cssText = `
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.45);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            z-index:10060;
+        `;
+
+        popup.innerHTML = `
+            <div style="
+                background:white;
+                width:86%;
+                max-width:320px;
+                border-radius:12px;
+                padding:18px;
+                text-align:center;
+                box-shadow:0 4px 18px rgba(0,0,0,0.25);
+            ">
+                <div style="
+                    font-size:20px;
+                    font-weight:bold;
+                    color:#111827;
+                    margin-bottom:8px;
+                ">
+                    Delete Material?
+                </div>
+
+                <div style="
+                    font-size:14px;
+                    color:#374151;
+                    margin-bottom:16px;
+                ">
+                    This cannot be undone.
+                </div>
+
+                <div style="
+                    display:grid;
+                    grid-template-columns:1fr 1fr;
+                    gap:10px;
+                ">
+                    <button id="material-delete-yes-btn" style="
+                        border:none;
+                        border-radius:8px;
+                        min-height:44px;
+                        background:#b91c1c;
+                        color:#ffff00;
+                        font-size:15px;
+                        font-weight:bold;
+                        cursor:pointer;
+                    ">
+                        YES DELETE
+                    </button>
+
+                    <button id="material-delete-cancel-btn" style="
+                        border:none;
+                        border-radius:8px;
+                        min-height:44px;
+                        background:#6b7280;
+                        color:white;
+                        font-size:15px;
+                        font-weight:bold;
+                        cursor:pointer;
+                    ">
+                        CANCEL
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(popup);
+
+        document.getElementById('material-delete-yes-btn').onclick = () => {
+            popup.remove();
+            resolve(true);
+        };
+
+        document.getElementById('material-delete-cancel-btn').onclick = () => {
+            popup.remove();
+            resolve(false);
+        };
+    });
+}
+
+
+
+
+
 
 function getInputValue(id) {
     const input = document.getElementById(id);
