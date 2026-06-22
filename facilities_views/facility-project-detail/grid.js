@@ -459,6 +459,9 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             notes: notesInput
         };
 
+        console.log('PROJECT ID BEING SAVED:', projectId);
+console.log('PROJECT PAYLOAD BEING SAVED:', payload);
+
         const { data, error } = await updateProjectDetail(projectId, payload);
 
         if (error) {
