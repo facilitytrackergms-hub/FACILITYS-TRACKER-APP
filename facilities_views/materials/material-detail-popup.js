@@ -2,9 +2,9 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Material detail popup for view/edit/delete
 LOCATION: /facilities_views/materials/material-detail-popup.js
-VERSION: v2026_06_21_material_detail_popup_picture_thumbnails
+VERSION: v2026_06_21_material_detail_popup_four_buttons_close_center
 UPDATED: 2026-06-21
-LINES: 383
+LINES: 378
 ================================================================*/
 
 import { updateMaterial, deleteMaterial } from './data.js';
@@ -12,8 +12,7 @@ import { openOkPopup } from './popups.js';
 import { openAmazonMaterialSearch } from './material-amazon.js';
 import {
     openMaterialPicturePicker,
-    renderMaterialPictureThumbnails,
-    openMaterialPictureViewer
+    renderMaterialPictureThumbnails
 } from './material-pictures.js';
 
 /*================================================================
@@ -89,6 +88,12 @@ export function renderMaterialDetailPopup() {
                 margin-top:12px;
             }
 
+            .material-detail-close-row {
+                display:flex;
+                justify-content:center;
+                margin-top:12px;
+            }
+
             .material-detail-btn {
                 border:none;
                 border-radius:8px;
@@ -105,6 +110,8 @@ export function renderMaterialDetailPopup() {
 
             .material-detail-close-btn {
                 background:#6b7280;
+                width:50%;
+                min-width:130px;
             }
 
             .material-detail-amazon-btn {
@@ -114,10 +121,6 @@ export function renderMaterialDetailPopup() {
 
             .material-detail-picture-btn {
                 background:#22a843;
-            }
-
-            .material-detail-images-btn {
-                background:#0f766e;
             }
 
             .material-detail-delete-btn {
@@ -177,12 +180,11 @@ export function renderMaterialDetailPopup() {
                 </div>
 
                 <div class="material-detail-buttons">
-                    <button id="material-detail-images-btn" class="material-detail-btn material-detail-images-btn" type="button">See Pictures</button>
                     <button id="material-detail-save-btn" class="material-detail-btn material-detail-save-btn" type="button">Save Changes</button>
+                    <button id="material-detail-delete-btn" class="material-detail-btn material-detail-delete-btn" type="button">Delete</button>
                 </div>
 
-                <div class="material-detail-buttons">
-                    <button id="material-detail-delete-btn" class="material-detail-btn material-detail-delete-btn" type="button">Delete</button>
+                <div class="material-detail-close-row">
                     <button id="material-detail-close-btn" class="material-detail-btn material-detail-close-btn" type="button">Close</button>
                 </div>
 
@@ -214,7 +216,6 @@ export function openMaterialDetailPopup(material = {}, afterChange = null) {
     const deleteButton = document.getElementById('material-detail-delete-btn');
     const amazonButton = document.getElementById('material-detail-amazon-btn');
     const pictureButton = document.getElementById('material-detail-picture-btn');
-    const imagesButton = document.getElementById('material-detail-images-btn');
 
     if (closeButton) {
         closeButton.onclick = () => {
@@ -249,12 +250,6 @@ export function openMaterialDetailPopup(material = {}, afterChange = null) {
             await openMaterialPicturePicker(material, async () => {
                 await renderMaterialPictureThumbnails(material);
             });
-        };
-    }
-
-    if (imagesButton) {
-        imagesButton.onclick = async () => {
-            await openMaterialPictureViewer(material);
         };
     }
 }
