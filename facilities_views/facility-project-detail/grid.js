@@ -1,8 +1,8 @@
 /*================================================================
 FACILITY-PROJECT-DETAIL GRID
 LOCATION: /facilities_views/facility-project-detail/grid.js
-VERSION: v2026_06_21_materials_button_updates_reorder
-UPDATED: 2026-06-21 @ 12:00 PM EDT
+VERSION: v2026_06_22_project_extra_fields_added
+UPDATED: 2026-06-22 @ 7:15 AM EDT
 ================================================================*/
 
 import {
@@ -70,6 +70,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
     const facilityName = getFacilityName(facility);
     const projectName = project.project_name || project.name || 'Project';
     const facilityId = project.facilities_id || project.location_id || facility.id || null;
+    const appointmentTimeValue = project.appointment_time ? String(project.appointment_time).slice(0, 16) : '';
 
     container.innerHTML = `
         <style>
@@ -103,7 +104,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             .project-detail-modal label,
             .project-update-modal label { display:block; font-size:13px; font-weight:bold; margin:10px 0 4px; color:#003b73; }
 
-                       .project-detail-modal input,
+            .project-detail-modal input,
             .project-detail-modal textarea,
             .project-detail-modal select,
             .project-update-modal input,
@@ -142,7 +143,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
                 <div class="project-detail-label">TYPE</div>
                 <div class="project-detail-value">${escapeHtml(project.type || '')}</div>
 
-                  <div class="project-detail-label">STATUS</div>
+                <div class="project-detail-label">STATUS</div>
                 <div class="project-detail-value">${escapeHtml(project.status || 'Open')}</div>
 
                 <div class="project-detail-label">REQUESTED BY NAME</div>
@@ -151,12 +152,20 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
                 <div class="project-detail-label">REQUESTED BY TITLE</div>
                 <div class="project-detail-value">${escapeHtml(project.requested_by_title || '')}</div>
 
+                <div class="project-detail-label">CONTACT PHONE NUMBER</div>
+                <div class="project-detail-value">${escapeHtml(project.phone_number || '')}</div>
+
+                <div class="project-detail-label">ADDRESS</div>
+                <div class="project-detail-value">${escapeHtml(project.address || '')}</div>
+
+                <div class="project-detail-label">APPOINTMENT TIME</div>
+                <div class="project-detail-value">${escapeHtml(formatDate(project.appointment_time))}</div>
+
+                <div class="project-detail-label">REMINDER</div>
+                <div class="project-detail-value">${escapeHtml(project.reminder || '')}</div>
+
                 <div class="project-detail-label">NOTES</div>
                 <div class="project-detail-value">${escapeHtml(project.notes || '')}</div>
-          
-              
-            
-            
             </div>
 
             <button id="btn-open-materials" class="project-detail-main-btn">MATERIALS</button>
@@ -183,7 +192,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
             <button id="btn-back-projects" class="project-detail-back-btn">⬅️ BACK</button>
 
-            <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_21_materials_button_updates_reorder | 2026-06-21 @ 12:00 PM EDT</div>
+            <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_22_project_extra_fields_added | 2026-06-22 @ 7:15 AM EDT</div>
         </div>
 
         <div id="project-detail-modal-backdrop" class="project-detail-modal-backdrop">
@@ -207,8 +216,6 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
                     <option value="Cancelled" ${project.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
                 </select>
 
-                
-
                 <datalist id="project-detail-type-options">
                     <option value="Repair"></option>
                     <option value="Renovation"></option>
@@ -217,6 +224,18 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
                     <option value="Replacement"></option>
                     <option value="Other"></option>
                 </datalist>
+
+                <label>Contact Phone Number</label>
+                <input id="project-detail-phone-number-input" type="tel" value="${escapeHtml(project.phone_number || '')}">
+
+                <label>Address</label>
+                <input id="project-detail-address-input" type="text" value="${escapeHtml(project.address || '')}">
+
+                <label>Appointment Time</label>
+                <input id="project-detail-appointment-time-input" type="datetime-local" value="${escapeHtml(appointmentTimeValue)}">
+
+                <label>Reminder</label>
+                <input id="project-detail-reminder-input" type="text" value="${escapeHtml(project.reminder || '')}">
 
                 <label>Description</label>
                 <textarea id="project-detail-description-input">${escapeHtml(project.description || '')}</textarea>
@@ -231,7 +250,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-detail-error" class="project-detail-error"></div>
 
-                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_21_materials_button_updates_reorder | 2026-06-21 @ 12:00 PM EDT</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_22_project_extra_fields_added | 2026-06-22 @ 7:15 AM EDT</div>
             </div>
         </div>
 
@@ -293,7 +312,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-update-error" class="project-update-error"></div>
 
-                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_21_materials_button_updates_reorder | 2026-06-21 @ 12:00 PM EDT</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_22_project_extra_fields_added | 2026-06-22 @ 7:15 AM EDT</div>
             </div>
         </div>
     `;
@@ -412,21 +431,30 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
     });
 
     document.getElementById('btn-save-project-detail').addEventListener('click', async () => {
-             const projectNameInput = document.getElementById('project-detail-name-input').value.trim();
+        const projectNameInput = document.getElementById('project-detail-name-input').value.trim();
         const typeInput = document.getElementById('project-detail-type-input').value.trim();
         const statusInput = document.getElementById('project-detail-status-input').value.trim();
+        const phoneNumberInput = document.getElementById('project-detail-phone-number-input').value.trim();
+        const addressInput = document.getElementById('project-detail-address-input').value.trim();
+        const appointmentTimeInput = document.getElementById('project-detail-appointment-time-input').value;
+        const reminderInput = document.getElementById('project-detail-reminder-input').value.trim();
         const descriptionInput = document.getElementById('project-detail-description-input').value.trim();
         const notesInput = document.getElementById('project-detail-notes-input').value.trim();
+
         if (!projectNameInput) {
             errorBox.textContent = 'Project name required.';
             return;
         }
 
-              const payload = {
+        const payload = {
             name: projectNameInput,
             project_name: projectNameInput,
             type: typeInput,
             status: statusInput,
+            phone_number: phoneNumberInput,
+            address: addressInput,
+            appointment_time: appointmentTimeInput || null,
+            reminder: reminderInput,
             description: descriptionInput,
             notes: notesInput
         };
