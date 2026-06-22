@@ -2,9 +2,9 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Material detail popup for view/edit/delete
 LOCATION: /facilities_views/materials/material-detail-popup.js
-VERSION: v2026_06_21_material_detail_popup_save_ask_images
+VERSION: v2026_06_21_material_detail_popup_purchased_at_stamp
 UPDATED: 2026-06-21
-LINES: 471
+LINES: 481
 ================================================================*/
 
 import { updateMaterial, deleteMaterial } from './data.js';
@@ -134,6 +134,7 @@ export function renderMaterialDetailPopup() {
                 <div class="material-detail-popup-title">Material Detail</div>
 
                 <input id="material-detail-id-input" type="hidden">
+                <input id="material-detail-purchased-at-input" type="hidden">
 
                 <label class="material-detail-label" for="material-detail-name-input">Material</label>
                 <input id="material-detail-name-input" class="material-detail-input" type="text">
@@ -147,10 +148,9 @@ export function renderMaterialDetailPopup() {
                     <div>
                         <label class="material-detail-label" for="material-detail-status-input">Status</label>
                         <select id="material-detail-status-input" class="material-detail-select">
-                           <option value="Purchased">Purchased</option>
-                            <option value="Cancelled">Cancelled</option>
                             <option value="Needed">Needed</option>
                             <option value="Ordered">Ordered</option>
+                            <option value="Purchased">Purchased</option>
                             <option value="Received">Received</option>
                             <option value="Installed">Installed</option>
                             <option value="Cancelled">Cancelled</option>
@@ -289,15 +289,22 @@ async function saveMaterialDetail(afterChange = null, options = {}) {
         return false;
     }
 
+    const status = getInputValue('material-detail-status-input') || 'Needed';
+    const existingPurchasedAt = getInputValue('material-detail-purchased-at-input');
+
     const material = {
         material_name: getInputValue('material-detail-name-input'),
         quantity: getInputValue('material-detail-quantity-input'),
         estimated_cost: getInputValue('material-detail-estimated-cost-input'),
         actual_cost: getInputValue('material-detail-actual-cost-input'),
-        material_status: getInputValue('material-detail-status-input') || 'Needed',
+        material_status: status,
         description: getInputValue('material-detail-description-input'),
         notes: getInputValue('material-detail-notes-input')
     };
+
+    if (status === 'Purchased') {
+        material.purchased_at = existingPurchasedAt || new Date().toISOString();
+    }
 
     if (!material.material_name) {
         openOkPopup('Material name is required.');
@@ -309,6 +316,10 @@ async function saveMaterialDetail(afterChange = null, options = {}) {
     if (!result.success) {
         openOkPopup('Material was not updated.');
         return false;
+    }
+
+    if (status === 'Purchased' && material.purchased_at) {
+        setInputValue('material-detail-purchased-at-input', material.purchased_at);
     }
 
     const backdrop = document.getElementById('material-detail-popup-backdrop');
@@ -368,6 +379,7 @@ HELPERS
 ================================================================*/
 function fillMaterialDetailForm(material = {}) {
     setInputValue('material-detail-id-input', material.id || '');
+    setInputValue('material-detail-purchased-at-input', material.purchased_at || '');
     setInputValue('material-detail-name-input', material.material_name || '');
     setInputValue('material-detail-quantity-input', material.quantity || '');
     setInputValue('material-detail-estimated-cost-input', material.estimated_cost || '');
