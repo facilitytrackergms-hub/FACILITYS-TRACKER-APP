@@ -1,8 +1,8 @@
 /*================================================================
 FACILITY-PROJECT-DETAIL GRID
 LOCATION: /facilities_views/facility-project-detail/grid.js
-VERSION: v2026_06_22_project_extra_fields_added
-UPDATED: 2026-06-22 @ 7:15 AM EDT
+VERSION: v2026_06_22_project_pictures_inspections_buttons
+UPDATED: 2026-06-22 @ 9:25 AM EDT
 ================================================================*/
 
 import {
@@ -84,6 +84,10 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             .project-detail-action-btn { background:#003b73; color:white; border:none; border-radius:9px; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; }
             .project-detail-delete-btn { background:#dc2626; color:yellow; border:none; border-radius:9px; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; }
             .project-detail-main-btn { background:#003b73; color:white; border:none; border-radius:9px; width:100%; min-height:50px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:8px; }
+            .project-detail-two-btn-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+            .project-detail-half-btn { background:#003b73; color:white; border:none; border-radius:9px; min-height:50px; font-size:14px; font-weight:bold; cursor:pointer; }
+            .project-detail-picture-actions { display:none; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+            .project-detail-picture-btn { background:#00509d; color:white; border:none; border-radius:9px; min-height:48px; font-size:13px; font-weight:bold; cursor:pointer; }
             .project-detail-back-btn { background:#747d8c; color:white; border:none; border-radius:9px; width:100%; min-height:48px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:12px; }
             .project-detail-version-tag { border-top:1px solid #d6dee8; margin-top:18px; padding-top:10px; font-size:10px; color:#7d8ba0; text-align:center; }
             .project-update-date { color:#667085; font-size:11px; margin-bottom:4px; }
@@ -152,15 +156,15 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
                 <div class="project-detail-label">REQUESTED BY TITLE</div>
                 <div class="project-detail-value">${escapeHtml(project.requested_by_title || '')}</div>
 
-             <div class="project-detail-label">CONTACT PHONE NUMBER</div>
-<div class="project-detail-value">
-    ${project.phone_number ? `<a href="tel:${escapeHtml(project.phone_number)}" style="color:#003b73;font-weight:bold;text-decoration:underline;">${escapeHtml(project.phone_number)}</a>` : ''}
-</div>
+                <div class="project-detail-label">CONTACT PHONE NUMBER</div>
+                <div class="project-detail-value">
+                    ${project.phone_number ? `<a href="tel:${escapeHtml(project.phone_number)}" style="color:#003b73;font-weight:bold;text-decoration:underline;">${escapeHtml(project.phone_number)}</a>` : ''}
+                </div>
 
-<div class="project-detail-label">ADDRESS</div>
-<div class="project-detail-value">
-    ${project.address ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(project.address)}" target="_blank" style="color:#003b73;font-weight:bold;text-decoration:underline;">${escapeHtml(project.address)}</a>` : ''}
-</div>
+                <div class="project-detail-label">ADDRESS</div>
+                <div class="project-detail-value">
+                    ${project.address ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(project.address)}" target="_blank" style="color:#003b73;font-weight:bold;text-decoration:underline;">${escapeHtml(project.address)}</a>` : ''}
+                </div>
 
                 <div class="project-detail-label">APPOINTMENT TIME</div>
                 <div class="project-detail-value">${escapeHtml(formatDate(project.appointment_time))}</div>
@@ -174,6 +178,16 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
             <button id="btn-open-materials" class="project-detail-main-btn">MATERIALS</button>
             <button id="btn-add-project-update" class="project-detail-main-btn">ADD PROJECT UPDATE</button>
+
+            <div class="project-detail-two-btn-row">
+                <button id="btn-open-pictures" class="project-detail-half-btn">PICTURES</button>
+                <button id="btn-open-inspections" class="project-detail-half-btn">INSPECTIONS</button>
+            </div>
+
+            <div id="project-picture-actions" class="project-detail-picture-actions">
+                <button id="btn-take-project-picture" class="project-detail-picture-btn">TAKE PICTURE</button>
+                <button id="btn-see-project-pictures" class="project-detail-picture-btn">SEE PICTURES</button>
+            </div>
 
             <div class="project-detail-info-box" style="margin-top:14px;">
                 <div class="project-detail-label">PROJECT UPDATES</div>
@@ -196,7 +210,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
             <button id="btn-back-projects" class="project-detail-back-btn">⬅️ BACK</button>
 
-            <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_22_project_extra_fields_added | 2026-06-22 @ 7:15 AM EDT</div>
+            <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_22_project_pictures_inspections_buttons | 2026-06-22 @ 9:25 AM EDT</div>
         </div>
 
         <div id="project-detail-modal-backdrop" class="project-detail-modal-backdrop">
@@ -254,7 +268,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-detail-error" class="project-detail-error"></div>
 
-                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_22_project_extra_fields_added | 2026-06-22 @ 7:15 AM EDT</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_22_project_pictures_inspections_buttons | 2026-06-22 @ 9:25 AM EDT</div>
             </div>
         </div>
 
@@ -316,7 +330,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-update-error" class="project-update-error"></div>
 
-                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_22_project_extra_fields_added | 2026-06-22 @ 7:15 AM EDT</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_22_project_pictures_inspections_buttons | 2026-06-22 @ 9:25 AM EDT</div>
             </div>
         </div>
     `;
@@ -325,6 +339,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
     const updateModalBackdrop = document.getElementById('project-update-modal-backdrop');
     const errorBox = document.getElementById('project-detail-error');
     const updateErrorBox = document.getElementById('project-update-error');
+    const pictureActions = document.getElementById('project-picture-actions');
 
     document.querySelectorAll('.project-update-record-button').forEach(button => {
         button.addEventListener('click', () => {
@@ -353,6 +368,22 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
     document.getElementById('btn-add-project-update').addEventListener('click', () => {
         updateModalBackdrop.style.display = 'flex';
+    });
+
+    document.getElementById('btn-open-pictures').addEventListener('click', () => {
+        pictureActions.style.display = pictureActions.style.display === 'grid' ? 'none' : 'grid';
+    });
+
+    document.getElementById('btn-open-inspections').addEventListener('click', () => {
+        alert('Inspections button is added. We will connect this next.');
+    });
+
+    document.getElementById('btn-take-project-picture').addEventListener('click', () => {
+        alert('Take Picture button is added. We will connect the camera next.');
+    });
+
+    document.getElementById('btn-see-project-pictures').addEventListener('click', () => {
+        alert('See Pictures button is added. We will connect the image list next.');
     });
 
     document.getElementById('btn-cancel-project-update').addEventListener('click', () => {
@@ -462,7 +493,6 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             description: descriptionInput,
             notes: notesInput
         };
-
 
         const { data, error } = await updateProjectDetail(projectId, payload);
 
