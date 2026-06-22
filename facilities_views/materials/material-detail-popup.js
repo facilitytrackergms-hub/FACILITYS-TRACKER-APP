@@ -147,6 +147,8 @@ export function renderMaterialDetailPopup() {
                     <div>
                         <label class="material-detail-label" for="material-detail-status-input">Status</label>
                         <select id="material-detail-status-input" class="material-detail-select">
+                           <option value="Purchased">Purchased</option>
+                            <option value="Cancelled">Cancelled</option>
                             <option value="Needed">Needed</option>
                             <option value="Ordered">Ordered</option>
                             <option value="Received">Received</option>
