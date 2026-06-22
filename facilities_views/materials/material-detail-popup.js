@@ -2,9 +2,9 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Material detail popup for view/edit/delete
 LOCATION: /facilities_views/materials/material-detail-popup.js
-VERSION: v2026_06_21_material_detail_popup_save_opens_camera
+VERSION: v2026_06_21_material_detail_popup_save_ask_images
 UPDATED: 2026-06-21
-LINES: 400
+LINES: 471
 ================================================================*/
 
 import { updateMaterial, deleteMaterial } from './data.js';
@@ -234,9 +234,18 @@ export function openMaterialDetailPopup(material = {}, afterChange = null) {
 
             if (!saved) return;
 
-            await openMaterialPicturePicker(pictureMaterial, async () => {
-                await renderMaterialPictureThumbnails(pictureMaterial);
-            });
+            const addImages = await askAddImagesPopup();
+
+            if (addImages) {
+                await openMaterialPicturePicker(pictureMaterial, async () => {
+                    await renderMaterialPictureThumbnails(pictureMaterial);
+                });
+
+                return;
+            }
+
+            closeMaterialDetailPopup();
+            goBackToProjectDetail(pictureMaterial);
         };
     }
 
@@ -373,6 +382,114 @@ function getMaterialPictureContext(material = {}) {
         project_id: material.project_id || window.currentProjectId || '',
         facilities_id: material.facilities_id || material.facility_id || window.currentFacilityId || ''
     };
+}
+
+function askAddImagesPopup() {
+    return new Promise(resolve => {
+        const oldPopup = document.getElementById('material-add-images-confirm-backdrop');
+
+        if (oldPopup) {
+            oldPopup.remove();
+        }
+
+        const popup = document.createElement('div');
+        popup.id = 'material-add-images-confirm-backdrop';
+        popup.style.cssText = `
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.45);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            z-index:10050;
+        `;
+
+        popup.innerHTML = `
+            <div style="
+                background:white;
+                width:86%;
+                max-width:320px;
+                border-radius:12px;
+                padding:18px;
+                text-align:center;
+                box-shadow:0 4px 18px rgba(0,0,0,0.25);
+            ">
+                <div style="
+                    font-size:20px;
+                    font-weight:bold;
+                    color:#111827;
+                    margin-bottom:16px;
+                ">
+                    Add images?
+                </div>
+
+                <div style="
+                    display:grid;
+                    grid-template-columns:1fr 1fr;
+                    gap:10px;
+                ">
+                    <button id="material-add-images-yes-btn" style="
+                        border:none;
+                        border-radius:8px;
+                        min-height:44px;
+                        background:#22a843;
+                        color:white;
+                        font-size:16px;
+                        font-weight:bold;
+                        cursor:pointer;
+                    ">
+                        YES
+                    </button>
+
+                    <button id="material-add-images-no-btn" style="
+                        border:none;
+                        border-radius:8px;
+                        min-height:44px;
+                        background:#6b7280;
+                        color:white;
+                        font-size:16px;
+                        font-weight:bold;
+                        cursor:pointer;
+                    ">
+                        NO
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(popup);
+
+        document.getElementById('material-add-images-yes-btn').onclick = () => {
+            popup.remove();
+            resolve(true);
+        };
+
+        document.getElementById('material-add-images-no-btn').onclick = () => {
+            popup.remove();
+            resolve(false);
+        };
+    });
+}
+
+function closeMaterialDetailPopup() {
+    const backdrop = document.getElementById('material-detail-popup-backdrop');
+
+    if (backdrop) {
+        backdrop.style.display = 'none';
+    }
+}
+
+function goBackToProjectDetail(material = {}) {
+    if (!window.navigateTo) {
+        console.error('window.navigateTo not found.');
+        return;
+    }
+
+    window.navigateTo('facility-project-detail', {
+        ...material,
+        project_id: material.project_id || window.currentProjectId || '',
+        facilities_id: material.facilities_id || material.facility_id || window.currentFacilityId || ''
+    });
 }
 
 function getInputValue(id) {
