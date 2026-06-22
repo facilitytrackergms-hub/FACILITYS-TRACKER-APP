@@ -1,8 +1,8 @@
 /* ================================================================
    PURPOSE: Router to handle view navigation
    LOCATION: /global_engine/router.js
-   DATE: 2026-06-21
-   VERSION: v2026_06_21_materials_route_added
+   DATE: 2026-06-22
+   VERSION: v2026_06_22_inspections_route_added
    ================================================================ */
 
 export async function navigateTo(view, context = {}) {
@@ -71,6 +71,24 @@ export async function navigateTo(view, context = {}) {
             return;
         }
 
+        if (view === 'facility-inspections') {
+            const module = await import(`${basePath}/facilities_views/facility-inspections/grid.js`);
+
+            if (typeof module.renderFacilityInspectionsGrid === 'function') {
+                await module.renderFacilityInspectionsGrid('app-container', context);
+                return;
+            }
+
+            if (typeof module.render === 'function') {
+                await module.render('app-container', context);
+                return;
+            }
+
+            console.error("No valid render function found in facility-inspections/grid.js");
+            app.innerHTML = `<div style="padding:20px;color:red;">Inspections view render function not found.</div>`;
+            return;
+        }
+
         if (view === 'project-update') {
             const module = await import(`${basePath}/facilities_views/project-update/grid.js`);
 
@@ -97,18 +115,18 @@ export async function navigateTo(view, context = {}) {
             return;
         }
 
-      if (view === 'materials') {
-    const module = await import(`${basePath}/facilities_views/materials/screen.js`);
+        if (view === 'materials') {
+            const module = await import(`${basePath}/facilities_views/materials/screen.js`);
 
-    if (typeof module.renderMaterialsScreen === 'function') {
-        await module.renderMaterialsScreen('app-container', context);
-        return;
-    }
+            if (typeof module.renderMaterialsScreen === 'function') {
+                await module.renderMaterialsScreen('app-container', context);
+                return;
+            }
 
-    console.error("No valid render function found in materials/screen.js");
-    app.innerHTML = `<div style="padding:20px;color:red;">Materials screen render function not found.</div>`;
-    return;
-}
+            console.error("No valid render function found in materials/screen.js");
+            app.innerHTML = `<div style="padding:20px;color:red;">Materials screen render function not found.</div>`;
+            return;
+        }
 
         if (view === 'facilities-contacts') {
             const module = await import(`${basePath}/facilities_views/facilities-contacts/grid.js`);
