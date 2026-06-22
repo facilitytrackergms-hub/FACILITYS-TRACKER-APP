@@ -2,8 +2,9 @@
 SYSTEM: Facility Tracker Modular View System
 PURPOSE: Materials list component
 LOCATION: /facilities_views/materials/materials-list.js
-VERSION: v2026_06_21_materials_list_detail_popup_connected
+VERSION: v2026_06_21_materials_list_status_color_timestamp
 UPDATED: 2026-06-21
+LINES: 150
 ================================================================*/
 
 import { fetchMaterials } from './data.js';
@@ -37,6 +38,7 @@ export function renderMaterialsListContainer() {
                 background:#ffffff;
                 color:#111827;
                 border:1px solid #cbd5e1;
+                border-left:8px solid #cbd5e1;
                 border-radius:9px;
                 width:100%;
                 min-height:46px;
@@ -46,6 +48,65 @@ export function renderMaterialsListContainer() {
                 margin-bottom:8px;
                 text-align:left;
                 padding:10px;
+            }
+
+            .materials-list-status-needed {
+                border-left-color:#b91c1c;
+            }
+
+            .materials-list-status-ordered {
+                border-left-color:#facc15;
+            }
+
+            .materials-list-status-purchased {
+                border-left-color:#22a843;
+            }
+
+            .materials-list-status-received {
+                border-left-color:#2563eb;
+            }
+
+            .materials-list-status-installed {
+                border-left-color:#0f766e;
+            }
+
+            .materials-list-status-cancelled {
+                border-left-color:#6b7280;
+            }
+
+            .materials-list-status-pill {
+                display:inline-block;
+                margin-top:4px;
+                padding:3px 8px;
+                border-radius:999px;
+                font-size:12px;
+                font-weight:bold;
+                color:white;
+            }
+
+            .materials-list-pill-needed {
+                background:#b91c1c;
+            }
+
+            .materials-list-pill-ordered {
+                background:#facc15;
+                color:#111827;
+            }
+
+            .materials-list-pill-purchased {
+                background:#22a843;
+            }
+
+            .materials-list-pill-received {
+                background:#2563eb;
+            }
+
+            .materials-list-pill-installed {
+                background:#0f766e;
+            }
+
+            .materials-list-pill-cancelled {
+                background:#6b7280;
             }
 
             .materials-list-subtext {
@@ -79,18 +140,31 @@ export async function connectMaterialsList(context = {}) {
         return;
     }
 
-    listBox.innerHTML = materials.map(material => `
-        <button
-            class="materials-list-button"
-            type="button"
-            data-material-id="${material.id}"
-        >
-            ${escapeHtml(material.material_name || 'Material')}
-            <span class="materials-list-subtext">
-                Status: ${escapeHtml(material.material_status || 'Needed')}
-            </span>
-        </button>
-    `).join('');
+    listBox.innerHTML = materials.map(material => {
+        const status = material.material_status || 'Needed';
+        const statusKey = getStatusKey(status);
+        const statusDate = getStatusDate(material);
+
+        return `
+            <button
+                class="materials-list-button materials-list-status-${statusKey}"
+                type="button"
+                data-material-id="${material.id}"
+            >
+                ${escapeHtml(material.material_name || 'Material')}
+
+                <span class="materials-list-subtext">
+                    <span class="materials-list-status-pill materials-list-pill-${statusKey}">
+                        ${escapeHtml(status)}
+                    </span>
+                </span>
+
+                <span class="materials-list-subtext">
+                    Updated: ${escapeHtml(statusDate)}
+                </span>
+            </button>
+        `;
+    }).join('');
 
     document.querySelectorAll('.materials-list-button').forEach(button => {
         button.addEventListener('click', () => {
@@ -104,6 +178,40 @@ export async function connectMaterialsList(context = {}) {
             });
         });
     });
+}
+
+function getStatusKey(status = '') {
+    const cleanStatus = String(status || '').toLowerCase().trim();
+
+    if (cleanStatus === 'needed') return 'needed';
+    if (cleanStatus === 'ordered') return 'ordered';
+    if (cleanStatus === 'purchased') return 'purchased';
+    if (cleanStatus === 'received') return 'received';
+    if (cleanStatus === 'installed') return 'installed';
+    if (cleanStatus === 'cancelled') return 'cancelled';
+
+    return 'needed';
+}
+
+function getStatusDate(material = {}) {
+    const rawDate =
+        material.status_updated_at ||
+        material.updated_at ||
+        material.purchased_at ||
+        material.created_at ||
+        '';
+
+    if (!rawDate) {
+        return 'No date';
+    }
+
+    const date = new Date(rawDate);
+
+    if (Number.isNaN(date.getTime())) {
+        return 'No date';
+    }
+
+    return date.toLocaleString();
 }
 
 function escapeHtml(value) {
