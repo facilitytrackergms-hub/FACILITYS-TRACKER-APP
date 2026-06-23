@@ -1,6 +1,6 @@
 /*================================================================
 FACILITIES-DETAILS GRID
-VERSION: v2026_06_23_add_inspections_button
+VERSION: v2026_06_23_edit_facility_image_update
 ================================================================*/
 
 import { supabase } from '../../global_engine/supabaseClient.js';
@@ -146,7 +146,7 @@ export async function renderFacilityDetailsGrid(containerId, context = {}) {
 
             <button id="btn-back-home" class="details-back-btn">⬅️ BACK</button>
 
-            <div class="details-version-tag">facilities_views/facilities-details/grid.js | v2026_06_23_add_inspections_button</div>
+            <div class="details-version-tag">facilities_views/facilities-details/grid.js | v2026_06_23_edit_facility_image_update</div>
         </div>
 
         <div id="facility-modal-backdrop" class="facility-modal-backdrop">
@@ -165,6 +165,11 @@ export async function renderFacilityDetailsGrid(containerId, context = {}) {
                 <label>Phone</label>
                 <input id="facility-phone-input" type="tel" inputmode="numeric" value="${escapeHtml(facility.phone || '')}">
 
+                <label>Facility Image</label>
+                <input id="facility-image-input" type="file" accept="image/*" capture="environment">
+
+                <img id="facility-image-preview" src="${escapeHtml(facility.image_url || '')}" style="width:100%;margin-top:10px;border-radius:8px;display:${facility.image_url ? 'block' : 'none'};">
+
                 <div class="facility-modal-buttons">
                     <button id="btn-save-facility" class="btn-save-facility">Save</button>
                     <button id="btn-cancel-facility" class="btn-cancel-facility">Cancel</button>
@@ -172,13 +177,33 @@ export async function renderFacilityDetailsGrid(containerId, context = {}) {
 
                 <div id="facility-error" class="facility-error"></div>
 
-                <div class="details-version-tag">facilities_views/facilities-details/grid.js | v2026_06_23_add_inspections_button</div>
+                <div class="details-version-tag">facilities_views/facilities-details/grid.js | v2026_06_23_edit_facility_image_update</div>
             </div>
         </div>
     `;
 
     const modalBackdrop = document.getElementById('facility-modal-backdrop');
     const errorBox = document.getElementById('facility-error');
+    const imageInput = document.getElementById('facility-image-input');
+    const preview = document.getElementById('facility-image-preview');
+
+    let imageFile = null;
+
+    if (imageInput) {
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            imageFile = file;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                preview.src = reader.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        });
+    }
 
     document.getElementById('btn-edit-facility').addEventListener('click', () => {
         modalBackdrop.style.display = 'flex';
@@ -244,6 +269,29 @@ export async function renderFacilityDetailsGrid(containerId, context = {}) {
             address,
             phone
         };
+
+        if (imageFile) {
+            const cleanFileName = imageFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const fileName = `${Date.now()}_${cleanFileName}`;
+
+            const { error: uploadError } = await supabase
+                .storage
+                .from('locations-images')
+                .upload(fileName, imageFile);
+
+            if (uploadError) {
+                console.error('Upload facility image error:', uploadError);
+                errorBox.textContent = 'Could not upload facility image.';
+                return;
+            }
+
+            const { data } = supabase
+                .storage
+                .from('locations-images')
+                .getPublicUrl(fileName);
+
+            payload.image_url = data.publicUrl;
+        }
 
         const { data, error } = await updateFacility(facilityId, payload);
 
