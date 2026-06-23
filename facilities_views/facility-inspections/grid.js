@@ -2,8 +2,8 @@
    FACILITY TRACKER MODULAR VIEW SYSTEM
    PURPOSE: Facility Inspections Grid
    LOCATION: /facilities_views/facility-inspections/grid.js
-   VERSION: v2026_06_22_inspections_grid_build
-   UPDATED: 2026-06-22 @ 10:05 AM EDT
+   VERSION: v2026_06_23_facility_level_inspections
+   UPDATED: 2026-06-23
 ================================================================ */
 
 import { supabase } from '../../global_engine/supabaseClient.js';
@@ -13,7 +13,6 @@ import {
     createInspectionLocation,
     fetchInspectionItems,
     createInspectionItem,
-    fetchInspections,
     createInspection,
     deleteInspection,
     fetchInspectionImages,
@@ -31,20 +30,28 @@ function escapeHtml(value) {
 }
 
 function getProjectId(context) {
-    return context?.project_id || context?.projectId || context?.id || null;
+    return context?.project_id || context?.projectId || null;
 }
 
 function getFacilitiesId(context) {
     return context?.facilities_id || context?.facility_id || context?.facilityId || context?.location_id || context?.id || null;
 }
 
-function getProjectName(context) {
-    return context?.project_name || context?.projectName || 'Project';
+function getFacilityName(context) {
+    return context?.abbreviation || context?.number_name || context?.name || 'Facility';
 }
 
 function formatDate(value) {
     if (!value) return '';
     return new Date(value).toLocaleString();
+}
+
+async function fetchFacilityInspections(facilitiesId) {
+    return await supabase
+        .from('inspections')
+        .select('*')
+        .eq('facilities_id', facilitiesId)
+        .order('created_at', { ascending: false });
 }
 
 let currentResult = 'passed';
@@ -61,16 +68,20 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
     const projectId = getProjectId(context);
     const facilitiesId = getFacilitiesId(context);
-    const projectName = getProjectName(context);
+    const facilityName = getFacilityName(context);
 
-    if (!projectId || !facilitiesId) {
-        container.innerHTML = `<p style="color:red;text-align:center;">Missing project or facility ID.</p>`;
+    if (!facilitiesId) {
+        container.innerHTML = `<p style="color:red;text-align:center;">Missing facility ID.</p>`;
         return;
     }
 
+    currentResult = 'passed';
+    currentSavedInspectionId = null;
+    currentSavedInspection = null;
+
     const locationsResponse = await fetchInspectionLocations(facilitiesId);
     const itemsResponse = await fetchInspectionItems(facilitiesId);
-    const inspectionsResponse = await fetchInspections(projectId);
+    const inspectionsResponse = await fetchFacilityInspections(facilitiesId);
 
     const locations = locationsResponse.data || [];
     const items = itemsResponse.data || [];
@@ -301,7 +312,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
         <div class="inspection-card">
             <div class="inspection-title">Inspections</div>
-            <div class="inspection-subtitle">${escapeHtml(projectName)}</div>
+            <div class="inspection-subtitle">${escapeHtml(facilityName)}</div>
 
             <div class="inspection-box">
                 <div class="inspection-label">LOCATION</div>
@@ -395,9 +406,9 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 `}
             </div>
 
-            <button id="btn-back-project-detail" class="inspection-back-btn">⬅️ BACK</button>
+            <button id="btn-back-facility-detail" class="inspection-back-btn">⬅️ BACK</button>
 
-            <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_22_inspections_grid_build | 2026-06-22 @ 10:05 AM EDT</div>
+            <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_23_facility_level_inspections | 2026-06-23</div>
         </div>
 
         <div id="inspection-images-modal-backdrop" class="inspection-modal-backdrop">
@@ -405,7 +416,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 <h3 style="text-align:center;color:#003b73;margin-top:0;">Inspection Pictures</h3>
                 <div id="inspection-images-list"></div>
                 <button id="btn-close-inspection-images" class="inspection-back-btn">Close</button>
-                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_22_inspections_grid_build | 2026-06-22 @ 10:05 AM EDT</div>
+                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_23_facility_level_inspections | 2026-06-23</div>
             </div>
         </div>
     `;
@@ -708,9 +719,9 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         });
     });
 
-    document.getElementById('btn-back-project-detail').addEventListener('click', () => {
+    document.getElementById('btn-back-facility-detail').addEventListener('click', () => {
         if (window.navigateTo) {
-            window.navigateTo('facility-project-detail', context);
+            window.navigateTo('facilities-details', context);
         }
     });
 }
