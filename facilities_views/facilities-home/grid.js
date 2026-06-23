@@ -1,6 +1,6 @@
 /*================================================================
 FACILITIES-HOME GRID
-VERSION: v2026_06_21_dev_materials_button
+VERSION: v2026_06_23_title_link
 ================================================================*/
 
 import { fetchFacilities } from './data.js';
@@ -16,6 +16,7 @@ export async function renderDashboard(containerId) {
     let html = `
         <style>
             .home-page-title { text-align: center; color: #003b73; font-weight: bold; font-size: 20px; margin-bottom: 10px; }
+            .home-page-title a { color: inherit; text-decoration: none; cursor: pointer; }
             .facilities-home-container { background: #f7f9fb; border-radius: 0 0 14px 14px; padding: 24px 18px 32px; max-width: 320px; margin: 0 auto; text-align: center; border-top: 3px solid #003b73; }
             .btn-green { background: #22a843; color: white; border: none; border-radius: 8px; padding: 14px 18px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 12px; width: 100%; }           .facilities-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
             .btn-facility { background: #003b73; color: white; border: none; border-radius: 8px; min-height: 72px; padding: 9px 10px; cursor: pointer; line-height: 1.15; text-align: center; }
@@ -34,7 +35,9 @@ export async function renderDashboard(containerId) {
             .facility-error { color: red; font-size: 13px; text-align: center; margin-top: 10px; min-height: 16px; }
         </style>
 
-        <div class="home-page-title">FACILITY HOMES</div>
+        <div class="home-page-title">
+            <a href="https://mainstayseniorliving.com/find-a-community" target="_blank" rel="noopener noreferrer">FACILITY HOMES</a>
+        </div>
         <div class="facilities-home-container">
             <button id="btn-create-facility" class="btn-green">Create New Facility</button>
         
