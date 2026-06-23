@@ -17,7 +17,7 @@ export async function navigateTo(view, context = {}) {
         const basePath = '/FACILITYS-TRACKER-APP';
 
         if (view === 'facilities-home') {
-            const module = await import(`${basePath}/facilities_views/facilities-home/grid.js?v=20260623_home`);
+            const module = await import(`${basePath}/facilities_views/facilities-home/grid.js?v=20260623_home_modal_hide_fix`);
             await module.renderDashboard('app-container');
             return;
         }
