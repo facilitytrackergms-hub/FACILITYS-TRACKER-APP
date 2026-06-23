@@ -2,7 +2,7 @@
    FACILITY TRACKER MODULAR VIEW SYSTEM
    PURPOSE: Facility Inspections Grid
    LOCATION: /facilities_views/facility-inspections/grid.js
-   VERSION: v2026_06_23_session_popup_rebuild
+   VERSION: v2026_06_23_square_save_continue
    UPDATED: 2026-06-23
 ================================================================ */
 
@@ -112,7 +112,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 width:100%;
                 padding:10px;
                 border:1px solid #bbb;
-                border-radius:7px;
+                border-radius:6px;
                 font-size:15px;
                 box-sizing:border-box;
             }
@@ -126,26 +126,60 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 background:#003b73;
                 color:white;
                 border:none;
-                border-radius:9px;
+                border-radius:4px;
                 width:100%;
-                min-height:50px;
+                min-height:54px;
                 font-size:15px;
                 font-weight:bold;
                 cursor:pointer;
                 margin-top:8px;
             }
 
+            .inspection-action-grid {
+                display:grid;
+                grid-template-columns:1fr 1fr;
+                gap:8px;
+                margin-top:10px;
+            }
+
+            .inspection-square-btn {
+                color:white;
+                border:none;
+                border-radius:4px;
+                min-height:58px;
+                font-size:13px;
+                font-weight:bold;
+                cursor:pointer;
+                width:100%;
+                padding:8px 6px;
+            }
+
+            .inspection-btn-blue {
+                background:#003b73;
+            }
+
+            .inspection-btn-green {
+                background:#16a34a;
+            }
+
+            .inspection-btn-gray {
+                background:#747d8c;
+            }
+
+            .inspection-btn-dark {
+                background:#111827;
+            }
+
             .inspection-small-btn {
                 background:#00509d;
                 color:white;
                 border:none;
-                border-radius:9px;
+                border-radius:4px;
                 min-height:44px;
                 font-size:13px;
                 font-weight:bold;
                 cursor:pointer;
                 width:100%;
-                margin-top:8px;
             }
 
             .inspection-two-row {
@@ -159,7 +193,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 background:#16a34a;
                 color:white;
                 border:none;
-                border-radius:9px;
+                border-radius:4px;
                 min-height:48px;
                 font-size:15px;
                 font-weight:bold;
@@ -170,7 +204,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 background:#dc2626;
                 color:white;
                 border:none;
-                border-radius:9px;
+                border-radius:4px;
                 min-height:48px;
                 font-size:15px;
                 font-weight:bold;
@@ -186,7 +220,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 background:#747d8c;
                 color:white;
                 border:none;
-                border-radius:9px;
+                border-radius:4px;
                 width:100%;
                 min-height:48px;
                 font-size:15px;
@@ -199,12 +233,12 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 background:#7f1d1d;
                 color:yellow;
                 border:none;
-                border-radius:8px;
+                border-radius:4px;
                 padding:9px;
                 font-weight:bold;
                 cursor:pointer;
                 width:100%;
-                margin-top:8px;
+                min-height:44px;
             }
 
             .inspection-record {
@@ -225,6 +259,17 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 color:#111827;
                 font-size:12px;
                 margin-top:3px;
+            }
+
+            .inspection-record-actions {
+                display:grid;
+                grid-template-columns:1fr 1fr;
+                gap:8px;
+                margin-top:8px;
+            }
+
+            .inspection-record-delete {
+                grid-column:1 / 3;
             }
 
             .inspection-error {
@@ -304,8 +349,13 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 <textarea id="inspection-session-notes" class="inspection-textarea" placeholder="General notes for this inspection"></textarea>
 
                 <button id="btn-start-inspection" class="inspection-main-btn">START INSPECTION</button>
-                <button id="btn-add-location-to-inspect" class="inspection-main-btn" style="display:none;">ADD LOCATION TO INSPECT</button>
-                <button id="btn-finish-active-inspection" class="inspection-main-btn" style="display:none;background:#16a34a;">FINISH INSPECTION</button>
+
+                <div id="inspection-active-actions" class="inspection-action-grid" style="display:none;">
+                    <button id="btn-add-location-to-inspect" class="inspection-square-btn inspection-btn-blue">ADD LOCATION</button>
+                    <button id="btn-save-progress-inspection" class="inspection-square-btn inspection-btn-dark">SAVE PROGRESS</button>
+                    <button id="btn-finish-later-inspection" class="inspection-square-btn inspection-btn-gray">SAVE &amp; FINISH LATER</button>
+                    <button id="btn-finish-active-inspection" class="inspection-square-btn inspection-btn-green">FINISH INSPECTION</button>
+                </div>
 
                 <div id="inspection-success" class="inspection-success"></div>
                 <div id="inspection-error" class="inspection-error"></div>
@@ -325,8 +375,12 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                         <div class="inspection-record-value">
                             Status: ${escapeHtml(session.status || '')}
                         </div>
-                        <button class="inspection-small-btn btn-view-inspection-report" data-id="${session.id}">VIEW REPORT</button>
-                        <button class="inspection-delete-btn btn-delete-inspection-session" data-id="${session.id}">🗑 Delete</button>
+
+                        <div class="inspection-record-actions">
+                            <button class="inspection-small-btn btn-continue-inspection-session" data-id="${session.id}">CONTINUE / EDIT</button>
+                            <button class="inspection-small-btn btn-view-inspection-report" data-id="${session.id}">VIEW REPORT</button>
+                            <button class="inspection-delete-btn inspection-record-delete btn-delete-inspection-session" data-id="${session.id}">🗑 Delete</button>
+                        </div>
                     </div>
                 `).join('') : `
                     <div class="inspection-record-value">No inspections saved yet.</div>
@@ -335,7 +389,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
             <button id="btn-back-facility-detail" class="inspection-back-btn">⬅️ BACK</button>
 
-            <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_23_session_popup_rebuild</div>
+            <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_23_square_save_continue</div>
         </div>
 
         <div id="inspection-location-modal-backdrop" class="inspection-modal-backdrop">
@@ -357,19 +411,22 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 <div id="fail-reasons-area" style="display:none;">
                     <div class="inspection-label">FAIL REASONS</div>
                     <div id="fail-reasons-list"></div>
-                    <button id="btn-add-fail-reason" class="inspection-small-btn" type="button">ADD FAIL REASON</button>
+                    <button id="btn-add-fail-reason" class="inspection-small-btn" type="button" style="margin-top:8px;">ADD FAIL REASON</button>
                 </div>
 
                 <div class="inspection-label">NOTES FOR THIS LOCATION</div>
                 <textarea id="location-notes-input" class="inspection-textarea"></textarea>
 
-                <button id="btn-save-location-add-another" class="inspection-main-btn">ADD ANOTHER LOCATION</button>
-                <button id="btn-save-location-finish" class="inspection-main-btn" style="background:#16a34a;">FINISH INSPECTION</button>
+                <div class="inspection-action-grid">
+                    <button id="btn-save-location-add-another" class="inspection-square-btn inspection-btn-blue">SAVE + NEXT</button>
+                    <button id="btn-save-location-finish" class="inspection-square-btn inspection-btn-green">SAVE + FINISH</button>
+                </div>
+
                 <button id="btn-cancel-location-modal" class="inspection-back-btn">CANCEL</button>
 
                 <div id="location-modal-error" class="inspection-error"></div>
 
-                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_23_session_popup_rebuild</div>
+                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_23_square_save_continue</div>
             </div>
         </div>
 
@@ -379,7 +436,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 <div id="inspection-report-content" class="inspection-report-area"></div>
                 <button id="btn-print-inspection-report" class="inspection-main-btn">PRINT REPORT</button>
                 <button id="btn-close-inspection-report" class="inspection-back-btn">CLOSE</button>
-                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_23_session_popup_rebuild</div>
+                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_23_square_save_continue</div>
             </div>
         </div>
     `;
@@ -387,7 +444,10 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     const inspectedByInput = document.getElementById('inspection-inspected-by');
     const sessionNotesInput = document.getElementById('inspection-session-notes');
     const startButton = document.getElementById('btn-start-inspection');
+    const activeActions = document.getElementById('inspection-active-actions');
     const addLocationButton = document.getElementById('btn-add-location-to-inspect');
+    const saveProgressButton = document.getElementById('btn-save-progress-inspection');
+    const finishLaterButton = document.getElementById('btn-finish-later-inspection');
     const finishActiveButton = document.getElementById('btn-finish-active-inspection');
     const errorBox = document.getElementById('inspection-error');
     const successBox = document.getElementById('inspection-success');
@@ -412,6 +472,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         document.getElementById('location-notes-input').value = '';
         failReasonsList.innerHTML = '';
         modalError.textContent = '';
+        modalError.style.color = 'red';
         currentResult = 'pass';
         popupPassButton.classList.add('active');
         popupFailButton.classList.remove('active');
@@ -420,10 +481,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
     function showActiveSessionUi() {
         startButton.style.display = 'none';
-        inspectedByInput.disabled = true;
-        sessionNotesInput.disabled = true;
-        addLocationButton.style.display = 'block';
-        finishActiveButton.style.display = 'block';
+        activeActions.style.display = 'grid';
     }
 
     async function startInspectionIfNeeded() {
@@ -455,10 +513,49 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         }
 
         activeSession = data;
-        successBox.textContent = 'Inspection started.';
+        successBox.textContent = 'Inspection started. You can save and continue later.';
         showActiveSessionUi();
 
         return activeSession;
+    }
+
+    async function saveInspectionProgress(leaveAfterSave = false) {
+        const session = await startInspectionIfNeeded();
+        if (!session) return false;
+
+        const { error } = await updateInspectionSession(session.id, {
+            status: 'open',
+            inspected_by: inspectedByInput.value.trim(),
+            session_notes: sessionNotesInput.value.trim()
+        });
+
+        if (error) {
+            console.error('Save inspection progress error:', error);
+            errorBox.textContent = 'Could not save progress.';
+            return false;
+        }
+
+        successBox.textContent = 'Progress saved. You can continue this inspection later.';
+
+        if (leaveAfterSave && window.navigateTo) {
+            window.navigateTo('facilities-details', context);
+        }
+
+        return true;
+    }
+
+    function loadSavedInspection(session) {
+        if (!session) return;
+
+        activeSession = session;
+        inspectedByInput.value = session.inspected_by || '';
+        sessionNotesInput.value = session.session_notes || '';
+
+        showActiveSessionUi();
+
+        successBox.textContent = 'Saved inspection loaded. Keep adding locations or finish it.';
+        errorBox.textContent = '';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function getFailReasons() {
@@ -470,6 +567,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
     async function saveLocationItem() {
         modalError.textContent = '';
+        modalError.style.color = 'red';
 
         const session = await startInspectionIfNeeded();
         if (!session) return null;
@@ -521,6 +619,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
         const { error } = await updateInspectionSession(session.id, {
             status: 'finished',
+            inspected_by: inspectedByInput.value.trim(),
             session_notes: sessionNotesInput.value.trim()
         });
 
@@ -549,6 +648,14 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
         clearLocationModal();
         locationModal.style.display = 'flex';
+    });
+
+    saveProgressButton.addEventListener('click', async () => {
+        await saveInspectionProgress(false);
+    });
+
+    finishLaterButton.addEventListener('click', async () => {
+        await saveInspectionProgress(true);
     });
 
     finishActiveButton.addEventListener('click', async () => {
@@ -591,8 +698,9 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         const saved = await saveLocationItem();
         if (!saved) return;
 
-        locationModal.style.display = 'none';
-        successBox.textContent = 'Location saved. Add another location when ready.';
+        clearLocationModal();
+        modalError.style.color = '#16a34a';
+        modalError.textContent = 'Saved. Add next location.';
     });
 
     document.getElementById('btn-save-location-finish').addEventListener('click', async () => {
@@ -605,6 +713,31 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
     document.getElementById('btn-cancel-location-modal').addEventListener('click', () => {
         locationModal.style.display = 'none';
+    });
+
+    document.querySelectorAll('.btn-continue-inspection-session').forEach(button => {
+        button.addEventListener('click', async () => {
+            const sessionId = button.dataset.id;
+            const session = sessions.find(item => String(item.id) === String(sessionId));
+
+            if (!session) {
+                alert('Could not load saved inspection.');
+                return;
+            }
+
+            const { error } = await updateInspectionSession(session.id, {
+                status: 'open'
+            });
+
+            if (error) {
+                console.error('Reopen inspection session error:', error);
+                alert('Could not reopen inspection.');
+                return;
+            }
+
+            session.status = 'open';
+            loadSavedInspection(session);
+        });
     });
 
     document.querySelectorAll('.btn-delete-inspection-session').forEach(button => {
