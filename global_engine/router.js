@@ -2,7 +2,7 @@
    PURPOSE: Router to handle view navigation
    LOCATION: /global_engine/router.js
    DATE: 2026-06-22
-   VERSION: v2026_06_22_facility_codes_route_added
+   VERSION: v2026_06_22_cache_bust_facility_details
    ================================================================ */
 
 export async function navigateTo(view, context = {}) {
@@ -17,13 +17,13 @@ export async function navigateTo(view, context = {}) {
         const basePath = '/FACILITYS-TRACKER-APP';
 
         if (view === 'facilities-home') {
-            const module = await import(`${basePath}/facilities_views/facilities-home/grid.js`);
+            const module = await import(`${basePath}/facilities_views/facilities-home/grid.js?v=20260622_home`);
             await module.renderDashboard('app-container');
             return;
         }
 
         if (view === 'facilities-details') {
-            const module = await import(`${basePath}/facilities_views/facilities-details/grid.js`);
+            const module = await import(`${basePath}/facilities_views/facilities-details/grid.js?v=20260622_codes_text_import_fix`);
 
             if (typeof module.renderFacilityDetailsGrid === 'function') {
                 await module.renderFacilityDetailsGrid('app-container', context);
@@ -36,7 +36,7 @@ export async function navigateTo(view, context = {}) {
         }
 
         if (view === 'facility-codes') {
-            const module = await import(`${basePath}/facilities_views/facility-codes/grid.js`);
+            const module = await import(`${basePath}/facilities_views/facility-codes/grid.js?v=20260622_codes`);
 
             if (typeof module.renderFacilityCodesGrid === 'function') {
                 await module.renderFacilityCodesGrid('app-container', context);
@@ -54,7 +54,7 @@ export async function navigateTo(view, context = {}) {
         }
 
         if (view === 'facilities-projects') {
-            const module = await import(`${basePath}/facilities_views/facilities-projects/grid.js`);
+            const module = await import(`${basePath}/facilities_views/facilities-projects/grid.js?v=20260622_projects`);
 
             if (typeof module.renderProjectsGrid === 'function') {
                 await module.renderProjectsGrid('app-container', context);
@@ -77,7 +77,7 @@ export async function navigateTo(view, context = {}) {
         }
 
         if (view === 'facility-project-detail') {
-            const module = await import(`${basePath}/facilities_views/facility-project-detail/grid.js`);
+            const module = await import(`${basePath}/facilities_views/facility-project-detail/grid.js?v=20260622_project_detail`);
 
             if (typeof module.renderFacilityProjectDetailGrid === 'function') {
                 await module.renderFacilityProjectDetailGrid('app-container', context);
@@ -90,7 +90,7 @@ export async function navigateTo(view, context = {}) {
         }
 
         if (view === 'facility-inspections') {
-            const module = await import(`${basePath}/facilities_views/facility-inspections/grid.js`);
+            const module = await import(`${basePath}/facilities_views/facility-inspections/grid.js?v=20260622_inspections`);
 
             if (typeof module.renderFacilityInspectionsGrid === 'function') {
                 await module.renderFacilityInspectionsGrid('app-container', context);
@@ -108,7 +108,7 @@ export async function navigateTo(view, context = {}) {
         }
 
         if (view === 'project-update') {
-            const module = await import(`${basePath}/facilities_views/project-update/grid.js`);
+            const module = await import(`${basePath}/facilities_views/project-update/grid.js?v=20260622_update`);
 
             if (typeof module.renderProjectUpdateGrid === 'function') {
                 await module.renderProjectUpdateGrid('app-container', context);
@@ -121,7 +121,7 @@ export async function navigateTo(view, context = {}) {
         }
 
         if (view === 'project-photos') {
-            const module = await import(`${basePath}/facilities_views/project-photos/grid.js`);
+            const module = await import(`${basePath}/facilities_views/project-photos/grid.js?v=20260622_photos`);
 
             if (typeof module.renderProjectPhotosGrid === 'function') {
                 await module.renderProjectPhotosGrid('app-container', context);
@@ -134,7 +134,7 @@ export async function navigateTo(view, context = {}) {
         }
 
         if (view === 'materials') {
-            const module = await import(`${basePath}/facilities_views/materials/screen.js`);
+            const module = await import(`${basePath}/facilities_views/materials/screen.js?v=20260622_materials`);
 
             if (typeof module.renderMaterialsScreen === 'function') {
                 await module.renderMaterialsScreen('app-container', context);
@@ -147,7 +147,7 @@ export async function navigateTo(view, context = {}) {
         }
 
         if (view === 'facilities-contacts') {
-            const module = await import(`${basePath}/facilities_views/facilities-contacts/grid.js`);
+            const module = await import(`${basePath}/facilities_views/facilities-contacts/grid.js?v=20260622_contacts`);
 
             if (typeof module.renderContactsGrid === 'function') {
                 await module.renderContactsGrid('app-container', context);
