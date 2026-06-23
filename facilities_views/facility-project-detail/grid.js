@@ -4,8 +4,11 @@ VERSION: v2026_06_22_codes_text_buttons_added
 ================================================================*/
 
 import {
-    updateFacility,
-    deleteFacility
+    fetchProjectDetail,
+    updateProjectDetail,
+    deleteProjectDetail,
+    fetchProjectUpdates,
+    createProjectUpdate
 } from './data.js';
 
 function escapeHtml(value) {
