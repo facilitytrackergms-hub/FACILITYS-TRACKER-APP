@@ -56,12 +56,22 @@ export async function renderFacilityDetailsGrid(containerId, context = {}) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    const facility = context || {};
+      let facility = context || {};
     const facilityId = facility.id;
 
     if (!facilityId) {
         container.innerHTML = `<p style="color:red;text-align:center;">Missing facility ID.</p>`;
         return;
+    }
+
+    const { data: freshFacility, error: freshFacilityError } = await supabase
+        .from('facilities')
+        .select('*')
+        .eq('id', facilityId)
+        .single();
+
+    if (!freshFacilityError && freshFacility) {
+        facility = freshFacility;
     }
 
     container.innerHTML = `
