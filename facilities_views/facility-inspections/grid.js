@@ -16,7 +16,7 @@ import {
     createInspectionImage
 } from './data.js';
 
-import { uploadImage } from '../../global_engine/imageHandler.js';
+import { uploadImage } from '../../global_engine/image-handler.js';
 
 function escapeHtml(value) {
     return String(value || '')
