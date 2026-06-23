@@ -1,6 +1,6 @@
 /*================================================================
 FACILITIES-DETAILS GRID
-VERSION: v2026_06_23_remove_text_button
+VERSION: v2026_06_23_add_inspections_button
 ================================================================*/
 
 import { supabase } from '../../global_engine/supabaseClient.js';
@@ -141,11 +141,12 @@ export async function renderFacilityDetailsGrid(containerId, context = {}) {
                 <button id="btn-go-contacts" class="details-main-btn">CONTACTS</button>
                 <button id="btn-go-projects" class="details-main-btn">PROJECTS</button>
                 <button id="btn-go-codes" class="details-main-btn">CODES</button>
+                <button id="btn-go-inspections" class="details-main-btn">INSPECTIONS</button>
             </div>
 
             <button id="btn-back-home" class="details-back-btn">⬅️ BACK</button>
 
-            <div class="details-version-tag">facilities_views/facilities-details/grid.js | v2026_06_23_remove_text_button</div>
+            <div class="details-version-tag">facilities_views/facilities-details/grid.js | v2026_06_23_add_inspections_button</div>
         </div>
 
         <div id="facility-modal-backdrop" class="facility-modal-backdrop">
@@ -171,7 +172,7 @@ export async function renderFacilityDetailsGrid(containerId, context = {}) {
 
                 <div id="facility-error" class="facility-error"></div>
 
-                <div class="details-version-tag">facilities_views/facilities-details/grid.js | v2026_06_23_remove_text_button</div>
+                <div class="details-version-tag">facilities_views/facilities-details/grid.js | v2026_06_23_add_inspections_button</div>
             </div>
         </div>
     `;
@@ -197,6 +198,15 @@ export async function renderFacilityDetailsGrid(containerId, context = {}) {
 
     document.getElementById('btn-go-codes').addEventListener('click', () => {
         if (window.navigateTo) window.navigateTo('facility-codes', facility);
+    });
+
+    document.getElementById('btn-go-inspections').addEventListener('click', () => {
+        if (window.navigateTo) {
+            window.navigateTo('facility-inspections', {
+                ...facility,
+                facilities_id: facilityId
+            });
+        }
     });
 
     document.getElementById('btn-back-home').addEventListener('click', () => {
