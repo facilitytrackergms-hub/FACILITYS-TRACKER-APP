@@ -22,6 +22,9 @@ export async function renderDashboard(containerId) {
             .facility-btn-abbr { display:block; font-size:16px; font-weight:bold; color:white; margin-bottom:4px; }
             .facility-btn-name { display:block; font-size:11px; font-weight:bold; color:white; margin-bottom:2px; }
             .facility-btn-address { display:block; font-size:10px; font-weight:normal; color:#dbeafe; }
+            .facility-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 9999; padding: 16px; box-sizing: border-box; }
+            .facility-modal { background: white; width: 90%; max-width: 360px; max-height: 90vh; overflow-y: auto; border-radius: 12px; padding: 18px; box-shadow: 0 4px 18px rgba(0,0,0,0.25); text-align: left; }
+            .facility-modal h3 { margin: 0 0 14px; text-align: center; color: #003b73; }
             .facility-modal label { display: block; font-size: 13px; font-weight: bold; margin: 10px 0 4px; }
             .facility-modal input { width: 100%; padding: 9px; border: 1px solid #bbb; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
             .facility-modal-buttons { display: flex; gap: 8px; margin-top: 16px; }
