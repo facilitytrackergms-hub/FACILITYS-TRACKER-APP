@@ -17,12 +17,11 @@ export async function renderDashboard(containerId) {
         <style>
             .home-page-title { text-align: center; color: #003b73; font-weight: bold; font-size: 20px; margin-bottom: 10px; }
             .facilities-home-container { background: #f7f9fb; border-radius: 0 0 14px 14px; padding: 24px 18px 32px; max-width: 320px; margin: 0 auto; text-align: center; border-top: 3px solid #003b73; }
-            .btn-green { background: #22a843; color: white; border: none; border-radius: 8px; padding: 14px 18px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 12px; width: 100%; }
-            .facilities-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-            .btn-facility { background: #003b73; color: white; border: none; border-radius: 8px; min-height: 56px; padding: 8px; font-size: 16px; font-weight: bold; cursor: pointer; line-height: 1.1; }
-            .facility-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 9999; }
-            .facility-modal { background: white; width: 90%; max-width: 340px; border-radius: 12px; padding: 18px; box-shadow: 0 4px 18px rgba(0,0,0,0.25); text-align: left; }
-            .facility-modal h3 { margin: 0 0 14px; text-align: center; color: #003b73; }
+            .btn-green { background: #22a843; color: white; border: none; border-radius: 8px; padding: 14px 18px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 12px; width: 100%; }           .facilities-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+            .btn-facility { background: #003b73; color: white; border: none; border-radius: 8px; min-height: 72px; padding: 9px 10px; cursor: pointer; line-height: 1.15; text-align: center; }
+            .facility-btn-abbr { display:block; font-size:16px; font-weight:bold; color:white; margin-bottom:4px; }
+            .facility-btn-name { display:block; font-size:11px; font-weight:bold; color:white; margin-bottom:2px; }
+            .facility-btn-address { display:block; font-size:10px; font-weight:normal; color:#dbeafe; }
             .facility-modal label { display: block; font-size: 13px; font-weight: bold; margin: 10px 0 4px; }
             .facility-modal input { width: 100%; padding: 9px; border: 1px solid #bbb; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
             .facility-modal-buttons { display: flex; gap: 8px; margin-top: 16px; }
@@ -38,8 +37,10 @@ export async function renderDashboard(containerId) {
         
             <div class="facilities-grid">
                 ${facilities.map(fac => `
-                    <button class="btn-facility" data-id="${fac.id}">
-                        ${fac.abbreviation || fac.number_name || fac.name || 'FAC'}
+                                      <button class="btn-facility" data-id="${fac.id}">
+                        <span class="facility-btn-abbr">${fac.abbreviation || 'FAC'}</span>
+                        <span class="facility-btn-name">${fac.number_name || fac.name || ''}</span>
+                        <span class="facility-btn-address">${fac.address || ''}</span>
                     </button>
                 `).join('')}
             </div>
