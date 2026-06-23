@@ -1,8 +1,8 @@
 /*================================================================
 FACILITY-PROJECT-DETAIL GRID
 LOCATION: /facilities_views/facility-project-detail/grid.js
-VERSION: v2026_06_22_inspections_route_connected
-UPDATED: 2026-06-22 @ 10:20 AM EDT
+VERSION: v2026_06_23_remove_inspections_button
+UPDATED: 2026-06-23
 ================================================================*/
 
 import {
@@ -86,7 +86,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             .project-detail-action-btn { background:#003b73; color:white; border:none; border-radius:9px; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; }
             .project-detail-delete-btn { background:#dc2626; color:yellow; border:none; border-radius:9px; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; }
             .project-detail-main-btn { background:#003b73; color:white; border:none; border-radius:9px; width:100%; min-height:50px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:8px; }
-            .project-detail-two-btn-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+            .project-detail-two-btn-row { display:grid; grid-template-columns:1fr; gap:8px; margin-top:8px; }
             .project-detail-half-btn { background:#003b73; color:white; border:none; border-radius:9px; min-height:50px; font-size:14px; font-weight:bold; cursor:pointer; }
             .project-detail-picture-actions { display:none; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
             .project-detail-picture-btn { background:#00509d; color:white; border:none; border-radius:9px; min-height:48px; font-size:13px; font-weight:bold; cursor:pointer; }
@@ -183,7 +183,6 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
             <div class="project-detail-two-btn-row">
                 <button id="btn-open-pictures" class="project-detail-half-btn">PICTURES</button>
-                <button id="btn-open-inspections" class="project-detail-half-btn">INSPECTIONS</button>
             </div>
 
             <div id="project-picture-actions" class="project-detail-picture-actions">
@@ -212,7 +211,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
             <button id="btn-back-projects" class="project-detail-back-btn">⬅️ BACK</button>
 
-            <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_22_inspections_route_connected | 2026-06-22 @ 10:20 AM EDT</div>
+            <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_23_remove_inspections_button | 2026-06-23</div>
         </div>
 
         <div id="project-detail-modal-backdrop" class="project-detail-modal-backdrop">
@@ -270,7 +269,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-detail-error" class="project-detail-error"></div>
 
-                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_22_inspections_route_connected | 2026-06-22 @ 10:20 AM EDT</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_23_remove_inspections_button | 2026-06-23</div>
             </div>
         </div>
 
@@ -332,7 +331,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-update-error" class="project-update-error"></div>
 
-                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_22_inspections_route_connected | 2026-06-22 @ 10:20 AM EDT</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_23_remove_inspections_button | 2026-06-23</div>
             </div>
         </div>
     `;
@@ -377,17 +376,6 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             facilitiesId: facilityId,
             projectName
         });
-    });
-
-    document.getElementById('btn-open-inspections').addEventListener('click', () => {
-        if (window.navigateTo) {
-            window.navigateTo('facility-inspections', {
-                ...facility,
-                project_id: projectId,
-                project_name: projectName,
-                facilities_id: facilityId
-            });
-        }
     });
 
     document.getElementById('btn-take-project-picture').addEventListener('click', () => {
