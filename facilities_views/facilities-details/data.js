@@ -1,8 +1,8 @@
 /* ================================================================
    PURPOSE: Facility details data service
    LOCATION: /facilities_views/facilities-details/data.js
-   VERSION: v2026_06_18_facility_delete_projects_fk_fix
-   DATE: 2026-06-18
+   VERSION: v2026_06_22_delete_facility_export_confirmed
+   DATE: 2026-06-22
    ================================================================ */
 
 import { supabase } from '../../global_engine/supabaseClient.js';
