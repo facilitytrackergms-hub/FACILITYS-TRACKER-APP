@@ -2,7 +2,7 @@
    PURPOSE: Router to handle view navigation
    LOCATION: /global_engine/router.js
    DATE: 2026-06-22
-   VERSION: v2026_06_22_inspections_route_added
+   VERSION: v2026_06_22_facility_codes_route_added
    ================================================================ */
 
 export async function navigateTo(view, context = {}) {
@@ -32,6 +32,24 @@ export async function navigateTo(view, context = {}) {
 
             console.error("No valid render function found in facilities-details/grid.js");
             app.innerHTML = `<div style="padding:20px;color:red;">Facility details view render function not found.</div>`;
+            return;
+        }
+
+        if (view === 'facility-codes') {
+            const module = await import(`${basePath}/facilities_views/facility-codes/grid.js`);
+
+            if (typeof module.renderFacilityCodesGrid === 'function') {
+                await module.renderFacilityCodesGrid('app-container', context);
+                return;
+            }
+
+            if (typeof module.render === 'function') {
+                await module.render('app-container', context);
+                return;
+            }
+
+            console.error("No valid render function found in facility-codes/grid.js");
+            app.innerHTML = `<div style="padding:20px;color:red;">Facility codes view render function not found.</div>`;
             return;
         }
 
