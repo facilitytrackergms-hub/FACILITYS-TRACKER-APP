@@ -2,7 +2,7 @@
    FACILITY TRACKER MODULAR VIEW SYSTEM
    PURPOSE: Facility Inspections Grid
    LOCATION: /facilities_views/facility-inspections/grid.js
-   VERSION: v2026_06_23_square_save_continue
+   VERSION: v2026_06_23_popup_images_fail_project
    UPDATED: 2026-06-23
 ================================================================ */
 
@@ -13,8 +13,10 @@ import {
     deleteInspectionSession,
     createInspectionSessionItem,
     fetchInspectionSessionItems,
-    deleteInspectionSessionItem
+    createInspectionImage
 } from './data.js';
+
+import { uploadImage } from '../../global_engine/imageHandler.js';
 
 function escapeHtml(value) {
     return String(value || '')
@@ -40,6 +42,7 @@ function formatDate(value) {
 
 let activeSession = null;
 let currentResult = 'pass';
+let selectedInspectionImages = [];
 
 export async function render(containerId, context = {}) {
     await renderFacilityInspectionsGrid(containerId, context);
@@ -59,6 +62,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
     activeSession = null;
     currentResult = 'pass';
+    selectedInspectionImages = [];
 
     const sessionsResponse = await fetchInspectionSessions(facilitiesId);
     const sessions = sessionsResponse.data || [];
@@ -170,6 +174,14 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 background:#111827;
             }
 
+            .inspection-btn-orange {
+                background:#ea580c;
+            }
+
+            .inspection-btn-purple {
+                background:#6d28d9;
+            }
+
             .inspection-small-btn {
                 background:#00509d;
                 color:white;
@@ -194,7 +206,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 color:white;
                 border:none;
                 border-radius:4px;
-                min-height:48px;
+                min-height:50px;
                 font-size:15px;
                 font-weight:bold;
                 cursor:pointer;
@@ -205,7 +217,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 color:white;
                 border:none;
                 border-radius:4px;
-                min-height:48px;
+                min-height:50px;
                 font-size:15px;
                 font-weight:bold;
                 cursor:pointer;
@@ -287,6 +299,30 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 min-height:18px;
                 margin-top:10px;
                 font-weight:bold;
+            }
+
+            .inspection-image-count {
+                color:#003b73;
+                font-size:12px;
+                font-weight:bold;
+                text-align:center;
+                margin-top:8px;
+                min-height:16px;
+            }
+
+            .inspection-image-preview {
+                display:none;
+                grid-template-columns:1fr 1fr;
+                gap:8px;
+                margin-top:8px;
+            }
+
+            .inspection-image-preview img {
+                width:100%;
+                height:90px;
+                object-fit:cover;
+                border-radius:6px;
+                border:1px solid #d6dee8;
             }
 
             .inspection-version-tag {
@@ -389,7 +425,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
             <button id="btn-back-facility-detail" class="inspection-back-btn">⬅️ BACK</button>
 
-            <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_23_square_save_continue</div>
+            <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_23_popup_images_fail_project</div>
         </div>
 
         <div id="inspection-location-modal-backdrop" class="inspection-modal-backdrop">
@@ -412,21 +448,37 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                     <div class="inspection-label">FAIL REASONS</div>
                     <div id="fail-reasons-list"></div>
                     <button id="btn-add-fail-reason" class="inspection-small-btn" type="button" style="margin-top:8px;">ADD FAIL REASON</button>
+
+                    <div class="inspection-action-grid">
+                        <button id="btn-start-project-from-fail" class="inspection-square-btn inspection-btn-orange" type="button">START PROJECT</button>
+                        <button id="btn-save-fail-only" class="inspection-square-btn inspection-btn-dark" type="button">SAVE FAIL ONLY</button>
+                    </div>
                 </div>
 
                 <div class="inspection-label">NOTES FOR THIS LOCATION</div>
                 <textarea id="location-notes-input" class="inspection-textarea"></textarea>
 
+                <div class="inspection-label">LOCATION IMAGES</div>
+                <input id="inspection-image-input" type="file" accept="image/*" capture="environment" multiple style="display:none;">
+
                 <div class="inspection-action-grid">
-                    <button id="btn-save-location-add-another" class="inspection-square-btn inspection-btn-blue">SAVE + NEXT</button>
-                    <button id="btn-save-location-finish" class="inspection-square-btn inspection-btn-green">SAVE + FINISH</button>
+                    <button id="btn-take-inspection-image" class="inspection-square-btn inspection-btn-purple" type="button">TAKE IMAGE</button>
+                    <button id="btn-see-inspection-images" class="inspection-square-btn inspection-btn-blue" type="button">SEE IMAGES</button>
+                </div>
+
+                <div id="inspection-image-count" class="inspection-image-count">No images selected.</div>
+                <div id="inspection-image-preview" class="inspection-image-preview"></div>
+
+                <div class="inspection-action-grid">
+                    <button id="btn-save-location-add-another" class="inspection-square-btn inspection-btn-blue">ADD ANOTHER</button>
+                    <button id="btn-save-location-finish" class="inspection-square-btn inspection-btn-green">FINISH</button>
                 </div>
 
                 <button id="btn-cancel-location-modal" class="inspection-back-btn">CANCEL</button>
 
                 <div id="location-modal-error" class="inspection-error"></div>
 
-                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_23_square_save_continue</div>
+                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_23_popup_images_fail_project</div>
             </div>
         </div>
 
@@ -436,7 +488,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 <div id="inspection-report-content" class="inspection-report-area"></div>
                 <button id="btn-print-inspection-report" class="inspection-main-btn">PRINT REPORT</button>
                 <button id="btn-close-inspection-report" class="inspection-back-btn">CLOSE</button>
-                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_23_square_save_continue</div>
+                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_23_popup_images_fail_project</div>
             </div>
         </div>
     `;
@@ -461,9 +513,23 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     const failReasonsArea = document.getElementById('fail-reasons-area');
     const failReasonsList = document.getElementById('fail-reasons-list');
 
+    const imageInput = document.getElementById('inspection-image-input');
+    const imageCount = document.getElementById('inspection-image-count');
+    const imagePreview = document.getElementById('inspection-image-preview');
+
     function clearMainMessages() {
         errorBox.textContent = '';
         successBox.textContent = '';
+    }
+
+    function updateImagePreview() {
+        imageCount.textContent = selectedInspectionImages.length
+            ? `${selectedInspectionImages.length} image(s) selected.`
+            : 'No images selected.';
+
+        imagePreview.innerHTML = selectedInspectionImages.map(file => `
+            <img src="${URL.createObjectURL(file)}" alt="Inspection image">
+        `).join('');
     }
 
     function clearLocationModal() {
@@ -474,6 +540,10 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         modalError.textContent = '';
         modalError.style.color = 'red';
         currentResult = 'pass';
+        selectedInspectionImages = [];
+        imageInput.value = '';
+        imagePreview.style.display = 'none';
+        updateImagePreview();
         popupPassButton.classList.add('active');
         popupFailButton.classList.remove('active');
         failReasonsArea.style.display = 'none';
@@ -565,6 +635,32 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
             .filter(value => value);
     }
 
+    async function uploadSelectedImages(savedItem) {
+        if (!selectedInspectionImages.length || !savedItem?.id) return true;
+
+        for (const file of selectedInspectionImages) {
+            const imageUrl = await uploadImage(
+                file,
+                'inspection-images',
+                `facility_${facilitiesId}/session_${activeSession.id}/item_${savedItem.id}`
+            );
+
+            const { error } = await createInspectionImage({
+                inspection_id: savedItem.id,
+                image_url: imageUrl,
+                caption: `${savedItem.location_name || ''} - ${savedItem.item_name || ''}`,
+                uploaded_by: inspectedByInput.value.trim()
+            });
+
+            if (error) {
+                console.error('Create inspection image record error:', error);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     async function saveLocationItem() {
         modalError.textContent = '';
         modalError.style.color = 'red';
@@ -610,6 +706,13 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
             return null;
         }
 
+        const imagesSaved = await uploadSelectedImages(data);
+
+        if (!imagesSaved) {
+            modalError.textContent = 'Location saved, but image record failed.';
+            return data;
+        }
+
         return data;
     }
 
@@ -636,6 +739,46 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         }
 
         return true;
+    }
+
+    async function saveFailAndStartProject() {
+        if (currentResult !== 'fail') {
+            modalError.textContent = 'Select FAIL before starting a project.';
+            return;
+        }
+
+        const saved = await saveLocationItem();
+        if (!saved) return;
+
+        const reasons = getFailReasons();
+        const projectName = `${saved.location_name || 'Inspection'} - ${saved.item_name || 'Failed Item'}`;
+
+        if (window.navigateTo) {
+            window.navigateTo('facilities-projects', {
+                ...context,
+                id: facilitiesId,
+                facilities_id: facilitiesId,
+                open_add_project_modal: true,
+                project_prefill: {
+                    project_name: projectName,
+                    name: projectName,
+                    type: 'Inspection',
+                    requested_by_name: inspectedByInput.value.trim(),
+                    requested_by_title: 'Inspector',
+                    description: [
+                        `Created from failed inspection.`,
+                        ``,
+                        `Facility: ${facilityName}`,
+                        `Location: ${saved.location_name || ''}`,
+                        `Item: ${saved.item_name || ''}`,
+                        `Result: FAIL`,
+                        reasons.length ? `Fail Reasons: ${reasons.join('; ')}` : `Fail Reasons:`,
+                        `Notes: ${saved.notes || ''}`
+                    ].join('\n'),
+                    notes: `Inspection session ID: ${activeSession?.id || ''}\nInspection item ID: ${saved.id || ''}`
+                }
+            });
+        }
     }
 
     startButton.addEventListener('click', async () => {
@@ -692,6 +835,39 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         input.placeholder = `Reason ${count}`;
         input.style.marginTop = '8px';
         failReasonsList.appendChild(input);
+    });
+
+    document.getElementById('btn-take-inspection-image').addEventListener('click', () => {
+        imageInput.click();
+    });
+
+    imageInput.addEventListener('change', () => {
+        selectedInspectionImages = Array.from(imageInput.files || []);
+        imagePreview.style.display = 'none';
+        updateImagePreview();
+    });
+
+    document.getElementById('btn-see-inspection-images').addEventListener('click', () => {
+        if (!selectedInspectionImages.length) {
+            modalError.textContent = 'No images selected.';
+            return;
+        }
+
+        modalError.textContent = '';
+        imagePreview.style.display = imagePreview.style.display === 'grid' ? 'none' : 'grid';
+    });
+
+    document.getElementById('btn-start-project-from-fail').addEventListener('click', async () => {
+        await saveFailAndStartProject();
+    });
+
+    document.getElementById('btn-save-fail-only').addEventListener('click', async () => {
+        const saved = await saveLocationItem();
+        if (!saved) return;
+
+        clearLocationModal();
+        modalError.style.color = '#16a34a';
+        modalError.textContent = 'Failed item saved. Add next location.';
     });
 
     document.getElementById('btn-save-location-add-another').addEventListener('click', async () => {
