@@ -1,12 +1,9 @@
 /*================================================================
 FACILITIES-DETAILS GRID
-VERSION: v2026_06_18_clickable_address_phone_tag_fix
+VERSION: v2026_06_22_codes_text_buttons_import_fix
 ================================================================*/
 
-import {
-    updateFacility,
-    deleteFacility
-} from './data.js';
+import { supabase } from '../../global_engine/supabaseClient.js';
 
 function escapeHtml(value) {
     return String(value || '')
@@ -28,6 +25,31 @@ function getMapUrl(address) {
 function getPhoneUrl(phone) {
     const cleanPhone = String(phone || '').replace(/[^\d+]/g, '');
     return `tel:${cleanPhone}`;
+}
+
+async function updateFacility(facilityId, payload) {
+    return await supabase
+        .from('facilities')
+        .update(payload)
+        .eq('id', facilityId)
+        .select('*')
+        .single();
+}
+
+async function deleteFacility(facilityId) {
+    const projectsDeleteResult = await supabase
+        .from('projects')
+        .delete()
+        .eq('facilities_id', facilityId);
+
+    if (projectsDeleteResult.error) {
+        return projectsDeleteResult;
+    }
+
+    return await supabase
+        .from('facilities')
+        .delete()
+        .eq('id', facilityId);
 }
 
 export async function renderFacilityDetailsGrid(containerId, context = {}) {
@@ -52,10 +74,25 @@ export async function renderFacilityDetailsGrid(containerId, context = {}) {
             .details-label { color:#003b73; font-size:11px; font-weight:bold; margin-top:6px; }
             .details-value { color:#111827; font-size:14px; margin-bottom:6px; }
             .details-link { color:#003b73; text-decoration:underline; font-weight:bold; }
+
             .details-button-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+            .details-main-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+
             .details-action-btn { background:#003b73; color:white; border:none; border-radius:9px; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; }
             .details-delete-btn { background:#dc2626; color:yellow; border:none; border-radius:9px; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; }
-            .details-main-btn { background:#003b73; color:white; border:none; border-radius:9px; width:100%; min-height:50px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:8px; }
+
+            .details-main-btn {
+                background:#003b73;
+                color:white;
+                border:none;
+                border-radius:9px;
+                width:100%;
+                min-height:46px;
+                font-size:13px;
+                font-weight:bold;
+                cursor:pointer;
+            }
+
             .details-back-btn { background:#747d8c; color:white; border:none; border-radius:9px; width:100%; min-height:48px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:12px; }
             .details-version-tag { border-top:1px solid #d6dee8; margin-top:18px; padding-top:10px; font-size:10px; color:#7d8ba0; text-align:center; }
 
@@ -100,11 +137,16 @@ export async function renderFacilityDetailsGrid(containerId, context = {}) {
                 <button id="btn-delete-facility" class="details-delete-btn">🗑 Delete</button>
             </div>
 
-            <button id="btn-go-contacts" class="details-main-btn">📇 CONTACTS</button>
-            <button id="btn-go-projects" class="details-main-btn">📋 PROJECTS</button>
+            <div class="details-main-grid">
+                <button id="btn-go-contacts" class="details-main-btn">CONTACTS</button>
+                <button id="btn-go-projects" class="details-main-btn">PROJECTS</button>
+                <button id="btn-go-codes" class="details-main-btn">CODES</button>
+                <button id="btn-go-text" class="details-main-btn">TEXT</button>
+            </div>
+
             <button id="btn-back-home" class="details-back-btn">⬅️ BACK</button>
 
-            <div class="details-version-tag">facilities_views/facilities-details/grid.js</div>
+            <div class="details-version-tag">facilities_views/facilities-details/grid.js | v2026_06_22_codes_text_buttons_import_fix</div>
         </div>
 
         <div id="facility-modal-backdrop" class="facility-modal-backdrop">
@@ -130,7 +172,7 @@ export async function renderFacilityDetailsGrid(containerId, context = {}) {
 
                 <div id="facility-error" class="facility-error"></div>
 
-                <div class="details-version-tag">facilities_views/facilities-details/grid.js</div>
+                <div class="details-version-tag">facilities_views/facilities-details/grid.js | v2026_06_22_codes_text_buttons_import_fix</div>
             </div>
         </div>
     `;
@@ -152,6 +194,14 @@ export async function renderFacilityDetailsGrid(containerId, context = {}) {
 
     document.getElementById('btn-go-projects').addEventListener('click', () => {
         if (window.navigateTo) window.navigateTo('facilities-projects', facility);
+    });
+
+    document.getElementById('btn-go-codes').addEventListener('click', () => {
+        if (window.navigateTo) window.navigateTo('facility-codes', facility);
+    });
+
+    document.getElementById('btn-go-text').addEventListener('click', () => {
+        alert('Text feature will be connected next.');
     });
 
     document.getElementById('btn-back-home').addEventListener('click', () => {
