@@ -1,6 +1,6 @@
 /*================================================================
 PROJECT-UPDATE GRID
-VERSION: v2026_06_18_project_update_new
+VERSION: v2026_06_23_text_photo_popup_fix
 ================================================================*/
 
 import {
@@ -60,25 +60,34 @@ function renderPhotoSection(photoType, photos) {
             <button type="button" class="project-update-add-photo-btn" data-type="${escapeHtml(photoType)}">ADD IMAGE</button>
             <input type="file" accept="image/*" capture="environment" multiple class="project-update-photo-input" data-type="${escapeHtml(photoType)}" style="display:none;">
 
-            <div class="project-update-photo-grid">
-                ${photos.length ? photos.map((photo, index) => `
-                    <div class="project-update-photo-box">
-                        <img
-                            src="${escapeHtml(photo.image_url)}"
-                            alt="${escapeHtml(photoType)} photo"
-                            data-url="${escapeHtml(photo.image_url)}"
-                            data-index="${index}"
-                            data-type="${escapeHtml(photoType)}"
-                        >
-                        <div class="project-update-photo-date">${escapeHtml(formatDate(photo.created_at))}</div>
-                        <button type="button" class="project-update-photo-delete-btn" data-id="${photo.id}">DELETE</button>
-                    </div>
-                `).join('') : `
-                    <div class="project-update-no-photos">No ${escapeHtml(photoType)} photos yet.</div>
-                `}
+            <button type="button" class="project-update-see-photo-btn" data-type="${escapeHtml(photoType)}">SEE IMAGES</button>
+
+            <div class="project-update-photo-count">
+                ${photos.length ? `${photos.length} image${photos.length === 1 ? '' : 's'}` : `No ${escapeHtml(photoType)} photos yet.`}
             </div>
         </div>
     `;
+}
+
+function renderPhotoPopupGrid(photoType, photos) {
+    if (!photos.length) {
+        return `<div class="project-update-no-photos">No ${escapeHtml(photoType)} photos yet.</div>`;
+    }
+
+    return photos.map((photo, index) => `
+        <div class="project-update-popup-photo-box">
+            <img
+                src="${escapeHtml(photo.image_url)}"
+                alt="${escapeHtml(photoType)} photo"
+                data-url="${escapeHtml(photo.image_url)}"
+                data-index="${index}"
+                data-type="${escapeHtml(photoType)}"
+                class="project-update-popup-photo-img"
+            >
+            <div class="project-update-photo-date">${escapeHtml(formatDate(photo.created_at))}</div>
+            <button type="button" class="project-update-photo-delete-btn" data-id="${photo.id}">DELETE</button>
+        </div>
+    `).join('');
 }
 
 export async function renderProjectUpdateGrid(containerId, context = {}) {
@@ -135,17 +144,22 @@ export async function renderProjectUpdateGrid(containerId, context = {}) {
 
             .project-update-photo-section { border:1px solid #d6dee8; border-radius:10px; padding:10px; background:#f8fbff; margin-bottom:12px; text-align:center; }
             .project-update-section-title { color:#003b73; font-size:13px; font-weight:bold; letter-spacing:2px; margin-bottom:8px; }
-            .project-update-add-photo-btn { background:#22a843; color:white; border:none; border-radius:8px; width:100%; min-height:42px; font-size:14px; font-weight:bold; cursor:pointer; margin-bottom:10px; }
-            .project-update-photo-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
-            .project-update-photo-box { border:1px solid #d6dee8; border-radius:8px; padding:6px; background:#ffffff; }
-            .project-update-photo-box img { width:100%; height:105px; object-fit:cover; border-radius:7px; cursor:pointer; }
-            .project-update-photo-date { font-size:10px; color:#667085; margin-top:4px; }
-            .project-update-photo-delete-btn { background:#dc2626; color:yellow; border:none; border-radius:6px; width:100%; padding:7px; margin-top:6px; font-size:11px; font-weight:bold; cursor:pointer; }
-            .project-update-no-photos { color:#667085; font-size:13px; padding:10px; grid-column:1 / -1; }
+            .project-update-add-photo-btn { background:#22a843; color:white; border:none; border-radius:8px; width:100%; min-height:42px; font-size:14px; font-weight:bold; cursor:pointer; margin-bottom:8px; }
+            .project-update-see-photo-btn { background:#003b73; color:white; border:none; border-radius:8px; width:100%; min-height:42px; font-size:14px; font-weight:bold; cursor:pointer; margin-bottom:8px; }
+            .project-update-photo-count { color:#667085; font-size:13px; padding:4px; }
 
-            .project-update-modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:9999; }
-            .project-update-modal { background:white; width:90%; max-width:360px; border-radius:12px; padding:18px; box-shadow:0 4px 18px rgba(0,0,0,0.25); text-align:left; max-height:90vh; overflow-y:auto; }
-            .project-update-modal h3 { margin:0 0 14px; text-align:center; color:#003b73; }
+            .project-update-modal-backdrop,
+            .project-update-text-backdrop,
+            .project-update-photo-popup-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:9999; }
+
+            .project-update-modal,
+            .project-update-text-modal,
+            .project-update-photo-popup-modal { background:white; width:90%; max-width:360px; border-radius:12px; padding:18px; box-shadow:0 4px 18px rgba(0,0,0,0.25); text-align:left; max-height:90vh; overflow-y:auto; }
+
+            .project-update-modal h3,
+            .project-update-text-modal h3,
+            .project-update-photo-popup-modal h3 { margin:0 0 14px; text-align:center; color:#003b73; }
+
             .project-update-modal label { display:block; font-size:13px; font-weight:bold; margin:10px 0 4px; color:#003b73; }
             .project-update-modal input,
             .project-update-modal textarea { width:100%; padding:9px; border:1px solid #bbb; border-radius:6px; font-size:15px; box-sizing:border-box; }
@@ -157,6 +171,17 @@ export async function renderProjectUpdateGrid(containerId, context = {}) {
             .btn-save-project-update { background:#22a843; color:white; }
             .btn-cancel-project-update { background:#777; color:white; }
             .project-update-error { color:red; font-size:13px; text-align:center; margin-top:10px; min-height:16px; }
+
+            .project-update-text-box { border:1px solid #d6dee8; border-radius:10px; padding:12px; text-align:left; background:#f8fbff; }
+            .project-update-text-close-btn,
+            .project-update-photo-popup-close-btn { background:#747d8c; color:white; border:none; border-radius:8px; width:100%; min-height:42px; font-size:14px; font-weight:bold; cursor:pointer; margin-top:12px; }
+
+            .project-update-popup-photo-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+            .project-update-popup-photo-box { border:1px solid #d6dee8; border-radius:8px; padding:6px; background:#ffffff; text-align:center; }
+            .project-update-popup-photo-box img { width:100%; height:105px; object-fit:cover; border-radius:7px; cursor:pointer; }
+            .project-update-photo-date { font-size:10px; color:#667085; margin-top:4px; }
+            .project-update-photo-delete-btn { background:#dc2626; color:yellow; border:none; border-radius:6px; width:100%; padding:7px; margin-top:6px; font-size:11px; font-weight:bold; cursor:pointer; }
+            .project-update-no-photos { color:#667085; font-size:13px; padding:10px; text-align:center; }
 
             .project-update-viewer-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.92); display:none; align-items:center; justify-content:center; z-index:10000; }
             .project-update-viewer-box { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:12px; box-sizing:border-box; }
@@ -197,18 +222,66 @@ export async function renderProjectUpdateGrid(containerId, context = {}) {
                 <div class="project-update-value">${escapeHtml(update.notes || '')}</div>
             </div>
 
+            <div class="project-update-button-row">
+                <button id="btn-text-project-update" class="project-update-action-btn">TEXT</button>
+                <button id="btn-edit-project-update" class="project-update-action-btn">⚙️ Edit</button>
+            </div>
+
             ${renderPhotoSection('before', beforePhotos)}
             ${renderPhotoSection('during', duringPhotos)}
             ${renderPhotoSection('after', afterPhotos)}
 
             <div class="project-update-button-row" style="margin-top:12px;">
-                <button id="btn-edit-project-update" class="project-update-action-btn">⚙️ Edit</button>
                 <button id="btn-delete-project-update" class="project-update-delete-btn">🗑 Delete</button>
+                <button id="btn-back-project-detail" class="project-update-back-btn" style="margin-top:0;">⬅️ BACK</button>
             </div>
 
-            <button id="btn-back-project-detail" class="project-update-back-btn">⬅️ BACK</button>
+            <div class="project-update-version-tag">facilities_views/project-update/grid.js<br>v2026_06_23_text_photo_popup_fix</div>
+        </div>
 
-            <div class="project-update-version-tag">facilities_views/project-update/grid.js</div>
+        <div id="project-update-text-backdrop" class="project-update-text-backdrop">
+            <div class="project-update-text-modal">
+                <h3>Project Update Text</h3>
+
+                <div class="project-update-text-box">
+                    <div class="project-update-date">${escapeHtml(formatDate(update.created_at))}</div>
+
+                    <div class="project-update-label">STATUS</div>
+                    <div class="project-update-value">${escapeHtml(update.status || '')}</div>
+
+                    <div class="project-update-label">WORK DONE TODAY</div>
+                    <div class="project-update-value">${escapeHtml(update.work_done || '')}</div>
+
+                    <div class="project-update-label">WHERE I LEFT OFF</div>
+                    <div class="project-update-value">${escapeHtml(update.left_off_at || '')}</div>
+
+                    <div class="project-update-label">MATERIALS NEEDED</div>
+                    <div class="project-update-value">${escapeHtml(update.materials_needed || '')}</div>
+
+                    <div class="project-update-label">NEXT STEP</div>
+                    <div class="project-update-value">${escapeHtml(update.next_step || '')}</div>
+
+                    <div class="project-update-label">VENDOR NEEDED</div>
+                    <div class="project-update-value">${update.vendor_needed ? 'Yes' : 'No'}</div>
+
+                    <div class="project-update-label">NOTES</div>
+                    <div class="project-update-value">${escapeHtml(update.notes || '')}</div>
+                </div>
+
+                <button id="btn-close-project-update-text" class="project-update-text-close-btn">CLOSE</button>
+
+                <div class="project-update-version-tag">facilities_views/project-update/grid.js<br>v2026_06_23_text_photo_popup_fix</div>
+            </div>
+        </div>
+
+        <div id="project-update-photo-popup-backdrop" class="project-update-photo-popup-backdrop">
+            <div class="project-update-photo-popup-modal">
+                <h3 id="project-update-photo-popup-title">Photos</h3>
+                <div id="project-update-photo-popup-grid" class="project-update-popup-photo-grid"></div>
+                <button id="btn-close-project-update-photo-popup" class="project-update-photo-popup-close-btn">CLOSE</button>
+
+                <div class="project-update-version-tag">facilities_views/project-update/grid.js<br>v2026_06_23_text_photo_popup_fix</div>
+            </div>
         </div>
 
         <div id="project-update-modal-backdrop" class="project-update-modal-backdrop">
@@ -269,7 +342,7 @@ export async function renderProjectUpdateGrid(containerId, context = {}) {
 
                 <div id="project-update-error" class="project-update-error"></div>
 
-                <div class="project-update-version-tag">facilities_views/project-update/grid.js</div>
+                <div class="project-update-version-tag">facilities_views/project-update/grid.js<br>v2026_06_23_text_photo_popup_fix</div>
             </div>
         </div>
 
@@ -287,6 +360,10 @@ export async function renderProjectUpdateGrid(containerId, context = {}) {
     `;
 
     const modalBackdrop = document.getElementById('project-update-modal-backdrop');
+    const textBackdrop = document.getElementById('project-update-text-backdrop');
+    const photoPopupBackdrop = document.getElementById('project-update-photo-popup-backdrop');
+    const photoPopupTitle = document.getElementById('project-update-photo-popup-title');
+    const photoPopupGrid = document.getElementById('project-update-photo-popup-grid');
     const errorBox = document.getElementById('project-update-error');
     const viewerBackdrop = document.getElementById('project-update-viewer-backdrop');
     const viewerImage = document.getElementById('project-update-viewer-image');
@@ -317,6 +394,38 @@ export async function renderProjectUpdateGrid(containerId, context = {}) {
         }
 
         viewerImage.src = photos[activePhotoIndex].image_url;
+    }
+
+    function openPhotoPopup(photoType) {
+        const photos = photoGroups[photoType] || [];
+
+        photoPopupTitle.textContent = getPhotoTitle(photoType);
+        photoPopupGrid.innerHTML = renderPhotoPopupGrid(photoType, photos);
+        photoPopupBackdrop.style.display = 'flex';
+
+        document.querySelectorAll('.project-update-popup-photo-img').forEach(image => {
+            image.addEventListener('click', () => {
+                showViewer(image.dataset.type, Number(image.dataset.index || 0));
+            });
+        });
+
+        document.querySelectorAll('.project-update-photo-delete-btn').forEach(button => {
+            button.addEventListener('click', async () => {
+                const photoId = button.dataset.id;
+
+                if (!confirm('Delete this image?')) return;
+
+                const { error } = await deleteProjectUpdatePhoto(photoId);
+
+                if (error) {
+                    console.error('Delete project update photo error:', error);
+                    alert('Could not delete image.');
+                    return;
+                }
+
+                await renderProjectUpdateGrid(containerId, context);
+            });
+        });
     }
 
     document.querySelectorAll('.project-update-add-photo-btn').forEach(button => {
@@ -368,28 +477,15 @@ export async function renderProjectUpdateGrid(containerId, context = {}) {
         });
     });
 
-    document.querySelectorAll('.project-update-photo-box img').forEach(image => {
-        image.addEventListener('click', () => {
-            showViewer(image.dataset.type, Number(image.dataset.index || 0));
+    document.querySelectorAll('.project-update-see-photo-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            openPhotoPopup(button.dataset.type);
         });
     });
 
-    document.querySelectorAll('.project-update-photo-delete-btn').forEach(button => {
-        button.addEventListener('click', async () => {
-            const photoId = button.dataset.id;
-
-            if (!confirm('Delete this image?')) return;
-
-            const { error } = await deleteProjectUpdatePhoto(photoId);
-
-            if (error) {
-                console.error('Delete project update photo error:', error);
-                alert('Could not delete image.');
-                return;
-            }
-
-            await renderProjectUpdateGrid(containerId, context);
-        });
+    document.getElementById('btn-close-project-update-photo-popup').addEventListener('click', () => {
+        photoPopupBackdrop.style.display = 'none';
+        photoPopupGrid.innerHTML = '';
     });
 
     document.getElementById('project-update-viewer-prev').addEventListener('click', () => {
@@ -421,6 +517,14 @@ export async function renderProjectUpdateGrid(containerId, context = {}) {
         } else {
             moveViewer(1);
         }
+    });
+
+    document.getElementById('btn-text-project-update').addEventListener('click', () => {
+        textBackdrop.style.display = 'flex';
+    });
+
+    document.getElementById('btn-close-project-update-text').addEventListener('click', () => {
+        textBackdrop.style.display = 'none';
     });
 
     document.getElementById('btn-edit-project-update').addEventListener('click', () => {
