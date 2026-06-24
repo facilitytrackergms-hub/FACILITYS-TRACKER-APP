@@ -2,7 +2,7 @@
    FACILITY TRACKER MODULAR VIEW SYSTEM
    PURPOSE: Facility Inspections UI Builder
    LOCATION: /facilities_views/facility-inspections/ui.js
-   VERSION: v2026_06_24_ui_add_inspection_step_flow
+   VERSION: v2026_06_24_ui_clickable_item_dashboard
    UPDATED: 2026-06-24
 ================================================================ */
 
@@ -43,7 +43,13 @@ function buildSavedInspectionItemsHtml(items) {
         const resultLabel = result ? result.toUpperCase() : 'NOT ENTERED';
 
         return `
-            <div class="inspection-session-item-summary">
+            <div 
+                class="inspection-session-item-summary btn-open-inspection-item-dashboard"
+                data-item-id="${escapeHtml(item.id)}"
+                data-session-id="${escapeHtml(item.inspection_session_id || '')}"
+                role="button"
+                tabindex="0"
+            >
                 <div class="inspection-record-value">
                     <strong>${index + 1}. Location:</strong> ${escapeHtml(item.location_name || 'Not entered')}
                 </div>
@@ -101,7 +107,7 @@ export function buildLoginMissingHtml() {
         <div style="background:white;max-width:350px;margin:16px auto;padding:18px;border-radius:14px;text-align:center;">
             <div style="color:red;font-weight:bold;">Login user not found.</div>
             <button style="margin-top:12px;width:100%;min-height:48px;background:#003b73;color:white;border:none;border-radius:4px;font-weight:bold;" onclick="window.navigateTo && window.navigateTo('login')">GO TO LOGIN</button>
-            <div style="border-top:1px solid #d6dee8;margin-top:18px;padding-top:10px;font-size:10px;color:#7d8ba0;text-align:center;">facility-inspections/ui.js | v2026_06_24_ui_add_inspection_step_flow</div>
+            <div style="border-top:1px solid #d6dee8;margin-top:18px;padding-top:10px;font-size:10px;color:#7d8ba0;text-align:center;">facility-inspections/ui.js | v2026_06_24_ui_clickable_item_dashboard</div>
         </div>
     `;
 }
@@ -379,6 +385,20 @@ export function buildInspectionGridHtml({
                 border-top:1px solid rgba(255,255,255,0.35);
             }
 
+            .btn-open-inspection-item-dashboard {
+                cursor:pointer;
+                border-radius:6px;
+                padding:8px 4px;
+            }
+
+            .btn-open-inspection-item-dashboard:hover {
+                background:rgba(0,80,157,0.08);
+            }
+
+            .inspection-record-fail .btn-open-inspection-item-dashboard:hover {
+                background:rgba(255,255,255,0.12);
+            }
+
             .inspection-result-pass {
                 color:#16a34a;
                 font-weight:bold;
@@ -482,6 +502,21 @@ export function buildInspectionGridHtml({
                 color:#003b73;
             }
 
+            .inspection-dashboard-detail {
+                border:1px solid #d6dee8;
+                border-radius:10px;
+                background:#f8fbff;
+                padding:10px;
+                margin-bottom:10px;
+            }
+
+            .inspection-dashboard-line {
+                color:#111827;
+                font-size:13px;
+                margin-top:4px;
+                overflow-wrap:anywhere;
+            }
+
             .inspection-report-area {
                 border:1px solid #d6dee8;
                 border-radius:10px;
@@ -531,7 +566,7 @@ export function buildInspectionGridHtml({
 
             <button id="btn-back-facility-detail" class="inspection-back-btn">⬅️ BACK</button>
 
-            <div class="inspection-version-tag">facility-inspections/ui.js | v2026_06_24_ui_add_inspection_step_flow</div>
+            <div class="inspection-version-tag">facility-inspections/ui.js | v2026_06_24_ui_clickable_item_dashboard</div>
         </div>
 
         <div id="inspection-session-modal-backdrop" class="inspection-modal-backdrop">
@@ -546,7 +581,7 @@ export function buildInspectionGridHtml({
 
                 <div id="inspection-name-error" class="inspection-error"></div>
 
-                <div class="inspection-version-tag">facility-inspections/ui.js | v2026_06_24_ui_add_inspection_step_flow</div>
+                <div class="inspection-version-tag">facility-inspections/ui.js | v2026_06_24_ui_clickable_item_dashboard</div>
             </div>
         </div>
 
@@ -572,7 +607,7 @@ export function buildInspectionGridHtml({
 
                 <div id="item-description-error" class="inspection-error"></div>
 
-                <div class="inspection-version-tag">facility-inspections/ui.js | v2026_06_24_ui_add_inspection_step_flow</div>
+                <div class="inspection-version-tag">facility-inspections/ui.js | v2026_06_24_ui_clickable_item_dashboard</div>
             </div>
         </div>
 
@@ -596,7 +631,7 @@ export function buildInspectionGridHtml({
 
                 <div id="location-modal-error" class="inspection-error"></div>
 
-                <div class="inspection-version-tag">facility-inspections/ui.js | v2026_06_24_ui_add_inspection_step_flow</div>
+                <div class="inspection-version-tag">facility-inspections/ui.js | v2026_06_24_ui_clickable_item_dashboard</div>
             </div>
         </div>
 
@@ -626,7 +661,35 @@ export function buildInspectionGridHtml({
 
                 <div id="status-modal-error" class="inspection-error"></div>
 
-                <div class="inspection-version-tag">facility-inspections/ui.js | v2026_06_24_ui_add_inspection_step_flow</div>
+                <div class="inspection-version-tag">facility-inspections/ui.js | v2026_06_24_ui_clickable_item_dashboard</div>
+            </div>
+        </div>
+
+        <div id="inspection-item-dashboard-modal-backdrop" class="inspection-modal-backdrop">
+            <div class="inspection-modal">
+                <h3>Inspection Item Dashboard</h3>
+
+                <div class="inspection-dashboard-detail">
+                    <div class="inspection-dashboard-line"><strong>Inspection:</strong> <span id="item-dashboard-inspection-name"></span></div>
+                    <div class="inspection-dashboard-line"><strong>Location:</strong> <span id="item-dashboard-location"></span></div>
+                    <div class="inspection-dashboard-line"><strong>Item:</strong> <span id="item-dashboard-item"></span></div>
+                    <div class="inspection-dashboard-line"><strong>Status:</strong> <span id="item-dashboard-status"></span></div>
+                    <div class="inspection-dashboard-line"><strong>Fail Reasons:</strong> <span id="item-dashboard-fail-reasons"></span></div>
+                </div>
+
+                <div class="inspection-single-grid">
+                    <button id="btn-dashboard-edit-item" class="inspection-square-btn inspection-btn-blue" type="button">EDIT ITEM / LOCATION</button>
+                    <button id="btn-dashboard-change-status" class="inspection-square-btn inspection-btn-dark" type="button">CHANGE STATUS</button>
+                    <button id="btn-dashboard-start-project" class="inspection-square-btn inspection-btn-orange" type="button">START PROJECT FROM THIS ITEM</button>
+                    <button id="btn-dashboard-project-update" class="inspection-square-btn inspection-btn-purple" type="button">ADD PROJECT UPDATE</button>
+                    <button id="btn-dashboard-delete-item" class="inspection-delete-btn" type="button">DELETE ITEM</button>
+                </div>
+
+                <button id="btn-close-item-dashboard" class="inspection-back-btn" type="button">BACK TO INSPECTION</button>
+
+                <div id="item-dashboard-error" class="inspection-error"></div>
+
+                <div class="inspection-version-tag">facility-inspections/ui.js | v2026_06_24_ui_clickable_item_dashboard</div>
             </div>
         </div>
 
@@ -645,7 +708,7 @@ export function buildInspectionGridHtml({
 
                 <button id="btn-print-inspection-report" class="inspection-main-btn">PRINT REPORT</button>
                 <button id="btn-close-inspection-report" class="inspection-back-btn">CLOSE</button>
-                <div class="inspection-version-tag">facility-inspections/ui.js | v2026_06_24_ui_add_inspection_step_flow</div>
+                <div class="inspection-version-tag">facility-inspections/ui.js | v2026_06_24_ui_clickable_item_dashboard</div>
             </div>
         </div>
     `;
