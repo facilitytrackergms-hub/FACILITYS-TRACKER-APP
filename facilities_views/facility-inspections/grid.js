@@ -2,7 +2,7 @@
    FACILITY TRACKER MODULAR VIEW SYSTEM
    PURPOSE: Facility Inspections Grid Controller
    LOCATION: /facilities_views/facility-inspections/grid.js
-   VERSION: v2026_06_24_grid_edit_saved_inspection_items
+   VERSION: v2026_06_24_grid_clickable_item_dashboard
    UPDATED: 2026-06-24
 ================================================================ */
 
@@ -85,6 +85,8 @@ let pendingOpenLocationModalAfterImage = false;
 let currentReportText = '';
 let currentLocationType = 'room';
 let editingInspectionItem = null;
+let dashboardInspectionItem = null;
+let dashboardInspectionSession = null;
 
 export async function render(containerId, context = {}) {
     await renderFacilityInspectionsGrid(containerId, context);
@@ -115,6 +117,8 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     currentReportText = '';
     currentLocationType = 'room';
     editingInspectionItem = null;
+    dashboardInspectionItem = null;
+    dashboardInspectionSession = null;
 
     const sessionsResponse = await fetchInspectionSessions(facilitiesId);
     const sessions = sessionsResponse.data || [];
@@ -152,6 +156,9 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     const statusModal = document.getElementById('inspection-status-modal-backdrop');
     const statusModalError = document.getElementById('status-modal-error');
 
+    const itemDashboardModal = document.getElementById('inspection-item-dashboard-modal-backdrop');
+    const itemDashboardError = document.getElementById('item-dashboard-error');
+
     const reportModal = document.getElementById('inspection-report-modal-backdrop');
 
     const roomTypeButton = document.getElementById('btn-location-type-room');
@@ -176,6 +183,10 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         itemDescriptionError.textContent = '';
         locationModalError.textContent = '';
         statusModalError.textContent = '';
+
+        if (itemDashboardError) {
+            itemDashboardError.textContent = '';
+        }
     }
 
     function reloadInspectionView() {
@@ -476,6 +487,113 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         return Array.from(inputs)
             .map(input => input.value.trim())
             .filter(value => value);
+    }
+
+    function buildProjectPrefillFromItem(session, item) {
+        const reasons = Array.isArray(item?.fail_reasons)
+            ? item.fail_reasons.map(reason => String(reason || '').trim()).filter(Boolean)
+            : [];
+
+        const projectName = `${item?.location_name || 'Inspection'} - ${item?.item_name || 'Inspection Item'}`;
+
+        return {
+            project_name: projectName,
+            name: projectName,
+            type: 'Inspection',
+            requested_by_name: getSessionInspectorName(),
+            requested_by_title: getSessionInspectorRole(),
+            description: [
+                `Created from inspection item.`,
+                ``,
+                `Facility: ${facilityName}`,
+                `Inspection: ${session?.session_notes || ''}`,
+                `Location: ${item?.location_name || ''}`,
+                `Item: ${item?.item_name || ''}`,
+                `Result: ${String(item?.result || '').toUpperCase()}`,
+                reasons.length ? `Fail Reasons: ${reasons.join('; ')}` : `Fail Reasons:`,
+                `Notes: ${item?.notes || ''}`
+            ].join('\n'),
+            notes: `Inspection session ID: ${session?.id || ''}\nInspection item ID: ${item?.id || ''}`
+        };
+    }
+
+    function startProjectFromExistingItem(session, item) {
+        if (!session || !item) {
+            itemDashboardError.textContent = 'Could not load item.';
+            return;
+        }
+
+        activeSession = session;
+
+        if (window.navigateTo) {
+            window.navigateTo('facilities-projects', {
+                ...context,
+                id: facilitiesId,
+                facilities_id: facilitiesId,
+                open_add_project_modal: true,
+                project_prefill: buildProjectPrefillFromItem(session, item)
+            });
+        }
+    }
+
+    function addProjectUpdateFromExistingItem(session, item) {
+        if (!session || !item) {
+            itemDashboardError.textContent = 'Could not load item.';
+            return;
+        }
+
+        if (window.navigateTo) {
+            window.navigateTo('project-update', {
+                ...context,
+                id: facilitiesId,
+                facilities_id: facilitiesId,
+                from_inspection_item: true,
+                inspection_update_prefill: {
+                    facility_name: facilityName,
+                    inspection_session_id: session.id,
+                    inspection_item_id: item.id,
+                    inspection_name: session.session_notes || '',
+                    location_name: item.location_name || '',
+                    item_name: item.item_name || '',
+                    result: item.result || '',
+                    fail_reasons: Array.isArray(item.fail_reasons) ? item.fail_reasons : [],
+                    notes: item.notes || '',
+                    requested_by_name: getSessionInspectorName(),
+                    requested_by_title: getSessionInspectorRole(),
+                    update_text: [
+                        `Inspection Update`,
+                        `Inspection: ${session.session_notes || ''}`,
+                        `Location: ${item.location_name || ''}`,
+                        `Item: ${item.item_name || ''}`,
+                        `Result: ${String(item.result || '').toUpperCase()}`
+                    ].join('\n')
+                }
+            });
+        }
+    }
+
+    function openInspectionItemDashboard(session, item) {
+        if (!session || !item) {
+            alert('Could not load inspection item.');
+            return;
+        }
+
+        dashboardInspectionSession = session;
+        dashboardInspectionItem = item;
+        activeSession = session;
+
+        const reasons = Array.isArray(item.fail_reasons)
+            ? item.fail_reasons.map(reason => String(reason || '').trim()).filter(Boolean)
+            : [];
+
+        document.getElementById('item-dashboard-inspection-name').textContent = session.session_notes || '';
+        document.getElementById('item-dashboard-location').textContent = item.location_name || '';
+        document.getElementById('item-dashboard-item').textContent = item.item_name || '';
+        document.getElementById('item-dashboard-status').textContent = String(item.result || '').toUpperCase();
+        document.getElementById('item-dashboard-fail-reasons').textContent = reasons.length ? reasons.join('; ') : 'None';
+
+        itemDashboardError.textContent = '';
+        itemDashboardModal.style.display = 'flex';
     }
 
     async function uploadSelectedImages(savedItem) {
@@ -1004,7 +1122,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         });
     });
 
-    document.querySelectorAll('.btn-edit-inspection-session-item').forEach(button => {
+    document.querySelectorAll('.btn-open-inspection-item-dashboard').forEach(button => {
         button.addEventListener('click', () => {
             const itemId = button.dataset.itemId;
             const item = allSavedItems.find(savedItem => String(savedItem.id) === String(itemId));
@@ -1021,24 +1139,76 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 return;
             }
 
-            openEditInspectionItem(session, item);
+            openInspectionItemDashboard(session, item);
+        });
+
+        button.addEventListener('keydown', event => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            button.click();
         });
     });
 
-    document.querySelectorAll('.btn-delete-inspection-session-item').forEach(button => {
-        button.addEventListener('click', async () => {
-            if (!confirm('Delete this inspection item?')) return;
+    document.getElementById('btn-dashboard-edit-item').addEventListener('click', () => {
+        itemDashboardModal.style.display = 'none';
+        openEditInspectionItem(dashboardInspectionSession, dashboardInspectionItem);
+    });
 
-            const { error } = await deleteInspectionSessionItem(button.dataset.itemId);
+    document.getElementById('btn-dashboard-change-status').addEventListener('click', () => {
+        if (!dashboardInspectionSession || !dashboardInspectionItem) {
+            itemDashboardError.textContent = 'Could not load item.';
+            return;
+        }
 
-            if (error) {
-                console.error('Delete inspection item error:', error);
-                alert('Could not delete item.');
-                return;
-            }
+        itemDashboardModal.style.display = 'none';
 
-            reloadInspectionView();
-        });
+        activeSession = dashboardInspectionSession;
+        editingInspectionItem = dashboardInspectionItem;
+
+        inspectedByInput.value = dashboardInspectionSession.inspected_by || appUser.display_name;
+        sessionNotesInput.value = dashboardInspectionSession.session_notes || '';
+        showActiveSessionUi();
+
+        document.getElementById('item-name-input').value = dashboardInspectionItem.item_name || '';
+        document.getElementById('location-notes-input').value = dashboardInspectionItem.notes || '';
+        loadLocationStepForEdit(dashboardInspectionItem);
+        loadStatusStepForEdit(dashboardInspectionItem);
+
+        statusModal.style.display = 'flex';
+    });
+
+    document.getElementById('btn-dashboard-start-project').addEventListener('click', () => {
+        startProjectFromExistingItem(dashboardInspectionSession, dashboardInspectionItem);
+    });
+
+    document.getElementById('btn-dashboard-project-update').addEventListener('click', () => {
+        addProjectUpdateFromExistingItem(dashboardInspectionSession, dashboardInspectionItem);
+    });
+
+    document.getElementById('btn-dashboard-delete-item').addEventListener('click', async () => {
+        if (!dashboardInspectionItem?.id) {
+            itemDashboardError.textContent = 'Could not load item.';
+            return;
+        }
+
+        if (!confirm('Delete this inspection item?')) return;
+
+        const { error } = await deleteInspectionSessionItem(dashboardInspectionItem.id);
+
+        if (error) {
+            console.error('Delete inspection item error:', error);
+            itemDashboardError.textContent = 'Could not delete item.';
+            return;
+        }
+
+        itemDashboardModal.style.display = 'none';
+        reloadInspectionView();
+    });
+
+    document.getElementById('btn-close-item-dashboard').addEventListener('click', () => {
+        itemDashboardModal.style.display = 'none';
+        dashboardInspectionItem = null;
+        dashboardInspectionSession = null;
     });
 
     document.querySelectorAll('.btn-delete-inspection-session').forEach(button => {
