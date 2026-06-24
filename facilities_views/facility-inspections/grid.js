@@ -376,6 +376,11 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 white-space:pre-wrap;
                 font-size:13px;
                 color:#111827;
+                max-width:100%;
+                box-sizing:border-box;
+                overflow-wrap:anywhere;
+                word-break:break-word;
+                overflow-x:hidden;
             }
         </style>
 
