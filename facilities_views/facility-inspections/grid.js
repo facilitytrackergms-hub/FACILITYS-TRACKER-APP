@@ -47,6 +47,7 @@ let currentResult = 'pass';
 let selectedInspectionImages = [];
 let pendingOpenLocationModalAfterImage = false;
 let currentReportText = '';
+
 export async function render(containerId, context = {}) {
     await renderFacilityInspectionsGrid(containerId, context);
 }
@@ -63,7 +64,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         return;
     }
 
-       activeSession = null;
+    activeSession = null;
     currentResult = 'pass';
     selectedInspectionImages = [];
     pendingOpenLocationModalAfterImage = false;
@@ -392,7 +393,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 <button id="btn-start-inspection" class="inspection-main-btn">START INSPECTION</button>
 
                 <div id="inspection-active-actions" class="inspection-action-grid" style="display:none;">
-                    <button id="btn-add-location-to-inspect" class="inspection-square-btn inspection-btn-blue">ADD LOCATION</button>
+                    <button id="btn-add-location-to-inspect" class="inspection-square-btn inspection-btn-blue">ADD LOCATION / ITEM</button>
                     <button id="btn-save-progress-inspection" class="inspection-square-btn inspection-btn-dark">SAVE PROGRESS</button>
                     <button id="btn-finish-later-inspection" class="inspection-square-btn inspection-btn-gray">SAVE &amp; FINISH LATER</button>
                     <button id="btn-finish-active-inspection" class="inspection-square-btn inspection-btn-green">FINISH INSPECTION</button>
@@ -430,14 +431,25 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
             <button id="btn-back-facility-detail" class="inspection-back-btn">⬅️ BACK</button>
 
-            <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_23_popup_images_fail_project</div>
+            <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_24_camera_first_share_report</div>
         </div>
 
         <div id="inspection-location-modal-backdrop" class="inspection-modal-backdrop">
             <div class="inspection-modal">
-                <h3>Add Location</h3>
+                <h3>Inspection Item</h3>
 
-                <div class="inspection-label">LOCATION / ROOM NUMBER</div>
+                <div class="inspection-label">STARTING IMAGE</div>
+                <input id="inspection-image-input" type="file" accept="image/*" capture="environment" multiple style="display:none;">
+
+                <div class="inspection-action-grid">
+                    <button id="btn-take-inspection-image" class="inspection-square-btn inspection-btn-purple" type="button">RETAKE IMAGE</button>
+                    <button id="btn-see-inspection-images" class="inspection-square-btn inspection-btn-blue" type="button">SEE IMAGE</button>
+                </div>
+
+                <div id="inspection-image-count" class="inspection-image-count">Take a picture before saving.</div>
+                <div id="inspection-image-preview" class="inspection-image-preview"></div>
+
+                <div class="inspection-label">LOCATION / ROOM OR COMMON AREA</div>
                 <input id="location-name-input" class="inspection-input" type="text" placeholder="Room 201, Dining Room, Hallway">
 
                 <div class="inspection-label">ITEM INSPECTED</div>
@@ -463,19 +475,8 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 <div class="inspection-label">NOTES FOR THIS LOCATION</div>
                 <textarea id="location-notes-input" class="inspection-textarea"></textarea>
 
-                <div class="inspection-label">LOCATION IMAGES</div>
-                <input id="inspection-image-input" type="file" accept="image/*" capture="environment" multiple style="display:none;">
-
                 <div class="inspection-action-grid">
-                    <button id="btn-take-inspection-image" class="inspection-square-btn inspection-btn-purple" type="button">TAKE IMAGE</button>
-                    <button id="btn-see-inspection-images" class="inspection-square-btn inspection-btn-blue" type="button">SEE IMAGES</button>
-                </div>
-
-                <div id="inspection-image-count" class="inspection-image-count">No images selected.</div>
-                <div id="inspection-image-preview" class="inspection-image-preview"></div>
-
-                <div class="inspection-action-grid">
-                    <button id="btn-save-location-add-another" class="inspection-square-btn inspection-btn-blue">ADD ANOTHER</button>
+                    <button id="btn-save-location-add-another" class="inspection-square-btn inspection-btn-blue">SAVE &amp; CONTINUE</button>
                     <button id="btn-save-location-finish" class="inspection-square-btn inspection-btn-green">FINISH</button>
                 </div>
 
@@ -483,7 +484,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
                 <div id="location-modal-error" class="inspection-error"></div>
 
-                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_23_popup_images_fail_project</div>
+                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_24_camera_first_share_report</div>
             </div>
         </div>
 
@@ -491,9 +492,18 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
             <div class="inspection-modal">
                 <h3>Inspection Report</h3>
                 <div id="inspection-report-content" class="inspection-report-area"></div>
+
+                <div class="inspection-label">TEXT REPORT TO PHONE NUMBER</div>
+                <input id="inspection-report-phone" class="inspection-input" type="tel" placeholder="Phone number">
+                <button id="btn-text-inspection-report" class="inspection-main-btn">TEXT REPORT</button>
+
+                <div class="inspection-label">EMAIL REPORT TO</div>
+                <input id="inspection-report-email" class="inspection-input" type="email" placeholder="Email address">
+                <button id="btn-email-inspection-report" class="inspection-main-btn">EMAIL REPORT</button>
+
                 <button id="btn-print-inspection-report" class="inspection-main-btn">PRINT REPORT</button>
                 <button id="btn-close-inspection-report" class="inspection-back-btn">CLOSE</button>
-                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_23_popup_images_fail_project</div>
+                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_24_camera_first_share_report</div>
             </div>
         </div>
     `;
@@ -530,7 +540,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     function updateImagePreview() {
         imageCount.textContent = selectedInspectionImages.length
             ? `${selectedInspectionImages.length} image(s) selected.`
-            : 'No images selected.';
+            : 'Take a picture before saving.';
 
         imagePreview.innerHTML = selectedInspectionImages.map(file => `
             <img src="${URL.createObjectURL(file)}" alt="Inspection image">
@@ -557,6 +567,21 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     function showActiveSessionUi() {
         startButton.style.display = 'none';
         activeActions.style.display = 'grid';
+    }
+
+    function openCameraForNextInspectionItem() {
+        clearMainMessages();
+
+        const inspectedBy = inspectedByInput.value.trim();
+
+        if (!inspectedBy) {
+            errorBox.textContent = 'Enter inspected by.';
+            return;
+        }
+
+        clearLocationModal();
+        pendingOpenLocationModalAfterImage = true;
+        imageInput.click();
     }
 
     async function startInspectionIfNeeded() {
@@ -595,10 +620,12 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     }
 
     async function saveInspectionProgress(leaveAfterSave = false) {
-        const session = await startInspectionIfNeeded();
-        if (!session) return false;
+        if (!activeSession) {
+            errorBox.textContent = 'Start with a picture first.';
+            return false;
+        }
 
-        const { error } = await updateInspectionSession(session.id, {
+        const { error } = await updateInspectionSession(activeSession.id, {
             status: 'open',
             inspected_by: inspectedByInput.value.trim(),
             session_notes: sessionNotesInput.value.trim()
@@ -628,7 +655,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
         showActiveSessionUi();
 
-        successBox.textContent = 'Saved inspection loaded. Keep adding locations or finish it.';
+        successBox.textContent = 'Saved inspection loaded. Add the next item by taking a picture.';
         errorBox.textContent = '';
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -670,16 +697,18 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         modalError.textContent = '';
         modalError.style.color = 'red';
 
-        const session = await startInspectionIfNeeded();
-        if (!session) return null;
-
         const locationName = document.getElementById('location-name-input').value.trim();
         const itemName = document.getElementById('item-name-input').value.trim();
         const notes = document.getElementById('location-notes-input').value.trim();
         const failReasons = getFailReasons();
 
+        if (!selectedInspectionImages.length) {
+            modalError.textContent = 'Take a picture first.';
+            return null;
+        }
+
         if (!locationName) {
-            modalError.textContent = 'Enter location or room number.';
+            modalError.textContent = 'Enter location, room, or common area.';
             return null;
         }
 
@@ -693,13 +722,21 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
             return null;
         }
 
+        if (!inspectedByInput.value.trim()) {
+            modalError.textContent = 'Enter inspected by.';
+            return null;
+        }
+
+        const session = await startInspectionIfNeeded();
+        if (!session) return null;
+
         const payload = {
             inspection_session_id: session.id,
             facilities_id: facilitiesId,
             location_name: locationName,
             item_name: itemName,
             result: currentResult,
-            fail_reasons: failReasons,
+            fail_reasons: currentResult === 'fail' ? failReasons : [],
             notes
         };
 
@@ -722,10 +759,12 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     }
 
     async function finishInspection() {
-        const session = await startInspectionIfNeeded();
-        if (!session) return false;
+        if (!activeSession) {
+            errorBox.textContent = 'Start with a picture first.';
+            return false;
+        }
 
-        const { error } = await updateInspectionSession(session.id, {
+        const { error } = await updateInspectionSession(activeSession.id, {
             status: 'finished',
             inspected_by: inspectedByInput.value.trim(),
             session_notes: sessionNotesInput.value.trim()
@@ -786,16 +825,96 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         }
     }
 
-    startButton.addEventListener('click', async () => {
-        await startInspectionIfNeeded();
+    function getCurrentReportText() {
+        if (!currentReportText) {
+            alert('Open a report first.');
+            return '';
+        }
+
+        return currentReportText;
+    }
+
+    function textCurrentReport() {
+        const reportText = getCurrentReportText();
+        if (!reportText) return;
+
+        const phoneInput = document.getElementById('inspection-report-phone');
+        const phone = String(phoneInput?.value || '').trim().replace(/[^\d+]/g, '');
+
+        if (!phone) {
+            alert('Enter phone number.');
+            return;
+        }
+
+        window.location.href = `sms:${phone}?&body=${encodeURIComponent(reportText)}`;
+    }
+
+    function emailCurrentReport() {
+        const reportText = getCurrentReportText();
+        if (!reportText) return;
+
+        const emailInput = document.getElementById('inspection-report-email');
+        const email = String(emailInput?.value || '').trim();
+
+        if (!email) {
+            alert('Enter email address.');
+            return;
+        }
+
+        const subject = `Inspection Report - ${facilityName}`;
+        window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(reportText)}`;
+    }
+
+    function printCurrentReport() {
+        const reportText = getCurrentReportText();
+        if (!reportText) return;
+
+        const printWindow = window.open('', '_blank');
+
+        if (!printWindow) {
+            window.print();
+            return;
+        }
+
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    <title>Inspection Report</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            padding: 20px;
+                            color: #111827;
+                        }
+
+                        pre {
+                            white-space: pre-wrap;
+                            font-size: 14px;
+                            line-height: 1.4;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <pre>${escapeHtml(reportText)}</pre>
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                        };
+                    <\/script>
+                </body>
+            </html>
+        `);
+
+        printWindow.document.close();
+    }
+
+    startButton.addEventListener('click', () => {
+        openCameraForNextInspectionItem();
     });
 
-    addLocationButton.addEventListener('click', async () => {
-        const session = await startInspectionIfNeeded();
-        if (!session) return;
-
-        clearLocationModal();
-        locationModal.style.display = 'flex';
+    addLocationButton.addEventListener('click', () => {
+        openCameraForNextInspectionItem();
     });
 
     saveProgressButton.addEventListener('click', async () => {
@@ -815,6 +934,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         popupPassButton.classList.add('active');
         popupFailButton.classList.remove('active');
         failReasonsArea.style.display = 'none';
+        failReasonsList.innerHTML = '';
         modalError.textContent = '';
     });
 
@@ -843,18 +963,29 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     });
 
     document.getElementById('btn-take-inspection-image').addEventListener('click', () => {
+        pendingOpenLocationModalAfterImage = false;
         imageInput.click();
     });
 
     imageInput.addEventListener('change', () => {
         selectedInspectionImages = Array.from(imageInput.files || []);
-        imagePreview.style.display = 'none';
+        imagePreview.style.display = selectedInspectionImages.length ? 'grid' : 'none';
         updateImagePreview();
+
+        if (pendingOpenLocationModalAfterImage) {
+            pendingOpenLocationModalAfterImage = false;
+
+            if (selectedInspectionImages.length) {
+                locationModal.style.display = 'flex';
+            } else {
+                errorBox.textContent = 'Take a picture first.';
+            }
+        }
     });
 
     document.getElementById('btn-see-inspection-images').addEventListener('click', () => {
         if (!selectedInspectionImages.length) {
-            modalError.textContent = 'No images selected.';
+            modalError.textContent = 'No image selected.';
             return;
         }
 
@@ -870,18 +1001,23 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         const saved = await saveLocationItem();
         if (!saved) return;
 
+        locationModal.style.display = 'none';
         clearLocationModal();
-        modalError.style.color = '#16a34a';
-        modalError.textContent = 'Failed item saved. Add next location.';
+        successBox.textContent = 'Failed item saved.';
+        errorBox.textContent = '';
     });
 
     document.getElementById('btn-save-location-add-another').addEventListener('click', async () => {
         const saved = await saveLocationItem();
         if (!saved) return;
 
+        locationModal.style.display = 'none';
         clearLocationModal();
-        modalError.style.color = '#16a34a';
-        modalError.textContent = 'Saved. Add next location.';
+        successBox.textContent = 'Saved. Take the next picture.';
+        errorBox.textContent = '';
+
+        pendingOpenLocationModalAfterImage = true;
+        imageInput.click();
     });
 
     document.getElementById('btn-save-location-finish').addEventListener('click', async () => {
@@ -893,7 +1029,9 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     });
 
     document.getElementById('btn-cancel-location-modal').addEventListener('click', () => {
+        pendingOpenLocationModalAfterImage = false;
         locationModal.style.display = 'none';
+        clearLocationModal();
     });
 
     document.querySelectorAll('.btn-continue-inspection-session').forEach(button => {
@@ -952,7 +1090,22 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 return;
             }
 
-            const reportText = [
+            const reportItems = [];
+
+            for (const item of data || []) {
+                const imageResponse = await fetchInspectionImages(item.id);
+
+                if (imageResponse.error) {
+                    console.error('Fetch inspection images error:', imageResponse.error);
+                }
+
+                reportItems.push({
+                    item,
+                    images: imageResponse.data || []
+                });
+            }
+
+            currentReportText = [
                 `INSPECTION REPORT`,
                 ``,
                 `Facility: ${facilityName}`,
@@ -965,26 +1118,46 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 ``,
                 `LOCATIONS INSPECTED:`,
                 ``,
-                ...(data || []).map((item, index) => {
+                ...reportItems.map((entry, index) => {
+                    const item = entry.item;
+                    const images = entry.images || [];
                     const reasons = Array.isArray(item.fail_reasons) ? item.fail_reasons : [];
+                    const imageLines = images.length
+                        ? [
+                            `Photos:`,
+                            ...images.map((image, imageIndex) => `Photo ${imageIndex + 1}: ${image.image_url || ''}`)
+                        ]
+                        : [
+                            `Photos:`
+                        ];
+
                     return [
                         `${index + 1}. ${item.location_name || ''}`,
                         `Item: ${item.item_name || ''}`,
                         `Result: ${String(item.result || '').toUpperCase()}`,
                         reasons.length ? `Fail Reasons: ${reasons.join('; ')}` : `Fail Reasons:`,
                         `Notes: ${item.notes || ''}`,
+                        ...imageLines,
                         ``
                     ].join('\n');
                 })
             ].join('\n');
 
-            document.getElementById('inspection-report-content').textContent = reportText;
+            document.getElementById('inspection-report-content').textContent = currentReportText;
             reportModal.style.display = 'flex';
         });
     });
 
+    document.getElementById('btn-text-inspection-report').addEventListener('click', () => {
+        textCurrentReport();
+    });
+
+    document.getElementById('btn-email-inspection-report').addEventListener('click', () => {
+        emailCurrentReport();
+    });
+
     document.getElementById('btn-print-inspection-report').addEventListener('click', () => {
-        window.print();
+        printCurrentReport();
     });
 
     document.getElementById('btn-close-inspection-report').addEventListener('click', () => {
