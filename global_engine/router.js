@@ -1,8 +1,8 @@
 /* ================================================================
    PURPOSE: Router to handle view navigation
    LOCATION: /global_engine/router.js
-   DATE: 2026-06-23
-   VERSION: v2026_06_23_inspection_session_cache_update
+   DATE: 2026-06-24
+   VERSION: v2026_06_24_inspection_camera_share_cache_update
    ================================================================ */
 
 export async function navigateTo(view, context = {}) {
@@ -90,7 +90,7 @@ export async function navigateTo(view, context = {}) {
         }
 
         if (view === 'facility-inspections') {
-            const module = await import(`${basePath}/facilities_views/facility-inspections/grid.js?v=20260623_session_popup_rebuild`);
+            const module = await import(`${basePath}/facilities_views/facility-inspections/grid.js?v=20260624_camera_first_share_report`);
 
             if (typeof module.renderFacilityInspectionsGrid === 'function') {
                 await module.renderFacilityInspectionsGrid('app-container', context);
