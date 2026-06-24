@@ -2,7 +2,7 @@
    FACILITY TRACKER MODULAR VIEW SYSTEM
    PURPOSE: Facility Inspections Grid
    LOCATION: /facilities_views/facility-inspections/grid.js
-   VERSION: v2026_06_24_camera_first_share_report
+   VERSION: v2026_06_24_login_user_tracking
    UPDATED: 2026-06-24
 ================================================================ */
 
@@ -42,6 +42,22 @@ function formatDate(value) {
     return new Date(value).toLocaleString();
 }
 
+function getStoredAppUser() {
+    try {
+        const raw = localStorage.getItem('facility_tracker_app_user');
+        const parsed = JSON.parse(raw || '{}');
+
+        if (!parsed?.auth_user_id || !parsed?.display_name || parsed?.active_status !== 'active') {
+            return null;
+        }
+
+        return parsed;
+    } catch (error) {
+        console.error('Read stored app user error:', error);
+        return null;
+    }
+}
+
 let activeSession = null;
 let currentResult = 'pass';
 let selectedInspectionImages = [];
@@ -58,6 +74,18 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
     const facilitiesId = getFacilitiesId(context);
     const facilityName = getFacilityName(context);
+    const appUser = getStoredAppUser();
+
+    if (!appUser) {
+        container.innerHTML = `
+            <div style="background:white;max-width:350px;margin:16px auto;padding:18px;border-radius:14px;text-align:center;">
+                <div style="color:red;font-weight:bold;">Login user not found.</div>
+                <button style="margin-top:12px;width:100%;min-height:48px;background:#003b73;color:white;border:none;border-radius:4px;font-weight:bold;" onclick="window.navigateTo && window.navigateTo('login')">GO TO LOGIN</button>
+                <div style="border-top:1px solid #d6dee8;margin-top:18px;padding-top:10px;font-size:10px;color:#7d8ba0;text-align:center;">facility-inspections/grid.js | v2026_06_24_login_user_tracking</div>
+            </div>
+        `;
+        return;
+    }
 
     if (!facilitiesId) {
         container.innerHTML = `<p style="color:red;text-align:center;">Missing facility ID.</p>`;
@@ -125,6 +153,12 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 border-radius:6px;
                 font-size:15px;
                 box-sizing:border-box;
+            }
+
+            .inspection-input[readonly] {
+                background:#eef2f7;
+                color:#111827;
+                font-weight:bold;
             }
 
             .inspection-textarea {
@@ -390,7 +424,8 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
             <div class="inspection-box">
                 <div class="inspection-label">INSPECTED BY</div>
-                <input id="inspection-inspected-by" class="inspection-input" type="text" placeholder="Your name">
+                <input id="inspection-inspected-by" class="inspection-input" type="text" value="${escapeHtml(appUser.display_name)}" readonly>
+                <div class="inspection-record-value">Role: ${escapeHtml(appUser.role || 'inspector')}</div>
 
                 <div class="inspection-label">INSPECTION NOTES</div>
                 <textarea id="inspection-session-notes" class="inspection-textarea" placeholder="General notes for this inspection"></textarea>
@@ -436,7 +471,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
             <button id="btn-back-facility-detail" class="inspection-back-btn">⬅️ BACK</button>
 
-            <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_24_camera_first_share_report</div>
+            <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_24_login_user_tracking</div>
         </div>
 
         <div id="inspection-location-modal-backdrop" class="inspection-modal-backdrop">
@@ -489,7 +524,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
                 <div id="location-modal-error" class="inspection-error"></div>
 
-                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_24_camera_first_share_report</div>
+                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_24_login_user_tracking</div>
             </div>
         </div>
 
@@ -508,7 +543,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
                 <button id="btn-print-inspection-report" class="inspection-main-btn">PRINT REPORT</button>
                 <button id="btn-close-inspection-report" class="inspection-back-btn">CLOSE</button>
-                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_24_camera_first_share_report</div>
+                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_24_login_user_tracking</div>
             </div>
         </div>
     `;
@@ -540,6 +575,18 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     function clearMainMessages() {
         errorBox.textContent = '';
         successBox.textContent = '';
+    }
+
+    function getSessionInspectorName() {
+        return activeSession?.inspected_by || inspectedByInput.value.trim() || appUser.display_name;
+    }
+
+    function getSessionInspectorUserId() {
+        return activeSession?.inspected_by_user_id || appUser.auth_user_id;
+    }
+
+    function getSessionInspectorRole() {
+        return activeSession?.inspected_by_role || appUser.role || 'inspector';
     }
 
     function updateImagePreview() {
@@ -577,10 +624,8 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     function openCameraForNextInspectionItem() {
         clearMainMessages();
 
-        const inspectedBy = inspectedByInput.value.trim();
-
-        if (!inspectedBy) {
-            errorBox.textContent = 'Enter inspected by.';
+        if (!appUser?.display_name) {
+            errorBox.textContent = 'Login user not found.';
             return;
         }
 
@@ -594,17 +639,13 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
         if (activeSession) return activeSession;
 
-        const inspectedBy = inspectedByInput.value.trim();
         const sessionNotes = sessionNotesInput.value.trim();
-
-        if (!inspectedBy) {
-            errorBox.textContent = 'Enter inspected by.';
-            return null;
-        }
 
         const payload = {
             facilities_id: facilitiesId,
-            inspected_by: inspectedBy,
+            inspected_by: appUser.display_name,
+            inspected_by_user_id: appUser.auth_user_id,
+            inspected_by_role: appUser.role || 'inspector',
             session_notes: sessionNotes,
             status: 'open'
         };
@@ -618,6 +659,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         }
 
         activeSession = data;
+        inspectedByInput.value = data.inspected_by || appUser.display_name;
         successBox.textContent = 'Inspection started. You can save and continue later.';
         showActiveSessionUi();
 
@@ -632,7 +674,9 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
         const { error } = await updateInspectionSession(activeSession.id, {
             status: 'open',
-            inspected_by: inspectedByInput.value.trim(),
+            inspected_by: getSessionInspectorName(),
+            inspected_by_user_id: getSessionInspectorUserId(),
+            inspected_by_role: getSessionInspectorRole(),
             session_notes: sessionNotesInput.value.trim()
         });
 
@@ -655,7 +699,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         if (!session) return;
 
         activeSession = session;
-        inspectedByInput.value = session.inspected_by || '';
+        inspectedByInput.value = session.inspected_by || appUser.display_name;
         sessionNotesInput.value = session.session_notes || '';
 
         showActiveSessionUi();
@@ -682,13 +726,13 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 `facility_${facilitiesId}/session_${activeSession.id}/item_${savedItem.id}`
             );
 
-          const { error } = await createInspectionImage({
-    inspection_id: savedItem.id,
-    facilities_id: facilitiesId,
-    image_url: imageUrl,
-    caption: `${savedItem.location_name || ''} - ${savedItem.item_name || ''}`,
-    uploaded_by: inspectedByInput.value.trim()
-});
+            const { error } = await createInspectionImage({
+                inspection_id: savedItem.id,
+                facilities_id: facilitiesId,
+                image_url: imageUrl,
+                caption: `${savedItem.location_name || ''} - ${savedItem.item_name || ''}`,
+                uploaded_by: getSessionInspectorName()
+            });
 
             if (error) {
                 console.error('Create inspection image record error:', error);
@@ -728,8 +772,8 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
             return null;
         }
 
-        if (!inspectedByInput.value.trim()) {
-            modalError.textContent = 'Enter inspected by.';
+        if (!appUser?.display_name) {
+            modalError.textContent = 'Login user not found.';
             return null;
         }
 
@@ -739,6 +783,8 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         const payload = {
             inspection_session_id: session.id,
             facilities_id: facilitiesId,
+            inspected_by_user_id: getSessionInspectorUserId(),
+            inspected_by_name: getSessionInspectorName(),
             location_name: locationName,
             item_name: itemName,
             result: currentResult,
@@ -772,7 +818,9 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
         const { error } = await updateInspectionSession(activeSession.id, {
             status: 'finished',
-            inspected_by: inspectedByInput.value.trim(),
+            inspected_by: getSessionInspectorName(),
+            inspected_by_user_id: getSessionInspectorUserId(),
+            inspected_by_role: getSessionInspectorRole(),
             session_notes: sessionNotesInput.value.trim()
         });
 
@@ -813,8 +861,8 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                     project_name: projectName,
                     name: projectName,
                     type: 'Inspection',
-                    requested_by_name: inspectedByInput.value.trim(),
-                    requested_by_title: 'Inspector',
+                    requested_by_name: getSessionInspectorName(),
+                    requested_by_title: getSessionInspectorRole(),
                     description: [
                         `Created from failed inspection.`,
                         ``,
@@ -1117,6 +1165,8 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 `Facility: ${facilityName}`,
                 `Date: ${formatDate(session?.created_at)}`,
                 `Inspected By: ${session?.inspected_by || ''}`,
+                session?.inspected_by_role ? `Role: ${session.inspected_by_role}` : ``,
+                ``,
                 `Status: ${session?.status || ''}`,
                 ``,
                 `General Notes:`,
@@ -1139,6 +1189,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
                     return [
                         `${index + 1}. ${item.location_name || ''}`,
+                        item.inspected_by_name ? `Inspector: ${item.inspected_by_name}` : ``,
                         `Item: ${item.item_name || ''}`,
                         `Result: ${String(item.result || '').toUpperCase()}`,
                         reasons.length ? `Fail Reasons: ${reasons.join('; ')}` : `Fail Reasons:`,
@@ -1147,7 +1198,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                         ``
                     ].join('\n');
                 })
-            ].join('\n');
+            ].filter(line => line !== '').join('\n');
 
             document.getElementById('inspection-report-content').textContent = currentReportText;
             reportModal.style.display = 'flex';
