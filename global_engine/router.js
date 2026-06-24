@@ -156,7 +156,7 @@ export async function navigateTo(view, context = {}) {
         }
 
         if (view === 'facility-inspections') {
-            const module = await import(`${basePath}/facilities_views/facility-inspections/grid.js?v=20260624_grid_edit_saved_inspection_items`);
+           const module = await import(`${basePath}/facilities_views/facility-inspections/grid.js?v=20260624_grid_clickable_item_dashboard`);
 
             if (typeof module.renderFacilityInspectionsGrid === 'function') {
                 await module.renderFacilityInspectionsGrid('app-container', context);
