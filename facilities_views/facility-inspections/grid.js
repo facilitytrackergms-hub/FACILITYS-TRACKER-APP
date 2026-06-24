@@ -1,11 +1,10 @@
 /* ================================================================
    FACILITY TRACKER MODULAR VIEW SYSTEM
-   PURPOSE: Facility Inspections Grid
+   PURPOSE: Facility Inspections Grid Controller
    LOCATION: /facilities_views/facility-inspections/grid.js
-   VERSION: v2026_06_24_login_user_tracking
+   VERSION: v2026_06_24_grid_ui_split_saved_card_details
    UPDATED: 2026-06-24
 ================================================================ */
-
 
 import {
     createInspectionSession,
@@ -20,14 +19,12 @@ import {
 
 import { uploadImage } from '../../global_engine/image-handler.js';
 
-function escapeHtml(value) {
-    return String(value || '')
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
-}
+import {
+    buildInspectionGridHtml,
+    buildLoginMissingHtml,
+    escapeHtml,
+    formatDate
+} from './ui.js';
 
 function getFacilitiesId(context) {
     return context?.facilities_id || context?.facility_id || context?.facilityId || context?.location_id || context?.id || null;
@@ -35,11 +32,6 @@ function getFacilitiesId(context) {
 
 function getFacilityName(context) {
     return context?.abbreviation || context?.number_name || context?.name || 'Facility';
-}
-
-function formatDate(value) {
-    if (!value) return '';
-    return new Date(value).toLocaleString();
 }
 
 function getStoredAppUser() {
@@ -56,6 +48,28 @@ function getStoredAppUser() {
         console.error('Read stored app user error:', error);
         return null;
     }
+}
+
+async function fetchSavedSessionItemsBySessionId(sessions = []) {
+    const itemsBySessionId = {};
+
+    for (const session of sessions) {
+        const sessionId = String(session?.id || '');
+
+        if (!sessionId) continue;
+
+        const { data, error } = await fetchInspectionSessionItems(session.id);
+
+        if (error) {
+            console.error('Fetch saved inspection session items error:', error);
+            itemsBySessionId[sessionId] = [];
+            continue;
+        }
+
+        itemsBySessionId[sessionId] = data || [];
+    }
+
+    return itemsBySessionId;
 }
 
 let activeSession = null;
@@ -77,13 +91,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     const appUser = getStoredAppUser();
 
     if (!appUser) {
-        container.innerHTML = `
-            <div style="background:white;max-width:350px;margin:16px auto;padding:18px;border-radius:14px;text-align:center;">
-                <div style="color:red;font-weight:bold;">Login user not found.</div>
-                <button style="margin-top:12px;width:100%;min-height:48px;background:#003b73;color:white;border:none;border-radius:4px;font-weight:bold;" onclick="window.navigateTo && window.navigateTo('login')">GO TO LOGIN</button>
-                <div style="border-top:1px solid #d6dee8;margin-top:18px;padding-top:10px;font-size:10px;color:#7d8ba0;text-align:center;">facility-inspections/grid.js | v2026_06_24_login_user_tracking</div>
-            </div>
-        `;
+        container.innerHTML = buildLoginMissingHtml();
         return;
     }
 
@@ -100,453 +108,14 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
     const sessionsResponse = await fetchInspectionSessions(facilitiesId);
     const sessions = sessionsResponse.data || [];
-
-    container.innerHTML = `
-        <style>
-            .inspection-card {
-                background:#ffffff;
-                max-width:350px;
-                margin:16px auto;
-                padding:18px;
-                border-radius:14px;
-                box-shadow:0 4px 18px rgba(0,0,0,0.08);
-                text-align:center;
-            }
-
-            .inspection-title {
-                color:#003b73;
-                font-size:24px;
-                font-weight:bold;
-                margin-bottom:2px;
-            }
-
-            .inspection-subtitle {
-                color:#003b73;
-                font-size:13px;
-                font-weight:bold;
-                margin-bottom:16px;
-                letter-spacing:2px;
-            }
-
-            .inspection-box {
-                border:1px solid #d6dee8;
-                border-radius:10px;
-                padding:12px;
-                text-align:left;
-                margin-bottom:14px;
-                background:#f8fbff;
-            }
-
-            .inspection-label {
-                color:#003b73;
-                font-size:12px;
-                font-weight:bold;
-                margin-top:10px;
-                margin-bottom:4px;
-            }
-
-            .inspection-input,
-            .inspection-textarea {
-                width:100%;
-                padding:10px;
-                border:1px solid #bbb;
-                border-radius:6px;
-                font-size:15px;
-                box-sizing:border-box;
-            }
-
-            .inspection-input[readonly] {
-                background:#eef2f7;
-                color:#111827;
-                font-weight:bold;
-            }
-
-            .inspection-textarea {
-                min-height:75px;
-                resize:vertical;
-            }
-
-            .inspection-main-btn {
-                background:#003b73;
-                color:white;
-                border:none;
-                border-radius:4px;
-                width:100%;
-                min-height:54px;
-                font-size:15px;
-                font-weight:bold;
-                cursor:pointer;
-                margin-top:8px;
-            }
-
-            .inspection-action-grid {
-                display:grid;
-                grid-template-columns:1fr 1fr;
-                gap:8px;
-                margin-top:10px;
-            }
-
-            .inspection-square-btn {
-                color:white;
-                border:none;
-                border-radius:4px;
-                min-height:58px;
-                font-size:13px;
-                font-weight:bold;
-                cursor:pointer;
-                width:100%;
-                padding:8px 6px;
-            }
-
-            .inspection-btn-blue {
-                background:#003b73;
-            }
-
-            .inspection-btn-green {
-                background:#16a34a;
-            }
-
-            .inspection-btn-gray {
-                background:#747d8c;
-            }
-
-            .inspection-btn-dark {
-                background:#111827;
-            }
-
-            .inspection-btn-orange {
-                background:#ea580c;
-            }
-
-            .inspection-btn-purple {
-                background:#6d28d9;
-            }
-
-            .inspection-small-btn {
-                background:#00509d;
-                color:white;
-                border:none;
-                border-radius:4px;
-                min-height:44px;
-                font-size:13px;
-                font-weight:bold;
-                cursor:pointer;
-                width:100%;
-            }
-
-            .inspection-two-row {
-                display:grid;
-                grid-template-columns:1fr 1fr;
-                gap:8px;
-                margin-top:8px;
-            }
-
-            .inspection-pass-btn {
-                background:#16a34a;
-                color:white;
-                border:none;
-                border-radius:4px;
-                min-height:50px;
-                font-size:15px;
-                font-weight:bold;
-                cursor:pointer;
-            }
-
-            .inspection-fail-btn {
-                background:#dc2626;
-                color:white;
-                border:none;
-                border-radius:4px;
-                min-height:50px;
-                font-size:15px;
-                font-weight:bold;
-                cursor:pointer;
-            }
-
-            .inspection-pass-btn.active,
-            .inspection-fail-btn.active {
-                outline:4px solid #facc15;
-            }
-
-            .inspection-back-btn {
-                background:#747d8c;
-                color:white;
-                border:none;
-                border-radius:4px;
-                width:100%;
-                min-height:48px;
-                font-size:15px;
-                font-weight:bold;
-                cursor:pointer;
-                margin-top:12px;
-            }
-
-            .inspection-delete-btn {
-                background:#7f1d1d;
-                color:yellow;
-                border:none;
-                border-radius:4px;
-                padding:9px;
-                font-weight:bold;
-                cursor:pointer;
-                width:100%;
-                min-height:44px;
-            }
-
-            .inspection-record {
-                border:1px solid #d6dee8;
-                border-radius:10px;
-                padding:10px;
-                margin-top:8px;
-                background:white;
-            }
-
-            .inspection-record-title {
-                color:#003b73;
-                font-size:14px;
-                font-weight:bold;
-            }
-
-            .inspection-record-value {
-                color:#111827;
-                font-size:12px;
-                margin-top:3px;
-            }
-
-            .inspection-record-actions {
-                display:grid;
-                grid-template-columns:1fr 1fr;
-                gap:8px;
-                margin-top:8px;
-            }
-
-            .inspection-record-delete {
-                grid-column:1 / 3;
-            }
-
-            .inspection-error {
-                color:red;
-                font-size:13px;
-                text-align:center;
-                min-height:18px;
-                margin-top:10px;
-            }
-
-            .inspection-success {
-                color:#16a34a;
-                font-size:13px;
-                text-align:center;
-                min-height:18px;
-                margin-top:10px;
-                font-weight:bold;
-            }
-
-            .inspection-image-count {
-                color:#003b73;
-                font-size:12px;
-                font-weight:bold;
-                text-align:center;
-                margin-top:8px;
-                min-height:16px;
-            }
-
-            .inspection-image-preview {
-                display:none;
-                grid-template-columns:1fr 1fr;
-                gap:8px;
-                margin-top:8px;
-            }
-
-            .inspection-image-preview img {
-                width:100%;
-                height:90px;
-                object-fit:cover;
-                border-radius:6px;
-                border:1px solid #d6dee8;
-            }
-
-            .inspection-version-tag {
-                border-top:1px solid #d6dee8;
-                margin-top:18px;
-                padding-top:10px;
-                font-size:10px;
-                color:#7d8ba0;
-                text-align:center;
-            }
-
-            .inspection-modal-backdrop {
-                position:fixed;
-                inset:0;
-                background:rgba(0,0,0,0.45);
-                display:none;
-                align-items:center;
-                justify-content:center;
-                z-index:9999;
-            }
-
-            .inspection-modal {
-                background:white;
-                width:90%;
-                max-width:360px;
-                border-radius:12px;
-                padding:18px;
-                box-shadow:0 4px 18px rgba(0,0,0,0.25);
-                text-align:left;
-                max-height:90vh;
-                overflow-y:auto;
-            }
-
-            .inspection-modal h3 {
-                margin:0 0 14px;
-                text-align:center;
-                color:#003b73;
-            }
-
-            .inspection-report-area {
-                border:1px solid #d6dee8;
-                border-radius:10px;
-                padding:10px;
-                background:#f8fbff;
-                white-space:pre-wrap;
-                font-size:13px;
-                color:#111827;
-                max-width:100%;
-                box-sizing:border-box;
-                overflow-wrap:anywhere;
-                word-break:break-word;
-                overflow-x:hidden;
-            }
-        </style>
-
-        <div class="inspection-card">
-            <div class="inspection-title">Inspections</div>
-            <div class="inspection-subtitle">${escapeHtml(facilityName)}</div>
-
-            <div class="inspection-box">
-                <div class="inspection-label">INSPECTED BY</div>
-                <input id="inspection-inspected-by" class="inspection-input" type="text" value="${escapeHtml(appUser.display_name)}" readonly>
-                <div class="inspection-record-value">Role: ${escapeHtml(appUser.role || 'inspector')}</div>
-
-                <div class="inspection-label">INSPECTION NOTES</div>
-                <textarea id="inspection-session-notes" class="inspection-textarea" placeholder="General notes for this inspection"></textarea>
-
-                <button id="btn-start-inspection" class="inspection-main-btn">START INSPECTION</button>
-
-                <div id="inspection-active-actions" class="inspection-action-grid" style="display:none;">
-                    <button id="btn-add-location-to-inspect" class="inspection-square-btn inspection-btn-blue">ADD LOCATION / ITEM</button>
-                    <button id="btn-save-progress-inspection" class="inspection-square-btn inspection-btn-dark">SAVE PROGRESS</button>
-                    <button id="btn-finish-later-inspection" class="inspection-square-btn inspection-btn-gray">SAVE &amp; FINISH LATER</button>
-                    <button id="btn-finish-active-inspection" class="inspection-square-btn inspection-btn-green">FINISH INSPECTION</button>
-                </div>
-
-                <div id="inspection-success" class="inspection-success"></div>
-                <div id="inspection-error" class="inspection-error"></div>
-            </div>
-
-            <div class="inspection-box">
-                <div class="inspection-label">SAVED INSPECTIONS</div>
-
-                ${sessions.length ? sessions.map(session => `
-                    <div class="inspection-record">
-                        <div class="inspection-record-title">
-                            ${escapeHtml(formatDate(session.created_at))}
-                        </div>
-                        <div class="inspection-record-value">
-                            Inspected By: ${escapeHtml(session.inspected_by || '')}
-                        </div>
-                        <div class="inspection-record-value">
-                            Status: ${escapeHtml(session.status || '')}
-                        </div>
-
-                        <div class="inspection-record-actions">
-                            <button class="inspection-small-btn btn-continue-inspection-session" data-id="${session.id}">CONTINUE / EDIT</button>
-                            <button class="inspection-small-btn btn-view-inspection-report" data-id="${session.id}">VIEW REPORT</button>
-                            <button class="inspection-delete-btn inspection-record-delete btn-delete-inspection-session" data-id="${session.id}">🗑 Delete</button>
-                        </div>
-                    </div>
-                `).join('') : `
-                    <div class="inspection-record-value">No inspections saved yet.</div>
-                `}
-            </div>
-
-            <button id="btn-back-facility-detail" class="inspection-back-btn">⬅️ BACK</button>
-
-            <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_24_login_user_tracking</div>
-        </div>
-
-        <div id="inspection-location-modal-backdrop" class="inspection-modal-backdrop">
-            <div class="inspection-modal">
-                <h3>Inspection Item</h3>
-
-                <div class="inspection-label">STARTING IMAGE</div>
-                <input id="inspection-image-input" type="file" accept="image/*" capture="environment" multiple style="display:none;">
-
-                <div class="inspection-action-grid">
-                    <button id="btn-take-inspection-image" class="inspection-square-btn inspection-btn-purple" type="button">RETAKE IMAGE</button>
-                    <button id="btn-see-inspection-images" class="inspection-square-btn inspection-btn-blue" type="button">SEE IMAGE</button>
-                </div>
-
-                <div id="inspection-image-count" class="inspection-image-count">Take a picture before saving.</div>
-                <div id="inspection-image-preview" class="inspection-image-preview"></div>
-
-                <div class="inspection-label">LOCATION / ROOM OR COMMON AREA</div>
-                <input id="location-name-input" class="inspection-input" type="text" placeholder="Room 201, Dining Room, Hallway">
-
-                <div class="inspection-label">ITEM INSPECTED</div>
-                <input id="item-name-input" class="inspection-input" type="text" placeholder="PTAC, Sink, Toilet, Door">
-
-                <div class="inspection-label">RESULT</div>
-                <div class="inspection-two-row">
-                    <button id="btn-popup-pass" class="inspection-pass-btn active">PASS</button>
-                    <button id="btn-popup-fail" class="inspection-fail-btn">FAIL</button>
-                </div>
-
-                <div id="fail-reasons-area" style="display:none;">
-                    <div class="inspection-label">FAIL REASONS</div>
-                    <div id="fail-reasons-list"></div>
-                    <button id="btn-add-fail-reason" class="inspection-small-btn" type="button" style="margin-top:8px;">ADD FAIL REASON</button>
-
-                    <div class="inspection-action-grid">
-                        <button id="btn-start-project-from-fail" class="inspection-square-btn inspection-btn-orange" type="button">START PROJECT</button>
-                        <button id="btn-save-fail-only" class="inspection-square-btn inspection-btn-dark" type="button">SAVE FAIL ONLY</button>
-                    </div>
-                </div>
-
-                <div class="inspection-label">NOTES FOR THIS LOCATION</div>
-                <textarea id="location-notes-input" class="inspection-textarea"></textarea>
-
-                <div class="inspection-action-grid">
-                    <button id="btn-save-location-add-another" class="inspection-square-btn inspection-btn-blue">SAVE &amp; CONTINUE</button>
-                    <button id="btn-save-location-finish" class="inspection-square-btn inspection-btn-green">FINISH</button>
-                </div>
-
-                <button id="btn-cancel-location-modal" class="inspection-back-btn">CANCEL</button>
-
-                <div id="location-modal-error" class="inspection-error"></div>
-
-                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_24_login_user_tracking</div>
-            </div>
-        </div>
-
-        <div id="inspection-report-modal-backdrop" class="inspection-modal-backdrop">
-            <div class="inspection-modal">
-                <h3>Inspection Report</h3>
-                <div id="inspection-report-content" class="inspection-report-area"></div>
-
-                <div class="inspection-label">TEXT REPORT TO PHONE NUMBER</div>
-                <input id="inspection-report-phone" class="inspection-input" type="tel" placeholder="Phone number">
-                <button id="btn-text-inspection-report" class="inspection-main-btn">TEXT REPORT</button>
-
-                <div class="inspection-label">EMAIL REPORT TO</div>
-                <input id="inspection-report-email" class="inspection-input" type="email" placeholder="Email address">
-                <button id="btn-email-inspection-report" class="inspection-main-btn">EMAIL REPORT</button>
-
-                <button id="btn-print-inspection-report" class="inspection-main-btn">PRINT REPORT</button>
-                <button id="btn-close-inspection-report" class="inspection-back-btn">CLOSE</button>
-                <div class="inspection-version-tag">facility-inspections/grid.js | v2026_06_24_login_user_tracking</div>
-            </div>
-        </div>
-    `;
+    const sessionItemsBySessionId = await fetchSavedSessionItemsBySessionId(sessions);
+
+    container.innerHTML = buildInspectionGridHtml({
+        facilityName,
+        appUser,
+        sessions,
+        sessionItemsBySessionId
+    });
 
     const inspectedByInput = document.getElementById('inspection-inspected-by');
     const sessionNotesInput = document.getElementById('inspection-session-notes');
