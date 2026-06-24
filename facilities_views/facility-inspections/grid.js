@@ -677,12 +677,13 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 `facility_${facilitiesId}/session_${activeSession.id}/item_${savedItem.id}`
             );
 
-            const { error } = await createInspectionImage({
-                inspection_id: savedItem.id,
-                image_url: imageUrl,
-                caption: `${savedItem.location_name || ''} - ${savedItem.item_name || ''}`,
-                uploaded_by: inspectedByInput.value.trim()
-            });
+          const { error } = await createInspectionImage({
+    inspection_id: savedItem.id,
+    facilities_id: facilitiesId,
+    image_url: imageUrl,
+    caption: `${savedItem.location_name || ''} - ${savedItem.item_name || ''}`,
+    uploaded_by: inspectedByInput.value.trim()
+});
 
             if (error) {
                 console.error('Create inspection image record error:', error);
