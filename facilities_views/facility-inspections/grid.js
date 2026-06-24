@@ -2,8 +2,8 @@
    FACILITY TRACKER MODULAR VIEW SYSTEM
    PURPOSE: Facility Inspections Grid
    LOCATION: /facilities_views/facility-inspections/grid.js
-   VERSION: v2026_06_23_popup_images_fail_project
-   UPDATED: 2026-06-23
+   VERSION: v2026_06_24_camera_first_share_report
+   UPDATED: 2026-06-24
 ================================================================ */
 
 
@@ -14,7 +14,8 @@ import {
     deleteInspectionSession,
     createInspectionSessionItem,
     fetchInspectionSessionItems,
-    createInspectionImage
+    createInspectionImage,
+    fetchInspectionImages
 } from './data.js';
 
 import { uploadImage } from '../../global_engine/image-handler.js';
@@ -44,7 +45,8 @@ function formatDate(value) {
 let activeSession = null;
 let currentResult = 'pass';
 let selectedInspectionImages = [];
-
+let pendingOpenLocationModalAfterImage = false;
+let currentReportText = '';
 export async function render(containerId, context = {}) {
     await renderFacilityInspectionsGrid(containerId, context);
 }
@@ -61,9 +63,11 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         return;
     }
 
-    activeSession = null;
+       activeSession = null;
     currentResult = 'pass';
     selectedInspectionImages = [];
+    pendingOpenLocationModalAfterImage = false;
+    currentReportText = '';
 
     const sessionsResponse = await fetchInspectionSessions(facilitiesId);
     const sessions = sessionsResponse.data || [];
