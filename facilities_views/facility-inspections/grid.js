@@ -2,7 +2,7 @@
    FACILITY TRACKER MODULAR VIEW SYSTEM
    PURPOSE: Facility Inspections Grid Controller
    LOCATION: /facilities_views/facility-inspections/grid.js
-   VERSION: v2026_06_24_grid_add_inspection_step_flow
+   VERSION: v2026_06_24_grid_edit_saved_inspection_items
    UPDATED: 2026-06-24
 ================================================================ */
 
@@ -12,6 +12,8 @@ import {
     fetchInspectionSessions,
     deleteInspectionSession,
     createInspectionSessionItem,
+    updateInspectionSessionItem,
+    deleteInspectionSessionItem,
     fetchInspectionSessionItems,
     createInspectionImage,
     fetchInspectionImages
@@ -50,6 +52,10 @@ function getStoredAppUser() {
     }
 }
 
+function normalizeResult(value) {
+    return String(value || '').trim().toLowerCase();
+}
+
 async function fetchSavedSessionItemsBySessionId(sessions = []) {
     const itemsBySessionId = {};
 
@@ -78,6 +84,7 @@ let selectedInspectionImages = [];
 let pendingOpenLocationModalAfterImage = false;
 let currentReportText = '';
 let currentLocationType = 'room';
+let editingInspectionItem = null;
 
 export async function render(containerId, context = {}) {
     await renderFacilityInspectionsGrid(containerId, context);
@@ -107,10 +114,12 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     pendingOpenLocationModalAfterImage = false;
     currentReportText = '';
     currentLocationType = 'room';
+    editingInspectionItem = null;
 
     const sessionsResponse = await fetchInspectionSessions(facilitiesId);
     const sessions = sessionsResponse.data || [];
     const sessionItemsBySessionId = await fetchSavedSessionItemsBySessionId(sessions);
+    const allSavedItems = Object.values(sessionItemsBySessionId).flat();
 
     container.innerHTML = buildInspectionGridHtml({
         facilityName,
@@ -195,6 +204,13 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     }
 
     function updateImagePreview() {
+        if (editingInspectionItem && !selectedInspectionImages.length) {
+            imageCount.textContent = 'Existing image kept. Retake only if needed.';
+            imagePreview.innerHTML = '';
+            imagePreview.style.display = 'none';
+            return;
+        }
+
         imageCount.textContent = selectedInspectionImages.length
             ? `${selectedInspectionImages.length} image(s) selected.`
             : 'Take a picture before saving.';
@@ -204,6 +220,28 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         `).join('');
     }
 
+    function setFailReasonInputs(reasons = []) {
+        failReasonsList.innerHTML = '';
+
+        const cleanReasons = Array.isArray(reasons)
+            ? reasons.map(reason => String(reason || '').trim()).filter(Boolean)
+            : [];
+
+        if (!cleanReasons.length) {
+            cleanReasons.push('');
+        }
+
+        cleanReasons.forEach((reason, index) => {
+            const input = document.createElement('input');
+            input.className = 'inspection-input fail-reason-input';
+            input.type = 'text';
+            input.placeholder = `Reason ${index + 1}`;
+            input.style.marginTop = '8px';
+            input.value = reason;
+            failReasonsList.appendChild(input);
+        });
+    }
+
     function resetStatusStep() {
         currentResult = 'pass';
         popupPassButton.classList.add('active');
@@ -211,6 +249,21 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         failReasonsArea.style.display = 'none';
         failReasonsList.innerHTML = '';
         statusModalError.textContent = '';
+    }
+
+    function loadStatusStepForEdit(item) {
+        const result = normalizeResult(item?.result);
+
+        if (result === 'fail') {
+            currentResult = 'fail';
+            popupFailButton.classList.add('active');
+            popupPassButton.classList.remove('active');
+            failReasonsArea.style.display = 'block';
+            setFailReasonInputs(item?.fail_reasons || []);
+            return;
+        }
+
+        resetStatusStep();
     }
 
     function resetLocationStep() {
@@ -225,6 +278,31 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         locationInput.placeholder = 'Room number';
 
         locationModalError.textContent = '';
+    }
+
+    function loadLocationStepForEdit(item) {
+        const locationInput = document.getElementById('location-name-input');
+        const locationName = String(item?.location_name || '').trim();
+        const roomMatch = locationName.match(/^room\s+(.+)$/i);
+
+        if (roomMatch) {
+            currentLocationType = 'room';
+            roomTypeButton.classList.add('active');
+            commonTypeButton.classList.remove('active');
+            locationInput.type = 'number';
+            locationInput.inputMode = 'numeric';
+            locationInput.placeholder = 'Room number';
+            locationInput.value = roomMatch[1].replace(/[^\d]/g, '');
+            return;
+        }
+
+        currentLocationType = 'common';
+        commonTypeButton.classList.add('active');
+        roomTypeButton.classList.remove('active');
+        locationInput.type = 'text';
+        locationInput.inputMode = 'text';
+        locationInput.placeholder = 'Dining Room, Hallway, Lobby';
+        locationInput.value = locationName;
     }
 
     function clearLocationModal() {
@@ -306,6 +384,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
             return;
         }
 
+        editingInspectionItem = null;
         clearLocationModal();
         pendingOpenLocationModalAfterImage = true;
         imageInput.value = '';
@@ -364,6 +443,34 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    function openEditInspectionItem(session, item) {
+        if (!session || !item) {
+            alert('Could not load item.');
+            return;
+        }
+
+        clearMainMessages();
+        clearStepErrors();
+        clearLocationModal();
+
+        editingInspectionItem = item;
+        activeSession = session;
+
+        inspectedByInput.value = session.inspected_by || appUser.display_name;
+        sessionNotesInput.value = session.session_notes || '';
+        showActiveSessionUi();
+
+        document.getElementById('item-name-input').value = item.item_name || '';
+        document.getElementById('location-notes-input').value = item.notes || '';
+
+        selectedInspectionImages = [];
+        imageInput.value = '';
+        updateImagePreview();
+
+        itemDescriptionModal.style.display = 'flex';
+        setTimeout(() => document.getElementById('item-name-input').focus(), 50);
+    }
+
     function getFailReasons() {
         const inputs = document.querySelectorAll('.fail-reason-input');
         return Array.from(inputs)
@@ -418,7 +525,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
             locationName = formatCommonAreaLocation(rawLocationName);
         }
 
-        if (!selectedInspectionImages.length) {
+        if (!editingInspectionItem && !selectedInspectionImages.length) {
             statusModalError.textContent = 'Take a picture first.';
             return null;
         }
@@ -458,22 +565,29 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
             notes
         };
 
-        const { data, error } = await createInspectionSessionItem(payload);
+        let response;
 
-        if (error) {
-            console.error('Create inspection session item error:', error);
+        if (editingInspectionItem?.id) {
+            response = await updateInspectionSessionItem(editingInspectionItem.id, payload);
+        } else {
+            response = await createInspectionSessionItem(payload);
+        }
+
+        if (response.error) {
+            console.error('Save inspection session item error:', response.error);
             statusModalError.textContent = 'Could not save this item.';
             return null;
         }
 
-        const imagesSaved = await uploadSelectedImages(data);
+        const imagesSaved = await uploadSelectedImages(response.data);
 
         if (!imagesSaved) {
             statusModalError.textContent = 'Item saved, but image record failed.';
-            return data;
+            return response.data;
         }
 
-        return data;
+        editingInspectionItem = null;
+        return response.data;
     }
 
     async function finishInspection() {
@@ -713,9 +827,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         statusModalError.textContent = '';
 
         if (!document.querySelector('.fail-reason-input')) {
-            failReasonsList.innerHTML = `
-                <input class="inspection-input fail-reason-input" type="text" placeholder="Reason 1" style="margin-top:8px;">
-            `;
+            setFailReasonInputs([]);
         }
     });
 
@@ -747,7 +859,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
             if (selectedInspectionImages.length) {
                 itemDescriptionModal.style.display = 'flex';
                 setTimeout(() => document.getElementById('item-name-input').focus(), 50);
-            } else {
+            } else if (!editingInspectionItem) {
                 errorBox.textContent = 'Take a picture first.';
             }
         }
@@ -755,7 +867,9 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
     document.getElementById('btn-see-inspection-images').addEventListener('click', () => {
         if (!selectedInspectionImages.length) {
-            itemDescriptionError.textContent = 'No image selected.';
+            itemDescriptionError.textContent = editingInspectionItem
+                ? 'Existing image is kept. Retake only if needed.'
+                : 'No image selected.';
             return;
         }
 
@@ -768,7 +882,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
         const itemName = document.getElementById('item-name-input').value.trim();
 
-        if (!selectedInspectionImages.length) {
+        if (!editingInspectionItem && !selectedInspectionImages.length) {
             itemDescriptionError.textContent = 'Take a picture first.';
             return;
         }
@@ -779,7 +893,13 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         }
 
         itemDescriptionModal.style.display = 'none';
-        resetLocationStep();
+
+        if (editingInspectionItem) {
+            loadLocationStepForEdit(editingInspectionItem);
+        } else {
+            resetLocationStep();
+        }
+
         locationModal.style.display = 'flex';
         setTimeout(() => document.getElementById('location-name-input').focus(), 50);
     });
@@ -787,6 +907,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     document.getElementById('btn-cancel-item-description-modal').addEventListener('click', () => {
         pendingOpenLocationModalAfterImage = false;
         itemDescriptionModal.style.display = 'none';
+        editingInspectionItem = null;
         clearLocationModal();
     });
 
@@ -811,7 +932,13 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         }
 
         locationModal.style.display = 'none';
-        resetStatusStep();
+
+        if (editingInspectionItem) {
+            loadStatusStepForEdit(editingInspectionItem);
+        } else {
+            resetStatusStep();
+        }
+
         statusModal.style.display = 'flex';
     });
 
@@ -853,7 +980,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     });
 
     document.querySelectorAll('.btn-continue-inspection-session').forEach(button => {
-        button.addEventListener('click', async () => {
+        button.addEventListener('click', () => {
             const sessionId = button.dataset.id;
             const session = sessions.find(item => String(item.id) === String(sessionId));
 
@@ -862,18 +989,55 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 return;
             }
 
-            const { error } = await updateInspectionSession(session.id, {
+            session.status = 'open';
+            loadSavedInspection(session);
+
+            updateInspectionSession(session.id, {
                 status: 'open'
+            }).then(({ error }) => {
+                if (error) {
+                    console.error('Reopen inspection session error:', error);
+                }
             });
 
-            if (error) {
-                console.error('Reopen inspection session error:', error);
-                alert('Could not reopen inspection.');
+            openCameraForNextInspectionItem();
+        });
+    });
+
+    document.querySelectorAll('.btn-edit-inspection-session-item').forEach(button => {
+        button.addEventListener('click', () => {
+            const itemId = button.dataset.itemId;
+            const item = allSavedItems.find(savedItem => String(savedItem.id) === String(itemId));
+
+            if (!item) {
+                alert('Could not load item.');
                 return;
             }
 
-            session.status = 'open';
-            loadSavedInspection(session);
+            const session = sessions.find(savedSession => String(savedSession.id) === String(item.inspection_session_id));
+
+            if (!session) {
+                alert('Could not load saved inspection.');
+                return;
+            }
+
+            openEditInspectionItem(session, item);
+        });
+    });
+
+    document.querySelectorAll('.btn-delete-inspection-session-item').forEach(button => {
+        button.addEventListener('click', async () => {
+            if (!confirm('Delete this inspection item?')) return;
+
+            const { error } = await deleteInspectionSessionItem(button.dataset.itemId);
+
+            if (error) {
+                console.error('Delete inspection item error:', error);
+                alert('Could not delete item.');
+                return;
+            }
+
+            reloadInspectionView();
         });
     });
 
