@@ -2,8 +2,48 @@
    PURPOSE: Router to handle view navigation
    LOCATION: /global_engine/router.js
    DATE: 2026-06-24
-   VERSION: v2026_06_24_inspection_camera_share_cache_update
+   VERSION: v2026_06_24_login_guard
    ================================================================ */
+
+import { supabase } from './supabaseClient.js';
+
+async function fetchLoggedInAppUser(authUserId) {
+    return await supabase
+        .from('app_users')
+        .select('*')
+        .eq('auth_user_id', authUserId)
+        .eq('active_status', 'active')
+        .single();
+}
+
+async function requireLogin(view) {
+    if (view === 'login') return true;
+
+    const { data, error } = await supabase.auth.getUser();
+
+    if (error || !data?.user?.id) {
+        localStorage.removeItem('facility_tracker_app_user');
+        return false;
+    }
+
+    const profileResponse = await fetchLoggedInAppUser(data.user.id);
+
+    if (profileResponse.error || !profileResponse.data) {
+        console.error('App user profile error:', profileResponse.error);
+        await supabase.auth.signOut();
+        localStorage.removeItem('facility_tracker_app_user');
+        return false;
+    }
+
+    localStorage.setItem('facility_tracker_app_user', JSON.stringify({
+        auth_user_id: profileResponse.data.auth_user_id,
+        display_name: profileResponse.data.display_name,
+        role: profileResponse.data.role,
+        active_status: profileResponse.data.active_status
+    }));
+
+    return true;
+}
 
 export async function navigateTo(view, context = {}) {
     const app = document.getElementById('app-container');
@@ -15,6 +55,32 @@ export async function navigateTo(view, context = {}) {
 
     try {
         const basePath = '/FACILITYS-TRACKER-APP';
+
+        const isAllowed = await requireLogin(view);
+
+        if (!isAllowed) {
+            const module = await import(`${basePath}/facilities_views/login/grid.js?v=20260624_login_view`);
+            await module.renderLoginGrid('app-container', context);
+            return;
+        }
+
+        if (view === 'login') {
+            const module = await import(`${basePath}/facilities_views/login/grid.js?v=20260624_login_view`);
+
+            if (typeof module.renderLoginGrid === 'function') {
+                await module.renderLoginGrid('app-container', context);
+                return;
+            }
+
+            if (typeof module.render === 'function') {
+                await module.render('app-container', context);
+                return;
+            }
+
+            console.error("No valid render function found in login/grid.js");
+            app.innerHTML = `<div style="padding:20px;color:red;">Login view render function not found.</div>`;
+            return;
+        }
 
         if (view === 'facilities-home') {
             const module = await import(`${basePath}/facilities_views/facilities-home/grid.js?v=20260623_home_modal_hide_fix`);
@@ -90,7 +156,7 @@ export async function navigateTo(view, context = {}) {
         }
 
         if (view === 'facility-inspections') {
-            const module = await import(`${basePath}/facilities_views/facility-inspections/grid.js?v=20260624_camera_first_share_report`);
+            const module = await import(`${basePath}/facilities_views/facility-inspections/grid.js?v=20260624_login_user_tracking`);
 
             if (typeof module.renderFacilityInspectionsGrid === 'function') {
                 await module.renderFacilityInspectionsGrid('app-container', context);
