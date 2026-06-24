@@ -615,9 +615,8 @@ export function buildInspectionGridHtml({
                     <div id="fail-reasons-list"></div>
                     <button id="btn-add-fail-reason" class="inspection-small-btn" type="button" style="margin-top:8px;">ADD FAIL REASON</button>
 
-                    <div class="inspection-action-grid">
+                                      <div class="inspection-single-grid">
                         <button id="btn-start-project-from-fail" class="inspection-square-btn inspection-btn-orange" type="button">START PROJECT</button>
-                        <button id="btn-save-fail-only" class="inspection-square-btn inspection-btn-dark" type="button">SAVE FAIL ONLY</button>
                     </div>
                 </div>
 
