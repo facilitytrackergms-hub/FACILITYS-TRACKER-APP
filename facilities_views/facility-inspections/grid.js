@@ -2,7 +2,7 @@
    FACILITY TRACKER MODULAR VIEW SYSTEM
    PURPOSE: Facility Inspections Grid Controller
    LOCATION: /facilities_views/facility-inspections/grid.js
-   VERSION: v2026_06_24_grid_ui_split_saved_card_details
+   VERSION: v2026_06_24_grid_add_inspection_step_flow
    UPDATED: 2026-06-24
 ================================================================ */
 
@@ -77,6 +77,7 @@ let currentResult = 'pass';
 let selectedInspectionImages = [];
 let pendingOpenLocationModalAfterImage = false;
 let currentReportText = '';
+let currentLocationType = 'room';
 
 export async function render(containerId, context = {}) {
     await renderFacilityInspectionsGrid(containerId, context);
@@ -105,6 +106,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     selectedInspectionImages = [];
     pendingOpenLocationModalAfterImage = false;
     currentReportText = '';
+    currentLocationType = 'room';
 
     const sessionsResponse = await fetchInspectionSessions(facilitiesId);
     const sessions = sessionsResponse.data || [];
@@ -128,9 +130,23 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     const errorBox = document.getElementById('inspection-error');
     const successBox = document.getElementById('inspection-success');
 
+    const sessionModal = document.getElementById('inspection-session-modal-backdrop');
+    const inspectionNameInput = document.getElementById('inspection-name-input');
+    const inspectionNameError = document.getElementById('inspection-name-error');
+
+    const itemDescriptionModal = document.getElementById('inspection-item-description-modal-backdrop');
+    const itemDescriptionError = document.getElementById('item-description-error');
+
     const locationModal = document.getElementById('inspection-location-modal-backdrop');
+    const locationModalError = document.getElementById('location-modal-error');
+
+    const statusModal = document.getElementById('inspection-status-modal-backdrop');
+    const statusModalError = document.getElementById('status-modal-error');
+
     const reportModal = document.getElementById('inspection-report-modal-backdrop');
-    const modalError = document.getElementById('location-modal-error');
+
+    const roomTypeButton = document.getElementById('btn-location-type-room');
+    const commonTypeButton = document.getElementById('btn-location-type-common');
 
     const popupPassButton = document.getElementById('btn-popup-pass');
     const popupFailButton = document.getElementById('btn-popup-fail');
@@ -146,6 +162,19 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         successBox.textContent = '';
     }
 
+    function clearStepErrors() {
+        inspectionNameError.textContent = '';
+        itemDescriptionError.textContent = '';
+        locationModalError.textContent = '';
+        statusModalError.textContent = '';
+    }
+
+    function reloadInspectionView() {
+        if (window.navigateTo) {
+            window.navigateTo('facility-inspections', context);
+        }
+    }
+
     function getSessionInspectorName() {
         return activeSession?.inspected_by || inspectedByInput.value.trim() || appUser.display_name;
     }
@@ -158,6 +187,13 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         return activeSession?.inspected_by_role || appUser.role || 'inspector';
     }
 
+    function formatCommonAreaLocation(value) {
+        return String(value || '')
+            .trim()
+            .toLowerCase()
+            .replace(/\b\w/g, letter => letter.toUpperCase());
+    }
+
     function updateImagePreview() {
         imageCount.textContent = selectedInspectionImages.length
             ? `${selectedInspectionImages.length} image(s) selected.`
@@ -168,21 +204,41 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         `).join('');
     }
 
+    function resetStatusStep() {
+        currentResult = 'pass';
+        popupPassButton.classList.add('active');
+        popupFailButton.classList.remove('active');
+        failReasonsArea.style.display = 'none';
+        failReasonsList.innerHTML = '';
+        statusModalError.textContent = '';
+    }
+
+    function resetLocationStep() {
+        currentLocationType = 'room';
+        roomTypeButton.classList.add('active');
+        commonTypeButton.classList.remove('active');
+
+        const locationInput = document.getElementById('location-name-input');
+        locationInput.value = '';
+        locationInput.type = 'number';
+        locationInput.inputMode = 'numeric';
+        locationInput.placeholder = 'Room number';
+
+        locationModalError.textContent = '';
+    }
+
     function clearLocationModal() {
         document.getElementById('location-name-input').value = '';
         document.getElementById('item-name-input').value = '';
         document.getElementById('location-notes-input').value = '';
         failReasonsList.innerHTML = '';
-        modalError.textContent = '';
-        modalError.style.color = 'red';
-        currentResult = 'pass';
+        clearStepErrors();
+        resetLocationStep();
+        resetStatusStep();
         selectedInspectionImages = [];
         imageInput.value = '';
         imagePreview.style.display = 'none';
         updateImagePreview();
-        popupPassButton.classList.add('active');
-        popupFailButton.classList.remove('active');
-        failReasonsArea.style.display = 'none';
     }
 
     function showActiveSessionUi() {
@@ -190,16 +246,69 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         activeActions.style.display = 'grid';
     }
 
+    function openInspectionNameModal() {
+        clearMainMessages();
+        clearStepErrors();
+        inspectionNameInput.value = '';
+        sessionModal.style.display = 'flex';
+        setTimeout(() => inspectionNameInput.focus(), 50);
+    }
+
+    async function createInspectionFromName() {
+        clearMainMessages();
+        clearStepErrors();
+
+        const inspectionName = inspectionNameInput.value.trim();
+
+        if (!inspectionName) {
+            inspectionNameError.textContent = 'Enter inspection name or purpose.';
+            return null;
+        }
+
+        const payload = {
+            facilities_id: facilitiesId,
+            inspected_by: appUser.display_name,
+            inspected_by_user_id: appUser.auth_user_id,
+            inspected_by_role: appUser.role || 'inspector',
+            session_notes: inspectionName,
+            status: 'open'
+        };
+
+        const { data, error } = await createInspectionSession(payload);
+
+        if (error) {
+            console.error('Create inspection session error:', error);
+            inspectionNameError.textContent = 'Could not save inspection.';
+            return null;
+        }
+
+        activeSession = data;
+        inspectedByInput.value = data.inspected_by || appUser.display_name;
+        sessionNotesInput.value = inspectionName;
+        sessionModal.style.display = 'none';
+        successBox.textContent = 'Inspection saved. Click INSPECT ITEM.';
+        showActiveSessionUi();
+
+        return activeSession;
+    }
+
     function openCameraForNextInspectionItem() {
         clearMainMessages();
+        clearStepErrors();
 
         if (!appUser?.display_name) {
             errorBox.textContent = 'Login user not found.';
             return;
         }
 
+        if (!activeSession) {
+            errorBox.textContent = 'Add inspection first.';
+            return;
+        }
+
         clearLocationModal();
         pendingOpenLocationModalAfterImage = true;
+        imageInput.value = '';
         imageInput.click();
     }
 
@@ -208,36 +317,13 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
         if (activeSession) return activeSession;
 
-        const sessionNotes = sessionNotesInput.value.trim();
-
-        const payload = {
-            facilities_id: facilitiesId,
-            inspected_by: appUser.display_name,
-            inspected_by_user_id: appUser.auth_user_id,
-            inspected_by_role: appUser.role || 'inspector',
-            session_notes: sessionNotes,
-            status: 'open'
-        };
-
-        const { data, error } = await createInspectionSession(payload);
-
-        if (error) {
-            console.error('Create inspection session error:', error);
-            errorBox.textContent = 'Could not start inspection.';
-            return null;
-        }
-
-        activeSession = data;
-        inspectedByInput.value = data.inspected_by || appUser.display_name;
-        successBox.textContent = 'Inspection started. You can save and continue later.';
-        showActiveSessionUi();
-
-        return activeSession;
+        errorBox.textContent = 'Add inspection first.';
+        return null;
     }
 
     async function saveInspectionProgress(leaveAfterSave = false) {
         if (!activeSession) {
-            errorBox.textContent = 'Start with a picture first.';
+            errorBox.textContent = 'Add inspection first.';
             return false;
         }
 
@@ -273,7 +359,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
         showActiveSessionUi();
 
-        successBox.textContent = 'Saved inspection loaded. Add the next item by taking a picture.';
+        successBox.textContent = 'Saved inspection loaded. Click INSPECT ITEM.';
         errorBox.textContent = '';
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -313,36 +399,47 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     }
 
     async function saveLocationItem() {
-        modalError.textContent = '';
-        modalError.style.color = 'red';
+        statusModalError.textContent = '';
+        statusModalError.style.color = 'red';
 
-        const locationName = document.getElementById('location-name-input').value.trim();
+        const locationInput = document.getElementById('location-name-input');
+        const rawLocationName = locationInput.value.trim();
         const itemName = document.getElementById('item-name-input').value.trim();
         const notes = document.getElementById('location-notes-input').value.trim();
         const failReasons = getFailReasons();
 
-        if (!selectedInspectionImages.length) {
-            modalError.textContent = 'Take a picture first.';
-            return null;
+        let locationName = rawLocationName;
+
+        if (currentLocationType === 'room') {
+            locationName = rawLocationName ? `Room ${rawLocationName}` : '';
         }
 
-        if (!locationName) {
-            modalError.textContent = 'Enter location, room, or common area.';
+        if (currentLocationType === 'common') {
+            locationName = formatCommonAreaLocation(rawLocationName);
+        }
+
+        if (!selectedInspectionImages.length) {
+            statusModalError.textContent = 'Take a picture first.';
             return null;
         }
 
         if (!itemName) {
-            modalError.textContent = 'Enter item inspected.';
+            statusModalError.textContent = 'Enter item description.';
+            return null;
+        }
+
+        if (!locationName) {
+            statusModalError.textContent = 'Enter location.';
             return null;
         }
 
         if (currentResult === 'fail' && !failReasons.length) {
-            modalError.textContent = 'Enter at least one fail reason.';
+            statusModalError.textContent = 'Enter at least one fail reason.';
             return null;
         }
 
         if (!appUser?.display_name) {
-            modalError.textContent = 'Login user not found.';
+            statusModalError.textContent = 'Login user not found.';
             return null;
         }
 
@@ -365,14 +462,14 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
         if (error) {
             console.error('Create inspection session item error:', error);
-            modalError.textContent = 'Could not save this location.';
+            statusModalError.textContent = 'Could not save this item.';
             return null;
         }
 
         const imagesSaved = await uploadSelectedImages(data);
 
         if (!imagesSaved) {
-            modalError.textContent = 'Location saved, but image record failed.';
+            statusModalError.textContent = 'Item saved, but image record failed.';
             return data;
         }
 
@@ -381,7 +478,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
     async function finishInspection() {
         if (!activeSession) {
-            errorBox.textContent = 'Start with a picture first.';
+            errorBox.textContent = 'Add inspection first.';
             return false;
         }
 
@@ -400,17 +497,14 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         }
 
         activeSession = null;
-
-        if (window.navigateTo) {
-            window.navigateTo('facility-inspections', context);
-        }
+        reloadInspectionView();
 
         return true;
     }
 
     async function saveFailAndStartProject() {
         if (currentResult !== 'fail') {
-            modalError.textContent = 'Select FAIL before starting a project.';
+            statusModalError.textContent = 'Select FAIL before starting a project.';
             return;
         }
 
@@ -436,6 +530,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                         `Created from failed inspection.`,
                         ``,
                         `Facility: ${facilityName}`,
+                        `Inspection: ${activeSession?.session_notes || sessionNotesInput.value.trim() || ''}`,
                         `Location: ${saved.location_name || ''}`,
                         `Item: ${saved.item_name || ''}`,
                         `Result: FAIL`,
@@ -533,7 +628,17 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     }
 
     startButton.addEventListener('click', () => {
-        openCameraForNextInspectionItem();
+        openInspectionNameModal();
+    });
+
+    document.getElementById('btn-save-inspection-name').addEventListener('click', async () => {
+        await createInspectionFromName();
+    });
+
+    document.getElementById('btn-cancel-inspection-name').addEventListener('click', () => {
+        sessionModal.style.display = 'none';
+        inspectionNameInput.value = '';
+        inspectionNameError.textContent = '';
     });
 
     addLocationButton.addEventListener('click', () => {
@@ -552,13 +657,52 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         await finishInspection();
     });
 
+    roomTypeButton.addEventListener('click', () => {
+        currentLocationType = 'room';
+        roomTypeButton.classList.add('active');
+        commonTypeButton.classList.remove('active');
+
+        const locationInput = document.getElementById('location-name-input');
+        locationInput.value = '';
+        locationInput.type = 'number';
+        locationInput.inputMode = 'numeric';
+        locationInput.placeholder = 'Room number';
+        locationModalError.textContent = '';
+    });
+
+    commonTypeButton.addEventListener('click', () => {
+        currentLocationType = 'common';
+        commonTypeButton.classList.add('active');
+        roomTypeButton.classList.remove('active');
+
+        const locationInput = document.getElementById('location-name-input');
+        locationInput.value = '';
+        locationInput.type = 'text';
+        locationInput.inputMode = 'text';
+        locationInput.placeholder = 'Dining Room, Hallway, Lobby';
+        locationModalError.textContent = '';
+    });
+
+    document.getElementById('location-name-input').addEventListener('input', event => {
+        if (currentLocationType !== 'common') return;
+
+        const cursorPosition = event.target.selectionStart;
+        event.target.value = formatCommonAreaLocation(event.target.value);
+
+        try {
+            event.target.setSelectionRange(cursorPosition, cursorPosition);
+        } catch (error) {
+            console.error('Set cursor position error:', error);
+        }
+    });
+
     popupPassButton.addEventListener('click', () => {
         currentResult = 'pass';
         popupPassButton.classList.add('active');
         popupFailButton.classList.remove('active');
         failReasonsArea.style.display = 'none';
         failReasonsList.innerHTML = '';
-        modalError.textContent = '';
+        statusModalError.textContent = '';
     });
 
     popupFailButton.addEventListener('click', () => {
@@ -566,7 +710,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         popupFailButton.classList.add('active');
         popupPassButton.classList.remove('active');
         failReasonsArea.style.display = 'block';
-        modalError.textContent = '';
+        statusModalError.textContent = '';
 
         if (!document.querySelector('.fail-reason-input')) {
             failReasonsList.innerHTML = `
@@ -586,7 +730,9 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     });
 
     document.getElementById('btn-take-inspection-image').addEventListener('click', () => {
-        pendingOpenLocationModalAfterImage = false;
+        itemDescriptionError.textContent = '';
+        pendingOpenLocationModalAfterImage = true;
+        imageInput.value = '';
         imageInput.click();
     });
 
@@ -599,7 +745,8 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
             pendingOpenLocationModalAfterImage = false;
 
             if (selectedInspectionImages.length) {
-                locationModal.style.display = 'flex';
+                itemDescriptionModal.style.display = 'flex';
+                setTimeout(() => document.getElementById('item-name-input').focus(), 50);
             } else {
                 errorBox.textContent = 'Take a picture first.';
             }
@@ -608,53 +755,101 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
     document.getElementById('btn-see-inspection-images').addEventListener('click', () => {
         if (!selectedInspectionImages.length) {
-            modalError.textContent = 'No image selected.';
+            itemDescriptionError.textContent = 'No image selected.';
             return;
         }
 
-        modalError.textContent = '';
+        itemDescriptionError.textContent = '';
         imagePreview.style.display = imagePreview.style.display === 'grid' ? 'none' : 'grid';
+    });
+
+    document.getElementById('btn-save-item-description').addEventListener('click', () => {
+        itemDescriptionError.textContent = '';
+
+        const itemName = document.getElementById('item-name-input').value.trim();
+
+        if (!selectedInspectionImages.length) {
+            itemDescriptionError.textContent = 'Take a picture first.';
+            return;
+        }
+
+        if (!itemName) {
+            itemDescriptionError.textContent = 'Enter item description.';
+            return;
+        }
+
+        itemDescriptionModal.style.display = 'none';
+        resetLocationStep();
+        locationModal.style.display = 'flex';
+        setTimeout(() => document.getElementById('location-name-input').focus(), 50);
+    });
+
+    document.getElementById('btn-cancel-item-description-modal').addEventListener('click', () => {
+        pendingOpenLocationModalAfterImage = false;
+        itemDescriptionModal.style.display = 'none';
+        clearLocationModal();
+    });
+
+    document.getElementById('btn-save-location-step').addEventListener('click', () => {
+        locationModalError.textContent = '';
+
+        const locationInput = document.getElementById('location-name-input');
+        const locationValue = locationInput.value.trim();
+
+        if (!locationValue) {
+            locationModalError.textContent = 'Enter location.';
+            return;
+        }
+
+        if (currentLocationType === 'room' && !/^\d+$/.test(locationValue)) {
+            locationModalError.textContent = 'Room must be numbers only.';
+            return;
+        }
+
+        if (currentLocationType === 'common') {
+            locationInput.value = formatCommonAreaLocation(locationValue);
+        }
+
+        locationModal.style.display = 'none';
+        resetStatusStep();
+        statusModal.style.display = 'flex';
+    });
+
+    document.getElementById('btn-cancel-location-modal').addEventListener('click', () => {
+        pendingOpenLocationModalAfterImage = false;
+        locationModal.style.display = 'none';
+        itemDescriptionModal.style.display = 'flex';
+        locationModalError.textContent = '';
     });
 
     document.getElementById('btn-start-project-from-fail').addEventListener('click', async () => {
         await saveFailAndStartProject();
     });
 
-    document.getElementById('btn-save-fail-only').addEventListener('click', async () => {
-        const saved = await saveLocationItem();
-        if (!saved) return;
-
-        locationModal.style.display = 'none';
-        clearLocationModal();
-        successBox.textContent = 'Failed item saved.';
-        errorBox.textContent = '';
-    });
-
     document.getElementById('btn-save-location-add-another').addEventListener('click', async () => {
         const saved = await saveLocationItem();
         if (!saved) return;
 
-        locationModal.style.display = 'none';
+        statusModal.style.display = 'none';
         clearLocationModal();
-        successBox.textContent = 'Saved. Take the next picture.';
+        successBox.textContent = 'Item saved.';
         errorBox.textContent = '';
 
-        pendingOpenLocationModalAfterImage = true;
-        imageInput.click();
+        reloadInspectionView();
     });
 
     document.getElementById('btn-save-location-finish').addEventListener('click', async () => {
         const saved = await saveLocationItem();
         if (!saved) return;
 
-        locationModal.style.display = 'none';
+        statusModal.style.display = 'none';
         await finishInspection();
     });
 
-    document.getElementById('btn-cancel-location-modal').addEventListener('click', () => {
-        pendingOpenLocationModalAfterImage = false;
-        locationModal.style.display = 'none';
-        clearLocationModal();
+    document.getElementById('btn-cancel-status-modal').addEventListener('click', () => {
+        statusModal.style.display = 'none';
+        locationModal.style.display = 'flex';
+        statusModalError.textContent = '';
     });
 
     document.querySelectorAll('.btn-continue-inspection-session').forEach(button => {
@@ -694,9 +889,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 return;
             }
 
-            if (window.navigateTo) {
-                window.navigateTo('facility-inspections', context);
-            }
+            reloadInspectionView();
         });
     });
 
@@ -738,10 +931,10 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 ``,
                 `Status: ${session?.status || ''}`,
                 ``,
-                `General Notes:`,
+                `Inspection Name / Purpose:`,
                 `${session?.session_notes || ''}`,
                 ``,
-                `LOCATIONS INSPECTED:`,
+                `ITEMS INSPECTED:`,
                 ``,
                 ...reportItems.map((entry, index) => {
                     const item = entry.item;
