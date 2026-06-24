@@ -2,8 +2,8 @@
    FACILITY TRACKER MODULAR VIEW SYSTEM
    PURPOSE: Facility Inspections Data Service
    LOCATION: /facilities_views/facility-inspections/data.js
-   VERSION: v2026_06_23_inspection_sessions_data
-   UPDATED: 2026-06-23
+   VERSION: v2026_06_24_inspection_sessions_edit_items_data
+   UPDATED: 2026-06-24
 ================================================================ */
 
 import { supabase } from '../../global_engine/supabaseClient.js';
@@ -62,6 +62,15 @@ export async function createInspectionSessionItem(payload) {
     return await supabase
         .from('inspection_session_items')
         .insert([payload])
+        .select()
+        .single();
+}
+
+export async function updateInspectionSessionItem(itemId, payload) {
+    return await supabase
+        .from('inspection_session_items')
+        .update(payload)
+        .eq('id', itemId)
         .select()
         .single();
 }
