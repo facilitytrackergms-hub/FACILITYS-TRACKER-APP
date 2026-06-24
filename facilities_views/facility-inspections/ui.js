@@ -518,7 +518,7 @@ export function buildInspectionGridHtml({
                     <button id="btn-finish-active-inspection" class="inspection-square-btn inspection-btn-green" style="display:none;">FINISH INSPECTION</button>
                 </div>
 
-                <input id="inspection-image-input" type="file" accept="image/*" capture="environment" multiple style="display:none;">
+                <input id="inspection-image-input" type="file" accept="image/*" capture="environment" style="display:none;">
 
                 <div id="inspection-success" class="inspection-success"></div>
                 <div id="inspection-error" class="inspection-error"></div>
@@ -615,7 +615,7 @@ export function buildInspectionGridHtml({
                     <div id="fail-reasons-list"></div>
                     <button id="btn-add-fail-reason" class="inspection-small-btn" type="button" style="margin-top:8px;">ADD FAIL REASON</button>
 
-                                      <div class="inspection-single-grid">
+                    <div class="inspection-single-grid">
                         <button id="btn-start-project-from-fail" class="inspection-square-btn inspection-btn-orange" type="button">START PROJECT</button>
                     </div>
                 </div>
