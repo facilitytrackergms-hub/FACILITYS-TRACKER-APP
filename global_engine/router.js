@@ -2,7 +2,7 @@
    PURPOSE: Router to handle view navigation
    LOCATION: /global_engine/router.js
    DATE: 2026-06-24
-   VERSION: v2026_06_24_router_duplicate_paste_fix
+   VERSION: v2026_06_24_inspections_step_flow_route
    ================================================================ */
 
 import { supabase } from './supabaseClient.js';
@@ -156,7 +156,7 @@ export async function navigateTo(view, context = {}) {
         }
 
         if (view === 'facility-inspections') {
-            const module = await import(`${basePath}/facilities_views/facility-inspections/grid.js?v=20260624_grid_ui_split_saved_card_details`);
+            const module = await import(`${basePath}/facilities_views/facility-inspections/grid.js?v=20260624_grid_add_inspection_step_flow`);
 
             if (typeof module.renderFacilityInspectionsGrid === 'function') {
                 await module.renderFacilityInspectionsGrid('app-container', context);
