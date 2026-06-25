@@ -548,34 +548,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
             return;
         }
 
-        if (window.navigateTo) {
-            window.navigateTo('project-update', {
-                ...context,
-                id: facilitiesId,
-                facilities_id: facilitiesId,
-                from_inspection_item: true,
-                inspection_update_prefill: {
-                    facility_name: facilityName,
-                    inspection_session_id: session.id,
-                    inspection_item_id: item.id,
-                    inspection_name: session.session_notes || '',
-                    location_name: item.location_name || '',
-                    item_name: item.item_name || '',
-                    result: item.result || '',
-                    fail_reasons: Array.isArray(item.fail_reasons) ? item.fail_reasons : [],
-                    notes: item.notes || '',
-                    requested_by_name: getSessionInspectorName(),
-                    requested_by_title: getSessionInspectorRole(),
-                    update_text: [
-                        `Inspection Update`,
-                        `Inspection: ${session.session_notes || ''}`,
-                        `Location: ${item.location_name || ''}`,
-                        `Item: ${item.item_name || ''}`,
-                        `Result: ${String(item.result || '').toUpperCase()}`
-                    ].join('\n')
-                }
-            });
-        }
+        itemDashboardError.textContent = 'This item is not connected to an existing project yet. Use START PROJECT FROM THIS ITEM first.';
     }
 
 async function openInspectionItemDashboard(session, item) {
