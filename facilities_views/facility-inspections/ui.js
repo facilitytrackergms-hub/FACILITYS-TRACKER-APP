@@ -41,10 +41,13 @@ function buildSavedInspectionItemsHtml(items) {
     return items.map((item, index) => {
         const result = normalizeResult(item.result);
         const resultLabel = result ? result.toUpperCase() : 'NOT ENTERED';
+        const itemClass = result === 'fail'
+            ? 'inspection-session-item-summary inspection-session-item-fail btn-open-inspection-item-dashboard'
+            : 'inspection-session-item-summary btn-open-inspection-item-dashboard';
 
         return `
             <div 
-                class="inspection-session-item-summary btn-open-inspection-item-dashboard"
+                class="${itemClass}"
                 data-item-id="${escapeHtml(item.id)}"
                 data-session-id="${escapeHtml(item.inspection_session_id || '')}"
                 role="button"
@@ -71,8 +74,7 @@ function buildSavedInspectionCardsHtml(sessions = [], sessionItemsBySessionId = 
 
     return sessions.map(session => {
         const items = getSessionItems(session, sessionItemsBySessionId);
-        const hasFail = items.some(item => normalizeResult(item.result) === 'fail');
-        const recordClass = hasFail ? 'inspection-record inspection-record-fail' : 'inspection-record';
+        const recordClass = 'inspection-record';
         const inspectionName = session.session_notes || 'Inspection';
 
         return `
@@ -353,17 +355,7 @@ export function buildInspectionGridHtml({
                 background:white;
             }
 
-            .inspection-record-fail {
-                background:#991b1b;
-                border-color:#7f1d1d;
-            }
-
-            .inspection-record-fail .inspection-record-title,
-            .inspection-record-fail .inspection-record-value {
-                color:white;
-            }
-
-            .inspection-record-title {
+                .inspection-record-title {
                 color:#003b73;
                 font-size:14px;
                 font-weight:bold;
@@ -381,10 +373,6 @@ export function buildInspectionGridHtml({
                 padding-top:8px;
             }
 
-            .inspection-record-fail .inspection-session-item-summary {
-                border-top:1px solid rgba(255,255,255,0.35);
-            }
-
             .btn-open-inspection-item-dashboard {
                 cursor:pointer;
                 border-radius:6px;
@@ -395,8 +383,19 @@ export function buildInspectionGridHtml({
                 background:rgba(0,80,157,0.08);
             }
 
-            .inspection-record-fail .btn-open-inspection-item-dashboard:hover {
-                background:rgba(255,255,255,0.12);
+            .inspection-session-item-fail {
+                background:#991b1b;
+                border:1px solid #7f1d1d;
+                border-radius:8px;
+                padding:8px;
+            }
+
+            .inspection-session-item-fail:hover {
+                background:#7f1d1d;
+            }
+
+            .inspection-session-item-fail .inspection-record-value {
+                color:white;
             }
 
             .inspection-result-pass {
@@ -409,7 +408,7 @@ export function buildInspectionGridHtml({
                 font-weight:bold;
             }
 
-            .inspection-record-fail .inspection-result-fail {
+            .inspection-session-item-fail .inspection-result-fail {
                 color:#facc15;
             }
 
