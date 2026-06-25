@@ -668,7 +668,8 @@ async function uploadSelectedImages(savedItem) {
 
     return true;
 }
-        statusModalError.textContent = '';
+      async function saveLocationItem() { 
+   statusModalError.textContent = '';
         statusModalError.style.color = 'red';
 
         const locationInput = document.getElementById('location-name-input');
