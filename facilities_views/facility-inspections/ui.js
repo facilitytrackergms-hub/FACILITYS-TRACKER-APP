@@ -764,7 +764,7 @@ export function buildInspectionGridHtml({
             </div>
         </div>
 
-        <div id="inspection-item-dashboard-modal-backdrop" class="inspection-modal-backdrop">
+          <div id="inspection-item-dashboard-modal-backdrop" class="inspection-modal-backdrop">
             <div class="inspection-modal">
                 <h3>Inspection Item Dashboard</h3>
 
@@ -773,10 +773,10 @@ export function buildInspectionGridHtml({
                     <div class="inspection-dashboard-line"><strong>Location:</strong> <span id="item-dashboard-location"></span></div>
                     <div class="inspection-dashboard-line"><strong>Item:</strong> <span id="item-dashboard-item"></span></div>
                     <div class="inspection-dashboard-line"><strong>Status:</strong> <span id="item-dashboard-status"></span></div>
-                    <                    <div class="inspection-dashboard-line"><strong>Saved Images:</strong></div>
+                    <div class="inspection-dashboard-line"><strong>Fail Reasons:</strong> <span id="item-dashboard-fail-reasons"></span></div>
+                    <div class="inspection-dashboard-line"><strong>Saved Images:</strong></div>
                     <div id="item-dashboard-images" class="inspection-dashboard-images"></div>
-                    <div id="item-dashboard-images-empty" class="inspection-dashboard-empty">No saved images.</div>div class="inspection-dashboard-line"><strong>Fail Reasons:</strong> <span id="item-dashboard-fail-reasons"></span></div>
-                    
+                    <div id="item-dashboard-images-empty" class="inspection-dashboard-empty">No saved images.</div>
                 </div>
 
                 <div class="inspection-single-grid">
