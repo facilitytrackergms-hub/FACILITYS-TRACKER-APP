@@ -578,7 +578,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         }
     }
 
-   async function openInspectionItemDashboard(session, item) {
+async function openInspectionItemDashboard(session, item) {
     if (!session || !item) {
         alert('Could not load inspection item.');
         return;
@@ -641,34 +641,33 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
     itemDashboardError.textContent = '';
     itemDashboardModal.style.display = 'flex';
 }
-    async function uploadSelectedImages(savedItem) {
-        if (!selectedInspectionImages.length || !savedItem?.id) return true;
 
-        for (const file of selectedInspectionImages) {
-            const imageUrl = await uploadImage(
-                file,
-                'inspection-images',
-                `facility_${facilitiesId}/session_${activeSession.id}/item_${savedItem.id}`
-            );
+async function uploadSelectedImages(savedItem) {
+    if (!selectedInspectionImages.length || !savedItem?.id) return true;
 
-            const { error } = await createInspectionImage({
-                inspection_id: savedItem.id,
-                facilities_id: facilitiesId,
-                image_url: imageUrl,
-                caption: `${savedItem.location_name || ''} - ${savedItem.item_name || ''}`,
-                uploaded_by: getSessionInspectorName()
-            });
+    for (const file of selectedInspectionImages) {
+        const imageUrl = await uploadImage(
+            file,
+            'inspection-images',
+            `facility_${facilitiesId}/session_${activeSession.id}/item_${savedItem.id}`
+        );
 
-            if (error) {
-                console.error('Create inspection image record error:', error);
-                return false;
-            }
+        const { error } = await createInspectionImage({
+            inspection_id: savedItem.id,
+            facilities_id: facilitiesId,
+            image_url: imageUrl,
+            caption: `${savedItem.location_name || ''} - ${savedItem.item_name || ''}`,
+            uploaded_by: getSessionInspectorName()
+        });
+
+        if (error) {
+            console.error('Create inspection image record error:', error);
+            return false;
         }
-
-        return true;
     }
 
-    async function saveLocationItem() {
+    return true;
+}
         statusModalError.textContent = '';
         statusModalError.style.color = 'red';
 
