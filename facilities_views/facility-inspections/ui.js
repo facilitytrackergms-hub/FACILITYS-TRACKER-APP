@@ -24,6 +24,56 @@ function normalizeResult(value) {
     return String(value || '').trim().toLowerCase();
 }
 
+function formatFailReasons(value) {
+    if (!value) return '';
+
+    let parsedValue = value;
+
+    if (typeof value === 'string') {
+        const trimmedValue = value.trim();
+
+        if (!trimmedValue) return '';
+
+        try {
+            parsedValue = JSON.parse(trimmedValue);
+        } catch {
+            return trimmedValue;
+        }
+    }
+
+    if (Array.isArray(parsedValue)) {
+        return parsedValue
+            .map(reason => {
+                if (typeof reason === 'string') return reason.trim();
+
+                return String(
+                    reason?.reason ||
+                    reason?.description ||
+                    reason?.text ||
+                    reason?.notes ||
+                    ''
+                ).trim();
+            })
+            .filter(Boolean)
+            .join(', ');
+    }
+
+    if (typeof parsedValue === 'object') {
+        return String(
+            parsedValue.reason ||
+            parsedValue.description ||
+            parsedValue.text ||
+            parsedValue.notes ||
+            ''
+        ).trim();
+    }
+
+    return String(parsedValue || '').trim();
+}
+
+
+
+
 function getSessionItems(session, sessionItemsBySessionId = {}) {
     const key = String(session?.id || '');
     return sessionItemsBySessionId[key] || session?.items || session?.session_items || [];
@@ -45,6 +95,22 @@ function buildSavedInspectionItemsHtml(items) {
             ? 'inspection-session-item-summary inspection-session-item-fail btn-open-inspection-item-dashboard'
             : 'inspection-session-item-summary btn-open-inspection-item-dashboard';
 
+        const failReasons = formatFailReasons(
+            item.fail_reasons ||
+            item.fail_reason ||
+            item.fail_notes ||
+            item.reason ||
+            item.notes
+        );
+
+        const failReasonsHtml = result === 'fail'
+            ? `
+                <div class="inspection-record-value inspection-fail-reason-line">
+                    <strong>Fail Reason:</strong> ${escapeHtml(failReasons || 'Not entered')}
+                </div>
+            `
+            : '';
+
         return `
             <div 
                 class="${itemClass}"
@@ -62,11 +128,11 @@ function buildSavedInspectionItemsHtml(items) {
                 <div class="inspection-record-value inspection-result-${escapeHtml(result || 'none')}">
                     <strong>Status:</strong> ${escapeHtml(resultLabel)}
                 </div>
+                ${failReasonsHtml}
             </div>
         `;
     }).join('');
 }
-
 function buildSavedInspectionCardsHtml(sessions = [], sessionItemsBySessionId = {}) {
     if (!sessions.length) {
         return `<div class="inspection-record-value">No inspections saved yet.</div>`;
@@ -411,6 +477,14 @@ export function buildInspectionGridHtml({
             .inspection-session-item-fail .inspection-result-fail {
                 color:#facc15;
             }
+
+            .inspection-fail-reason-line {
+                color:white;
+                font-weight:bold;
+            }
+
+
+            
 
             .inspection-record-actions {
                 display:grid;
