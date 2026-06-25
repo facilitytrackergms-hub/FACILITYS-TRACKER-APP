@@ -56,7 +56,7 @@ function normalizeResult(value) {
     return String(value || '').trim().toLowerCase();
 }
 
-async function fetchSavedSessionItemsBySessionId(sessions = []) {
+async function fetchSavedSessionItemsBySessionId(sessions = [], facilitiesId = null) {
     const itemsBySessionId = {};
 
     for (const session of sessions) {
@@ -72,8 +72,17 @@ async function fetchSavedSessionItemsBySessionId(sessions = []) {
             continue;
         }
 
-        itemsBySessionId[sessionId] = data || [];
+        itemsBySessionId[sessionId] = (data || []).filter(item => {
+            const itemSessionId = String(item?.inspection_session_id || '');
+            const itemFacilityId = String(item?.facilities_id || '');
+
+            return itemSessionId === sessionId &&
+                (!facilitiesId || !itemFacilityId || itemFacilityId === String(facilitiesId));
+        });
     }
+
+    return itemsBySessionId;
+}
 
     return itemsBySessionId;
 }
@@ -122,7 +131,7 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
 
     const sessionsResponse = await fetchInspectionSessions(facilitiesId);
     const sessions = sessionsResponse.data || [];
-    const sessionItemsBySessionId = await fetchSavedSessionItemsBySessionId(sessions);
+    const sessionItemsBySessionId = await fetchSavedSessionItemsBySessionId(sessions, facilitiesId);
     const allSavedItems = Object.values(sessionItemsBySessionId).flat();
 
     container.innerHTML = buildInspectionGridHtml({
@@ -1240,9 +1249,17 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                 return;
             }
 
-            const reportItems = [];
+       const filteredReportItems = (data || []).filter(item => {
+    const itemSessionId = String(item?.inspection_session_id || '');
+    const itemFacilityId = String(item?.facilities_id || '');
 
-            for (const item of data || []) {
+    return itemSessionId === String(sessionId) &&
+        (!itemFacilityId || itemFacilityId === String(facilitiesId));
+});
+
+const reportItems = [];
+
+for (const item of filteredReportItems) {
                 const imageResponse = await fetchInspectionImages(item.id);
 
                 if (imageResponse.error) {
@@ -1275,13 +1292,12 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
                     const images = entry.images || [];
                     const reasons = Array.isArray(item.fail_reasons) ? item.fail_reasons : [];
                     const imageLines = images.length
-                        ? [
-                            `Photos:`,
-                            ...images.map((image, imageIndex) => `Photo ${imageIndex + 1}: ${image.image_url || ''}`)
-                        ]
-                        : [
-                            `Photos:`
-                        ];
+    ? [
+        `Photos: ${images.length} image(s) saved.`
+    ]
+    : [
+        `Photos: No photos saved.`
+    ];
 
                     return [
                         `${index + 1}. ${item.location_name || ''}`,
