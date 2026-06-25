@@ -84,9 +84,6 @@ async function fetchSavedSessionItemsBySessionId(sessions = [], facilitiesId = n
     return itemsBySessionId;
 }
 
-    return itemsBySessionId;
-}
-
 let activeSession = null;
 let currentResult = 'pass';
 let selectedInspectionImages = [];
