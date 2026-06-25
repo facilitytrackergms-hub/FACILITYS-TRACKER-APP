@@ -246,6 +246,32 @@ export function buildInspectionGridHtml({
                 font-weight:bold;
             }
 
+                        .inspection-dashboard-images {
+                display:grid;
+                grid-template-columns:1fr 1fr;
+                gap:8px;
+                margin-top:8px;
+            }
+
+            .inspection-dashboard-images a {
+                display:block;
+            }
+
+            .inspection-dashboard-images img {
+                width:100%;
+                height:100px;
+                object-fit:cover;
+                border-radius:6px;
+                border:1px solid #d6dee8;
+                background:white;
+            }
+
+            .inspection-dashboard-empty {
+                color:#6b7280;
+                font-size:12px;
+                margin-top:8px;
+            }
+
             .inspection-textarea {
                 min-height:75px;
                 resize:vertical;
@@ -747,7 +773,10 @@ export function buildInspectionGridHtml({
                     <div class="inspection-dashboard-line"><strong>Location:</strong> <span id="item-dashboard-location"></span></div>
                     <div class="inspection-dashboard-line"><strong>Item:</strong> <span id="item-dashboard-item"></span></div>
                     <div class="inspection-dashboard-line"><strong>Status:</strong> <span id="item-dashboard-status"></span></div>
-                    <div class="inspection-dashboard-line"><strong>Fail Reasons:</strong> <span id="item-dashboard-fail-reasons"></span></div>
+                    <                    <div class="inspection-dashboard-line"><strong>Saved Images:</strong></div>
+                    <div id="item-dashboard-images" class="inspection-dashboard-images"></div>
+                    <div id="item-dashboard-images-empty" class="inspection-dashboard-empty">No saved images.</div>div class="inspection-dashboard-line"><strong>Fail Reasons:</strong> <span id="item-dashboard-fail-reasons"></span></div>
+                    
                 </div>
 
                 <div class="inspection-single-grid">
