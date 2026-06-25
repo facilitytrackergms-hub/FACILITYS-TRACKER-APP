@@ -578,30 +578,69 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         }
     }
 
-    function openInspectionItemDashboard(session, item) {
-        if (!session || !item) {
-            alert('Could not load inspection item.');
-            return;
-        }
-
-        dashboardInspectionSession = session;
-        dashboardInspectionItem = item;
-        activeSession = session;
-
-        const reasons = Array.isArray(item.fail_reasons)
-            ? item.fail_reasons.map(reason => String(reason || '').trim()).filter(Boolean)
-            : [];
-
-        document.getElementById('item-dashboard-inspection-name').textContent = session.session_notes || '';
-        document.getElementById('item-dashboard-location').textContent = item.location_name || '';
-        document.getElementById('item-dashboard-item').textContent = item.item_name || '';
-        document.getElementById('item-dashboard-status').textContent = String(item.result || '').toUpperCase();
-        document.getElementById('item-dashboard-fail-reasons').textContent = reasons.length ? reasons.join('; ') : 'None';
-
-        itemDashboardError.textContent = '';
-        itemDashboardModal.style.display = 'flex';
+   async function openInspectionItemDashboard(session, item) {
+    if (!session || !item) {
+        alert('Could not load inspection item.');
+        return;
     }
 
+    dashboardInspectionSession = session;
+    dashboardInspectionItem = item;
+    activeSession = session;
+
+    const reasons = Array.isArray(item.fail_reasons)
+        ? item.fail_reasons.map(reason => String(reason || '').trim()).filter(Boolean)
+        : [];
+
+    document.getElementById('item-dashboard-inspection-name').textContent = session.session_notes || '';
+    document.getElementById('item-dashboard-location').textContent = item.location_name || '';
+    document.getElementById('item-dashboard-item').textContent = item.item_name || '';
+    document.getElementById('item-dashboard-status').textContent = String(item.result || '').toUpperCase();
+    document.getElementById('item-dashboard-fail-reasons').textContent = reasons.length ? reasons.join('; ') : 'None';
+
+    const dashboardImages = document.getElementById('item-dashboard-images');
+    const dashboardImagesEmpty = document.getElementById('item-dashboard-images-empty');
+
+    if (dashboardImages) {
+        dashboardImages.innerHTML = '';
+    }
+
+    if (dashboardImagesEmpty) {
+        dashboardImagesEmpty.textContent = 'Loading saved images...';
+        dashboardImagesEmpty.style.display = 'block';
+    }
+
+    const imageResponse = await fetchInspectionImages(item.id);
+
+    if (imageResponse.error) {
+        console.error('Fetch item dashboard images error:', imageResponse.error);
+
+        if (dashboardImagesEmpty) {
+            dashboardImagesEmpty.textContent = 'Could not load saved images.';
+        }
+    } else {
+        const savedImages = (imageResponse.data || []).filter(image => {
+            const imageFacilityId = String(image?.facilities_id || '');
+            return image?.image_url && (!imageFacilityId || imageFacilityId === String(facilitiesId));
+        });
+
+        if (dashboardImages) {
+            dashboardImages.innerHTML = savedImages.map(image => `
+                <a href="${escapeHtml(image.image_url)}" target="_blank" rel="noopener noreferrer">
+                    <img src="${escapeHtml(image.image_url)}" alt="${escapeHtml(image.caption || 'Inspection image')}">
+                </a>
+            `).join('');
+        }
+
+        if (dashboardImagesEmpty) {
+            dashboardImagesEmpty.style.display = savedImages.length ? 'none' : 'block';
+            dashboardImagesEmpty.textContent = savedImages.length ? '' : 'No saved images.';
+        }
+    }
+
+    itemDashboardError.textContent = '';
+    itemDashboardModal.style.display = 'flex';
+}
     async function uploadSelectedImages(savedItem) {
         if (!selectedInspectionImages.length || !savedItem?.id) return true;
 
@@ -1128,33 +1167,35 @@ export async function renderFacilityInspectionsGrid(containerId, context = {}) {
         });
     });
 
-    document.querySelectorAll('.btn-open-inspection-item-dashboard').forEach(button => {
-        button.addEventListener('click', () => {
-            const itemId = button.dataset.itemId;
-            const item = allSavedItems.find(savedItem => String(savedItem.id) === String(itemId));
+document.querySelectorAll('.btn-open-inspection-item-dashboard').forEach(button => {
+    button.addEventListener('click', () => {
+        const itemId = button.dataset.itemId;
+        const item = allSavedItems.find(savedItem => String(savedItem.id) === String(itemId));
 
-            if (!item) {
-                alert('Could not load item.');
-                return;
-            }
+        if (!item) {
+            alert('Could not load item.');
+            return;
+        }
 
-            const session = sessions.find(savedSession => String(savedSession.id) === String(item.inspection_session_id));
+        const session = sessions.find(savedSession => String(savedSession.id) === String(item.inspection_session_id));
 
-            if (!session) {
-                alert('Could not load saved inspection.');
-                return;
-            }
+        if (!session) {
+            alert('Could not load saved inspection.');
+            return;
+        }
 
-            openInspectionItemDashboard(session, item);
-        });
-
-        button.addEventListener('keydown', event => {
-            if (event.key !== 'Enter' && event.key !== ' ') return;
-            event.preventDefault();
-            button.click();
+        openInspectionItemDashboard(session, item).catch(error => {
+            console.error('Open inspection item dashboard error:', error);
+            alert('Could not open item dashboard.');
         });
     });
 
+    button.addEventListener('keydown', event => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        button.click();
+    });
+});
     document.getElementById('btn-dashboard-edit-item').addEventListener('click', () => {
         itemDashboardModal.style.display = 'none';
         openEditInspectionItem(dashboardInspectionSession, dashboardInspectionItem);
