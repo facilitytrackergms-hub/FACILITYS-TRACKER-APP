@@ -1,8 +1,8 @@
 /* ================================================================
    PURPOSE: Project data service
    LOCATION: /facilities_views/facilities-projects/data.js
-   VERSION: v2026_06_19_contact_add_project_prefill
-   UPDATED: 2026-06-19 @ 6:25 AM EDT
+   VERSION: v2026_06_26_contact_dropdown_prefill
+   UPDATED: 2026-06-26
    ================================================================ */
 
 import { supabase } from '../../global_engine/supabaseClient.js';
@@ -16,6 +16,23 @@ export async function fetchProjects(facilityId) {
 
     if (error) {
         console.error('Error fetching projects:', error);
+        return [];
+    }
+
+    return data || [];
+}
+
+export async function fetchFacilityContacts(facilityId) {
+    if (!facilityId) return [];
+
+    const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('facilities_id', facilityId)
+        .order('name', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching facility contacts:', error);
         return [];
     }
 
