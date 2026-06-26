@@ -1,11 +1,12 @@
 /*================================================================
 FACILITIES-PROJECTS GRID
-VERSION: v2026_06_22_project_extra_fields_added
-UPDATED: 2026-06-22 @ 7:05 AM EDT
+VERSION: v2026_06_26_contact_dropdown_autofill
+UPDATED: 2026-06-26
 ================================================================*/
 
 import {
     fetchProjects,
+    fetchFacilityContacts,
     createProject,
     updateProject,
     deleteProject,
@@ -43,6 +44,18 @@ function getProjectStatus(project) {
     return project.status || project.active_status || 'No status';
 }
 
+function getContactTitle(contact) {
+    return contact?.role || contact?.title || contact?.requested_by_title || '';
+}
+
+function getContactPhone(contact) {
+    return contact?.phone || contact?.phone_number || contact?.contact_phone_number || '';
+}
+
+function getContactAddress(contact) {
+    return contact?.address || '';
+}
+
 export async function renderProjectsGrid(containerId, context = {}) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -56,6 +69,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
     }
 
     const projects = await fetchProjects(facilityId);
+    const contacts = await fetchFacilityContacts(facilityId);
 
     container.innerHTML = `
         <style>
@@ -75,7 +89,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
             .project-modal { background:white; width:90%; max-width:360px; border-radius:12px; padding:18px; box-shadow:0 4px 18px rgba(0,0,0,0.25); text-align:left; max-height:90vh; overflow-y:auto; }
             .project-modal h3 { margin:0 0 14px; text-align:center; color:#003b73; }
             .project-modal label { display:block; font-size:13px; font-weight:bold; margin:10px 0 4px; color:#003b73; }
-            .project-modal input, .project-modal textarea { width:100%; padding:9px; border:1px solid #bbb; border-radius:6px; font-size:15px; box-sizing:border-box; }
+            .project-modal input, .project-modal textarea, .project-modal select { width:100%; padding:9px; border:1px solid #bbb; border-radius:6px; font-size:15px; box-sizing:border-box; }
             .project-modal textarea { min-height:80px; resize:vertical; }
             .project-modal-buttons { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:16px; }
             .project-modal-buttons button { padding:11px; border:none; border-radius:7px; font-weight:bold; cursor:pointer; }
@@ -112,7 +126,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
             <button id="btn-back-facility" class="projects-back-btn">⬅️ BACK</button>
 
-            <div class="projects-version-tag">grid.js | 2026-06-22 @ 7:05 AM EDT</div>
+            <div class="projects-version-tag">grid.js | v2026_06_26_contact_dropdown_autofill | 2026-06-26</div>
         </div>
 
         <div id="project-modal-backdrop" class="project-modal-backdrop">
@@ -137,7 +151,14 @@ export async function renderProjectsGrid(containerId, context = {}) {
                 </datalist>
 
                 <label>Requested By Name</label>
-                <input id="requested-by-name-input" type="text">
+                <select id="requested-by-name-input">
+                    <option value="">Select Contact</option>
+                    ${contacts.length ? contacts.map(contact => `
+                        <option value="${escapeHtml(contact.id)}">${escapeHtml(contact.name || 'Unnamed Contact')}</option>
+                    `).join('') : `
+                        <option value="" disabled>No contacts found</option>
+                    `}
+                </select>
 
                 <label>Requested By Title</label>
                 <input id="requested-by-title-input" type="text">
@@ -169,7 +190,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
                 <div id="project-error" class="project-error"></div>
 
-                <div class="projects-version-tag">grid.js | 2026-06-22 @ 7:05 AM EDT</div>
+                <div class="projects-version-tag">grid.js | v2026_06_26_contact_dropdown_autofill | 2026-06-26</div>
             </div>
         </div>
 
@@ -202,6 +223,56 @@ export async function renderProjectsGrid(containerId, context = {}) {
     const deleteButton = document.getElementById('btn-delete-project');
     const requestedByPopupBackdrop = document.getElementById('requested-by-popup-backdrop');
 
+    function getSelectedRequestedByContact() {
+        const selectedContactId = requestedByNameInput.value;
+
+        if (!selectedContactId) return null;
+
+        return contacts.find(contact => String(contact.id) === String(selectedContactId)) || null;
+    }
+
+    function populateRequestedByContactFields(contact) {
+        if (!contact) {
+            requestedByTitleInput.value = '';
+            phoneNumberInput.value = '';
+            addressInput.value = '';
+            return;
+        }
+
+        requestedByTitleInput.value = getContactTitle(contact);
+        phoneNumberInput.value = getContactPhone(contact);
+
+        if (getContactAddress(contact)) {
+            addressInput.value = getContactAddress(contact);
+        }
+    }
+
+    function selectRequestedByContactById(contactId) {
+        if (!contactId) return false;
+
+        const contact = contacts.find(item => String(item.id) === String(contactId));
+
+        if (!contact) return false;
+
+        requestedByNameInput.value = contact.id;
+        populateRequestedByContactFields(contact);
+        return true;
+    }
+
+    function selectRequestedByContactByName(contactName) {
+        const cleanName = String(contactName || '').trim().toLowerCase();
+
+        if (!cleanName) return false;
+
+        const contact = contacts.find(item => String(item.name || '').trim().toLowerCase() === cleanName);
+
+        if (!contact) return false;
+
+        requestedByNameInput.value = contact.id;
+        populateRequestedByContactFields(contact);
+        return true;
+    }
+
     function clearModal() {
         projectIdInput.value = '';
         projectNameInput.value = '';
@@ -226,7 +297,6 @@ export async function renderProjectsGrid(containerId, context = {}) {
             projectIdInput.value = project.id || '';
             projectNameInput.value = project.project_name || project.name || '';
             typeInput.value = project.type || '';
-            requestedByNameInput.value = project.requested_by_name || '';
             requestedByTitleInput.value = project.requested_by_title || '';
             phoneNumberInput.value = project.phone_number || '';
             addressInput.value = project.address || '';
@@ -236,12 +306,17 @@ export async function renderProjectsGrid(containerId, context = {}) {
             notesInput.value = project.notes || '';
             modalTitle.textContent = `Edit Project for ${facilityName}`;
             deleteButton.style.display = 'block';
+
+            if (project.requested_by_contact_id) {
+                selectRequestedByContactById(project.requested_by_contact_id);
+            } else if (project.requested_by_name) {
+                selectRequestedByContactByName(project.requested_by_name);
+            }
         }
 
         if (context?.project_draft_prefill) {
             projectNameInput.value = context.project_draft_prefill.project_name || context.project_draft_prefill.name || '';
             typeInput.value = context.project_draft_prefill.type || '';
-            requestedByNameInput.value = context.project_draft_prefill.requested_by_name || '';
             requestedByTitleInput.value = context.project_draft_prefill.requested_by_title || '';
             phoneNumberInput.value = context.project_draft_prefill.phone_number || '';
             addressInput.value = context.project_draft_prefill.address || '';
@@ -249,12 +324,17 @@ export async function renderProjectsGrid(containerId, context = {}) {
             reminderInput.value = context.project_draft_prefill.reminder || '';
             descriptionInput.value = context.project_draft_prefill.description || '';
             notesInput.value = context.project_draft_prefill.notes || '';
+
+            if (context.project_draft_prefill.requested_by_contact_id) {
+                selectRequestedByContactById(context.project_draft_prefill.requested_by_contact_id);
+            } else {
+                selectRequestedByContactByName(context.project_draft_prefill.requested_by_name);
+            }
         }
 
         if (context?.project_prefill) {
             projectNameInput.value = context.project_prefill.project_name || context.project_prefill.name || projectNameInput.value;
             typeInput.value = context.project_prefill.type || typeInput.value;
-            requestedByNameInput.value = context.project_prefill.requested_by_name || requestedByNameInput.value;
             requestedByTitleInput.value = context.project_prefill.requested_by_title || requestedByTitleInput.value;
             phoneNumberInput.value = context.project_prefill.phone_number || phoneNumberInput.value;
             addressInput.value = context.project_prefill.address || addressInput.value;
@@ -262,32 +342,43 @@ export async function renderProjectsGrid(containerId, context = {}) {
             reminderInput.value = context.project_prefill.reminder || reminderInput.value;
             descriptionInput.value = context.project_prefill.description || descriptionInput.value;
             notesInput.value = context.project_prefill.notes || notesInput.value;
+
+            if (context.project_prefill.requested_by_contact_id) {
+                selectRequestedByContactById(context.project_prefill.requested_by_contact_id);
+            } else {
+                selectRequestedByContactByName(context.project_prefill.requested_by_name);
+            }
         }
 
-        if (context?.requested_by_name) {
-            requestedByNameInput.value = context.requested_by_name || '';
+        if (context?.requested_by_contact_id) {
+            selectRequestedByContactById(context.requested_by_contact_id);
+        } else if (context?.requested_by_name) {
+            selectRequestedByContactByName(context.requested_by_name);
         }
 
         if (context?.requested_by_title) {
-            requestedByTitleInput.value = context.requested_by_title || '';
+            requestedByTitleInput.value = context.requested_by_title || requestedByTitleInput.value;
         }
 
         if (context?.phone_number) {
-            phoneNumberInput.value = context.phone_number || '';
+            phoneNumberInput.value = context.phone_number || phoneNumberInput.value;
         }
 
         modalBackdrop.style.display = 'flex';
     }
 
     function getProjectDraft() {
+        const selectedContact = getSelectedRequestedByContact();
+
         return {
             facilities_id: facilityId,
             location_id: facilityId,
             name: projectNameInput.value.trim(),
             project_name: projectNameInput.value.trim(),
             type: typeInput.value.trim(),
-            requested_by_name: requestedByNameInput.value.trim(),
+            requested_by_name: selectedContact?.name || '',
             requested_by_title: requestedByTitleInput.value.trim(),
+            requested_by_contact_id: selectedContact?.id || null,
             phone_number: phoneNumberInput.value.trim(),
             address: addressInput.value.trim(),
             appointment_time: appointmentTimeInput.value || null,
@@ -296,6 +387,10 @@ export async function renderProjectsGrid(containerId, context = {}) {
             notes: notesInput.value.trim()
         };
     }
+
+    requestedByNameInput.addEventListener('change', () => {
+        populateRequestedByContactFields(getSelectedRequestedByContact());
+    });
 
     document.getElementById('btn-add-project').addEventListener('click', () => {
         openModal();
@@ -335,11 +430,13 @@ export async function renderProjectsGrid(containerId, context = {}) {
     document.getElementById('btn-requested-by-popup-yes').addEventListener('click', () => {
         requestedByPopupBackdrop.style.display = 'none';
 
+        const selectedContact = getSelectedRequestedByContact();
+
         if (window.navigateTo) {
             window.navigateTo('facilities-contacts', {
                 ...context,
                 requested_contact_prefill: {
-                    name: requestedByNameInput.value.trim(),
+                    name: selectedContact?.name || '',
                     role: requestedByTitleInput.value.trim(),
                     phone: phoneNumberInput.value.trim()
                 },
@@ -370,31 +467,14 @@ export async function renderProjectsGrid(containerId, context = {}) {
     document.getElementById('btn-save-project').addEventListener('click', async () => {
         const projectId = projectIdInput.value;
         const projectName = projectNameInput.value.trim();
-        const requestedByName = requestedByNameInput.value.trim();
+        const selectedContact = getSelectedRequestedByContact();
+        const requestedByName = selectedContact?.name || '';
         const requestedByTitle = requestedByTitleInput.value.trim();
+        const requestedByContactId = selectedContact?.id || null;
 
         if (!projectName) {
             errorBox.textContent = 'Project name required.';
             return;
-        }
-
-        let requestedByContactId = context?.requested_by_contact_id || context?.project_prefill?.requested_by_contact_id || null;
-
-        if (requestedByName && !requestedByContactId) {
-            const { data: existingContact, error: contactFindError } = await findContactByName(facilityId, requestedByName);
-
-            if (contactFindError) {
-                console.error('Find requested by contact error:', contactFindError);
-                errorBox.textContent = 'Could not check requested by contact.';
-                return;
-            }
-
-            if (existingContact) {
-                requestedByContactId = existingContact.id || null;
-            } else {
-                requestedByPopupBackdrop.style.display = 'flex';
-                return;
-            }
         }
 
         const payload = {
