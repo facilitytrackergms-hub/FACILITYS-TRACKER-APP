@@ -1,6 +1,6 @@
 /*================================================================
 FACILITIES-PROJECTS GRID
-VERSION: v2026_06_26_contact_dropdown_autofill
+VERSION: v2026_06_26_project_location_fields
 UPDATED: 2026-06-26
 ================================================================*/
 
@@ -9,8 +9,7 @@ import {
     fetchFacilityContacts,
     createProject,
     updateProject,
-    deleteProject,
-    findContactByName
+    deleteProject
 } from './data.js';
 
 function escapeHtml(value) {
@@ -52,10 +51,6 @@ function getContactPhone(contact) {
     return contact?.phone || contact?.phone_number || contact?.contact_phone_number || '';
 }
 
-function getContactAddress(contact) {
-    return contact?.address || '';
-}
-
 export async function renderProjectsGrid(containerId, context = {}) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -74,13 +69,13 @@ export async function renderProjectsGrid(containerId, context = {}) {
     container.innerHTML = `
         <style>
             .projects-card { background:#ffffff; max-width:350px; margin:16px auto; padding:18px; border-radius:14px; box-shadow:0 4px 18px rgba(0,0,0,0.08); text-align:center; }
-            .projects-title { color:#003b73; font-size:24px; font-weight:bold; margin-bottom:2px; }
+            .projects-title { color:#003b73; font-size:24px; font-weight:bold; margin-bottom:2px; overflow-wrap:anywhere; }
             .projects-subtitle { color:#003b73; font-size:13px; font-weight:bold; margin-bottom:16px; letter-spacing:2px; }
             .projects-add-btn { background:#22a843; color:white; border:none; border-radius:9px; width:100%; padding:13px; font-weight:bold; font-size:15px; cursor:pointer; margin-bottom:16px; }
             .projects-list { display:grid; grid-template-columns:repeat(2, 1fr); gap:8px; }
             .project-record-button { min-height:86px; background:#003b73; color:white; border:none; border-radius:10px; padding:8px; cursor:pointer; text-align:center; }
             .project-record-button:hover { background:#00509d; }
-            .project-record-title { font-weight:bold; font-size:13px; margin-bottom:5px; }
+            .project-record-title { font-weight:bold; font-size:13px; margin-bottom:5px; overflow-wrap:anywhere; }
             .project-record-meta { font-size:11px; font-weight:normal; opacity:0.95; line-height:1.3; }
             .projects-back-btn { background:#747d8c; color:white; border:none; border-radius:9px; width:100%; min-height:48px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:16px; }
             .projects-version-tag { border-top:1px solid #d6dee8; margin-top:18px; padding-top:10px; font-size:10px; color:#7d8ba0; text-align:center; }
@@ -88,6 +83,8 @@ export async function renderProjectsGrid(containerId, context = {}) {
             .project-modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:9999; }
             .project-modal { background:white; width:90%; max-width:360px; border-radius:12px; padding:18px; box-shadow:0 4px 18px rgba(0,0,0,0.25); text-align:left; max-height:90vh; overflow-y:auto; }
             .project-modal h3 { margin:0 0 14px; text-align:center; color:#003b73; }
+            .project-modal-section { border:1px solid #d6dee8; border-radius:10px; padding:12px; margin-top:12px; background:#f8fbff; }
+            .project-modal-section-title { color:#003b73; text-align:center; font-size:13px; font-weight:bold; letter-spacing:1px; margin-bottom:10px; }
             .project-modal label { display:block; font-size:13px; font-weight:bold; margin:10px 0 4px; color:#003b73; }
             .project-modal input, .project-modal textarea, .project-modal select { width:100%; padding:9px; border:1px solid #bbb; border-radius:6px; font-size:15px; box-sizing:border-box; }
             .project-modal textarea { min-height:80px; resize:vertical; }
@@ -97,15 +94,6 @@ export async function renderProjectsGrid(containerId, context = {}) {
             .btn-cancel-project { background:#777; color:white; }
             .btn-delete-project { background:#dc2626; color:yellow; display:none; width:100%; margin-top:10px; padding:11px; border:none; border-radius:7px; font-weight:bold; cursor:pointer; }
             .project-error { color:red; font-size:13px; text-align:center; margin-top:10px; min-height:16px; }
-
-            .project-custom-popup-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.55); display:none; align-items:center; justify-content:center; z-index:10000; }
-            .project-custom-popup { background:white; width:88%; max-width:330px; border-radius:12px; padding:18px; box-shadow:0 4px 18px rgba(0,0,0,0.28); text-align:center; }
-            .project-custom-popup-title { color:#003b73; font-size:18px; font-weight:bold; margin-bottom:10px; }
-            .project-custom-popup-message { color:#1f2937; font-size:14px; line-height:1.35; margin-bottom:16px; }
-            .project-custom-popup-buttons { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-            .project-custom-popup-buttons button { border:none; border-radius:8px; padding:11px; font-size:14px; font-weight:bold; cursor:pointer; }
-            .btn-popup-yes { background:#22a843; color:white; }
-            .btn-popup-no { background:#777; color:white; }
         </style>
 
         <div class="projects-card">
@@ -126,7 +114,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
             <button id="btn-back-facility" class="projects-back-btn">⬅️ BACK</button>
 
-            <div class="projects-version-tag">grid.js | v2026_06_26_contact_dropdown_autofill | 2026-06-26</div>
+            <div class="projects-version-tag">grid.js | v2026_06_26_project_location_fields | 2026-06-26</div>
         </div>
 
         <div id="project-modal-backdrop" class="project-modal-backdrop">
@@ -150,24 +138,47 @@ export async function renderProjectsGrid(containerId, context = {}) {
                     <option value="Other"></option>
                 </datalist>
 
-                <label>Requested By Name</label>
-                <select id="requested-by-name-input">
-                    <option value="">Select Contact</option>
-                    ${contacts.length ? contacts.map(contact => `
-                        <option value="${escapeHtml(contact.id)}">${escapeHtml(contact.name || 'Unnamed Contact')}</option>
-                    `).join('') : `
-                        <option value="" disabled>No contacts found</option>
-                    `}
-                </select>
+                <div class="project-modal-section">
+                    <div class="project-modal-section-title">PROJECT REQUEST INFORMATION</div>
 
-                <label>Requested By Title</label>
-                <input id="requested-by-title-input" type="text">
+                    <label>Requested By Name</label>
+                    <select id="requested-by-name-input">
+                        <option value="">Select Contact</option>
+                        ${contacts.length ? contacts.map(contact => `
+                            <option value="${escapeHtml(contact.id)}">${escapeHtml(contact.name || 'Unnamed Contact')}</option>
+                        `).join('') : `
+                            <option value="" disabled>No contacts found</option>
+                        `}
+                    </select>
 
-                <label>Contact Phone Number</label>
-                <input id="project-phone-number-input" type="tel">
+                    <label>Requested By Title</label>
+                    <input id="requested-by-title-input" type="text">
 
-                <label>Address</label>
-                <input id="project-address-input" type="text">
+                    <label>Requested By Phone</label>
+                    <input id="project-phone-number-input" type="tel">
+                </div>
+
+                <div class="project-modal-section">
+                    <div class="project-modal-section-title">ACTUAL PROJECT LOCATION / CONTACT</div>
+
+                    <label>Project Location Name</label>
+                    <input id="project-location-name-input" type="text" placeholder="Example: Cottage">
+
+                    <label>Project Address</label>
+                    <input id="project-address-input" type="text" placeholder="Example: 123 Main St, Bartow FL 33830">
+
+                    <label>Project Contact / Tenant Name</label>
+                    <input id="project-contact-name-input" type="text">
+
+                    <label>Project Contact / Tenant Phone</label>
+                    <input id="project-contact-phone-input" type="tel">
+
+                    <label>Property Manager Name</label>
+                    <input id="property-manager-name-input" type="text">
+
+                    <label>Property Manager Phone</label>
+                    <input id="property-manager-phone-input" type="tel">
+                </div>
 
                 <label>Appointment Time</label>
                 <input id="project-appointment-time-input" type="datetime-local">
@@ -190,18 +201,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
                 <div id="project-error" class="project-error"></div>
 
-                <div class="projects-version-tag">grid.js | v2026_06_26_contact_dropdown_autofill | 2026-06-26</div>
-            </div>
-        </div>
-
-        <div id="requested-by-popup-backdrop" class="project-custom-popup-backdrop">
-            <div class="project-custom-popup">
-                <div class="project-custom-popup-title">Contact Not Found</div>
-                <div class="project-custom-popup-message">Requested by person is not in contacts. Do you want to add this contact?</div>
-                <div class="project-custom-popup-buttons">
-                    <button id="btn-requested-by-popup-yes" class="btn-popup-yes">YES</button>
-                    <button id="btn-requested-by-popup-no" class="btn-popup-no">NO</button>
-                </div>
+                <div class="projects-version-tag">grid.js | v2026_06_26_project_location_fields | 2026-06-26</div>
             </div>
         </div>
     `;
@@ -214,14 +214,18 @@ export async function renderProjectsGrid(containerId, context = {}) {
     const requestedByNameInput = document.getElementById('requested-by-name-input');
     const requestedByTitleInput = document.getElementById('requested-by-title-input');
     const phoneNumberInput = document.getElementById('project-phone-number-input');
+    const projectLocationNameInput = document.getElementById('project-location-name-input');
     const addressInput = document.getElementById('project-address-input');
+    const projectContactNameInput = document.getElementById('project-contact-name-input');
+    const projectContactPhoneInput = document.getElementById('project-contact-phone-input');
+    const propertyManagerNameInput = document.getElementById('property-manager-name-input');
+    const propertyManagerPhoneInput = document.getElementById('property-manager-phone-input');
     const appointmentTimeInput = document.getElementById('project-appointment-time-input');
     const reminderInput = document.getElementById('project-reminder-input');
     const descriptionInput = document.getElementById('project-description-input');
     const notesInput = document.getElementById('project-notes-input');
     const errorBox = document.getElementById('project-error');
     const deleteButton = document.getElementById('btn-delete-project');
-    const requestedByPopupBackdrop = document.getElementById('requested-by-popup-backdrop');
 
     function getSelectedRequestedByContact() {
         const selectedContactId = requestedByNameInput.value;
@@ -235,16 +239,11 @@ export async function renderProjectsGrid(containerId, context = {}) {
         if (!contact) {
             requestedByTitleInput.value = '';
             phoneNumberInput.value = '';
-            addressInput.value = '';
             return;
         }
 
         requestedByTitleInput.value = getContactTitle(contact);
         phoneNumberInput.value = getContactPhone(contact);
-
-        if (getContactAddress(contact)) {
-            addressInput.value = getContactAddress(contact);
-        }
     }
 
     function selectRequestedByContactById(contactId) {
@@ -280,7 +279,12 @@ export async function renderProjectsGrid(containerId, context = {}) {
         requestedByNameInput.value = '';
         requestedByTitleInput.value = '';
         phoneNumberInput.value = '';
+        projectLocationNameInput.value = '';
         addressInput.value = '';
+        projectContactNameInput.value = '';
+        projectContactPhoneInput.value = '';
+        propertyManagerNameInput.value = '';
+        propertyManagerPhoneInput.value = '';
         appointmentTimeInput.value = '';
         reminderInput.value = '';
         descriptionInput.value = '';
@@ -299,7 +303,12 @@ export async function renderProjectsGrid(containerId, context = {}) {
             typeInput.value = project.type || '';
             requestedByTitleInput.value = project.requested_by_title || '';
             phoneNumberInput.value = project.phone_number || '';
+            projectLocationNameInput.value = project.project_location_name || '';
             addressInput.value = project.address || '';
+            projectContactNameInput.value = project.project_contact_name || '';
+            projectContactPhoneInput.value = project.project_contact_phone || '';
+            propertyManagerNameInput.value = project.property_manager_name || '';
+            propertyManagerPhoneInput.value = project.property_manager_phone || '';
             appointmentTimeInput.value = project.appointment_time ? String(project.appointment_time).slice(0, 16) : '';
             reminderInput.value = project.reminder || '';
             descriptionInput.value = project.description || '';
@@ -319,7 +328,12 @@ export async function renderProjectsGrid(containerId, context = {}) {
             typeInput.value = context.project_draft_prefill.type || '';
             requestedByTitleInput.value = context.project_draft_prefill.requested_by_title || '';
             phoneNumberInput.value = context.project_draft_prefill.phone_number || '';
+            projectLocationNameInput.value = context.project_draft_prefill.project_location_name || '';
             addressInput.value = context.project_draft_prefill.address || '';
+            projectContactNameInput.value = context.project_draft_prefill.project_contact_name || '';
+            projectContactPhoneInput.value = context.project_draft_prefill.project_contact_phone || '';
+            propertyManagerNameInput.value = context.project_draft_prefill.property_manager_name || '';
+            propertyManagerPhoneInput.value = context.project_draft_prefill.property_manager_phone || '';
             appointmentTimeInput.value = context.project_draft_prefill.appointment_time ? String(context.project_draft_prefill.appointment_time).slice(0, 16) : '';
             reminderInput.value = context.project_draft_prefill.reminder || '';
             descriptionInput.value = context.project_draft_prefill.description || '';
@@ -337,7 +351,12 @@ export async function renderProjectsGrid(containerId, context = {}) {
             typeInput.value = context.project_prefill.type || typeInput.value;
             requestedByTitleInput.value = context.project_prefill.requested_by_title || requestedByTitleInput.value;
             phoneNumberInput.value = context.project_prefill.phone_number || phoneNumberInput.value;
+            projectLocationNameInput.value = context.project_prefill.project_location_name || projectLocationNameInput.value;
             addressInput.value = context.project_prefill.address || addressInput.value;
+            projectContactNameInput.value = context.project_prefill.project_contact_name || projectContactNameInput.value;
+            projectContactPhoneInput.value = context.project_prefill.project_contact_phone || projectContactPhoneInput.value;
+            propertyManagerNameInput.value = context.project_prefill.property_manager_name || propertyManagerNameInput.value;
+            propertyManagerPhoneInput.value = context.project_prefill.property_manager_phone || propertyManagerPhoneInput.value;
             appointmentTimeInput.value = context.project_prefill.appointment_time ? String(context.project_prefill.appointment_time).slice(0, 16) : appointmentTimeInput.value;
             reminderInput.value = context.project_prefill.reminder || reminderInput.value;
             descriptionInput.value = context.project_prefill.description || descriptionInput.value;
@@ -380,7 +399,12 @@ export async function renderProjectsGrid(containerId, context = {}) {
             requested_by_title: requestedByTitleInput.value.trim(),
             requested_by_contact_id: selectedContact?.id || null,
             phone_number: phoneNumberInput.value.trim(),
+            project_location_name: projectLocationNameInput.value.trim(),
             address: addressInput.value.trim(),
+            project_contact_name: projectContactNameInput.value.trim(),
+            project_contact_phone: projectContactPhoneInput.value.trim(),
+            property_manager_name: propertyManagerNameInput.value.trim(),
+            property_manager_phone: propertyManagerPhoneInput.value.trim(),
             appointment_time: appointmentTimeInput.value || null,
             reminder: reminderInput.value.trim(),
             description: descriptionInput.value.trim(),
@@ -420,30 +444,6 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
     document.getElementById('btn-back-facility').addEventListener('click', () => {
         if (window.navigateTo) window.navigateTo('facilities-home');
-    });
-
-    document.getElementById('btn-requested-by-popup-no').addEventListener('click', () => {
-        requestedByPopupBackdrop.style.display = 'none';
-        errorBox.textContent = 'Add the requested by person to contacts before saving this project.';
-    });
-
-    document.getElementById('btn-requested-by-popup-yes').addEventListener('click', () => {
-        requestedByPopupBackdrop.style.display = 'none';
-
-        const selectedContact = getSelectedRequestedByContact();
-
-        if (window.navigateTo) {
-            window.navigateTo('facilities-contacts', {
-                ...context,
-                requested_contact_prefill: {
-                    name: selectedContact?.name || '',
-                    role: requestedByTitleInput.value.trim(),
-                    phone: phoneNumberInput.value.trim()
-                },
-                project_draft_prefill: getProjectDraft(),
-                return_to_project_detail_after_contact: true
-            });
-        }
     });
 
     deleteButton.addEventListener('click', async () => {
@@ -487,7 +487,12 @@ export async function renderProjectsGrid(containerId, context = {}) {
             requested_by_title: requestedByTitle,
             requested_by_contact_id: requestedByContactId,
             phone_number: phoneNumberInput.value.trim(),
+            project_location_name: projectLocationNameInput.value.trim(),
             address: addressInput.value.trim(),
+            project_contact_name: projectContactNameInput.value.trim(),
+            project_contact_phone: projectContactPhoneInput.value.trim(),
+            property_manager_name: propertyManagerNameInput.value.trim(),
+            property_manager_phone: propertyManagerPhoneInput.value.trim(),
             appointment_time: appointmentTimeInput.value || null,
             reminder: reminderInput.value.trim(),
             description: descriptionInput.value.trim(),
