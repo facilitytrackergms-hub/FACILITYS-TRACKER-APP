@@ -1,7 +1,7 @@
 /*================================================================
 FACILITY-PROJECT-DETAIL GRID
 LOCATION: /facilities_views/facility-project-detail/grid.js
-VERSION: v2026_06_26_save_back_facility_details
+VERSION: v2026_06_26_project_location_cards
 UPDATED: 2026-06-26
 ================================================================*/
 
@@ -47,6 +47,30 @@ function formatDate(value) {
     return new Date(value).toLocaleString();
 }
 
+function renderValue(value) {
+    return `<div class="project-detail-value">${escapeHtml(value || '')}</div>`;
+}
+
+function renderPhoneLink(value) {
+    if (!value) return `<div class="project-detail-value"></div>`;
+
+    return `
+        <div class="project-detail-value">
+            <a class="project-detail-link" href="tel:${escapeHtml(value)}">${escapeHtml(value)}</a>
+        </div>
+    `;
+}
+
+function renderAddressLink(value) {
+    if (!value) return `<div class="project-detail-value"></div>`;
+
+    return `
+        <div class="project-detail-value">
+            <a class="project-detail-link" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value)}" target="_blank">${escapeHtml(value)}</a>
+        </div>
+    `;
+}
+
 export async function renderFacilityProjectDetailGrid(containerId, context = {}) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -77,11 +101,16 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
     container.innerHTML = `
         <style>
             .project-detail-card { background:#ffffff; max-width:350px; margin:16px auto; padding:18px; border-radius:14px; box-shadow:0 4px 18px rgba(0,0,0,0.08); text-align:center; }
-            .project-detail-title { color:#003b73; font-size:24px; font-weight:bold; margin-bottom:2px; }
+            .project-detail-title { color:#003b73; font-size:24px; font-weight:bold; margin-bottom:2px; line-height:1.15; overflow-wrap:anywhere; }
             .project-detail-subtitle { color:#003b73; font-size:13px; font-weight:bold; margin-bottom:16px; letter-spacing:2px; }
+
             .project-detail-info-box { border:1px solid #d6dee8; border-radius:10px; padding:12px; text-align:left; margin-bottom:14px; background:#f8fbff; }
-            .project-detail-label { color:#003b73; font-size:11px; font-weight:bold; margin-top:8px; }
-            .project-detail-value { color:#111827; font-size:14px; margin-bottom:8px; white-space:pre-wrap; }
+            .project-detail-section-title { color:#003b73; font-size:13px; font-weight:bold; margin-bottom:10px; text-align:center; letter-spacing:1px; }
+            .project-detail-row { margin-bottom:10px; text-align:left; }
+            .project-detail-label { color:#003b73; font-size:11px; font-weight:bold; margin-bottom:3px; text-align:left; }
+            .project-detail-value { color:#111827; font-size:14px; line-height:1.35; margin-bottom:0; white-space:pre-wrap; text-align:left; overflow-wrap:anywhere; word-break:break-word; }
+            .project-detail-link { color:#003b73; font-weight:bold; text-decoration:underline; display:inline-block; max-width:100%; overflow-wrap:anywhere; word-break:break-word; text-align:left; }
+
             .project-detail-button-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
             .project-detail-action-btn { background:#003b73; color:white; border:none; border-radius:9px; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; }
             .project-detail-delete-btn { background:#dc2626; color:yellow; border:none; border-radius:9px; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; }
@@ -144,39 +173,86 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             <div class="project-detail-subtitle">${escapeHtml(facilityName)} PROJECT DETAIL</div>
 
             <div class="project-detail-info-box">
-                <div class="project-detail-label">PROJECT DESCRIPTION</div>
-                <div class="project-detail-value">${escapeHtml(project.description || '')}</div>
+                <div class="project-detail-section-title">PROJECT REQUEST INFORMATION</div>
 
-                <div class="project-detail-label">TYPE</div>
-                <div class="project-detail-value">${escapeHtml(project.type || '')}</div>
-
-                <div class="project-detail-label">STATUS</div>
-                <div class="project-detail-value">${escapeHtml(project.status || 'Open')}</div>
-
-                <div class="project-detail-label">REQUESTED BY NAME</div>
-                <div class="project-detail-value">${escapeHtml(project.requested_by_name || '')}</div>
-
-                <div class="project-detail-label">REQUESTED BY TITLE</div>
-                <div class="project-detail-value">${escapeHtml(project.requested_by_title || '')}</div>
-
-                <div class="project-detail-label">CONTACT PHONE NUMBER</div>
-                <div class="project-detail-value">
-                    ${project.phone_number ? `<a href="tel:${escapeHtml(project.phone_number)}" style="color:#003b73;font-weight:bold;text-decoration:underline;">${escapeHtml(project.phone_number)}</a>` : ''}
+                <div class="project-detail-row">
+                    <div class="project-detail-label">PROJECT DESCRIPTION</div>
+                    ${renderValue(project.description || '')}
                 </div>
 
-                <div class="project-detail-label">ADDRESS</div>
-                <div class="project-detail-value">
-                    ${project.address ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(project.address)}" target="_blank" style="color:#003b73;font-weight:bold;text-decoration:underline;">${escapeHtml(project.address)}</a>` : ''}
+                <div class="project-detail-row">
+                    <div class="project-detail-label">TYPE</div>
+                    ${renderValue(project.type || '')}
                 </div>
 
-                <div class="project-detail-label">APPOINTMENT TIME</div>
-                <div class="project-detail-value">${escapeHtml(formatDate(project.appointment_time))}</div>
+                <div class="project-detail-row">
+                    <div class="project-detail-label">STATUS</div>
+                    ${renderValue(project.status || 'Open')}
+                </div>
 
-                <div class="project-detail-label">REMINDER</div>
-                <div class="project-detail-value">${escapeHtml(project.reminder || '')}</div>
+                <div class="project-detail-row">
+                    <div class="project-detail-label">REQUESTED BY NAME</div>
+                    ${renderValue(project.requested_by_name || '')}
+                </div>
 
-                <div class="project-detail-label">NOTES</div>
-                <div class="project-detail-value">${escapeHtml(project.notes || '')}</div>
+                <div class="project-detail-row">
+                    <div class="project-detail-label">REQUESTED BY TITLE</div>
+                    ${renderValue(project.requested_by_title || '')}
+                </div>
+
+                <div class="project-detail-row">
+                    <div class="project-detail-label">REQUESTED BY PHONE</div>
+                    ${renderPhoneLink(project.phone_number || '')}
+                </div>
+
+                <div class="project-detail-row">
+                    <div class="project-detail-label">APPOINTMENT TIME</div>
+                    ${renderValue(formatDate(project.appointment_time))}
+                </div>
+
+                <div class="project-detail-row">
+                    <div class="project-detail-label">REMINDER</div>
+                    ${renderValue(project.reminder || '')}
+                </div>
+
+                <div class="project-detail-row">
+                    <div class="project-detail-label">NOTES</div>
+                    ${renderValue(project.notes || '')}
+                </div>
+            </div>
+
+            <div class="project-detail-info-box">
+                <div class="project-detail-section-title">ACTUAL PROJECT LOCATION / CONTACT</div>
+
+                <div class="project-detail-row">
+                    <div class="project-detail-label">PROJECT LOCATION NAME</div>
+                    ${renderValue(project.project_location_name || '')}
+                </div>
+
+                <div class="project-detail-row">
+                    <div class="project-detail-label">PROJECT ADDRESS</div>
+                    ${renderAddressLink(project.address || '')}
+                </div>
+
+                <div class="project-detail-row">
+                    <div class="project-detail-label">PROJECT CONTACT / TENANT NAME</div>
+                    ${renderValue(project.project_contact_name || '')}
+                </div>
+
+                <div class="project-detail-row">
+                    <div class="project-detail-label">PROJECT CONTACT / TENANT PHONE</div>
+                    ${renderPhoneLink(project.project_contact_phone || '')}
+                </div>
+
+                <div class="project-detail-row">
+                    <div class="project-detail-label">PROPERTY MANAGER NAME</div>
+                    ${renderValue(project.property_manager_name || '')}
+                </div>
+
+                <div class="project-detail-row">
+                    <div class="project-detail-label">PROPERTY MANAGER PHONE</div>
+                    ${renderPhoneLink(project.property_manager_phone || '')}
+                </div>
             </div>
 
             <button id="btn-open-materials" class="project-detail-main-btn">MATERIALS</button>
@@ -214,7 +290,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
             <button id="btn-back-projects" class="project-detail-back-btn">⬅️ BACK</button>
 
-            <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_save_back_facility_details | 2026-06-26</div>
+            <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_project_location_cards | 2026-06-26</div>
         </div>
 
         <div id="project-detail-modal-backdrop" class="project-detail-modal-backdrop">
@@ -247,11 +323,32 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
                     <option value="Other"></option>
                 </datalist>
 
-                <label>Contact Phone Number</label>
+                <label>Requested By Name</label>
+                <input id="project-detail-requested-by-name-input" type="text" value="${escapeHtml(project.requested_by_name || '')}">
+
+                <label>Requested By Title</label>
+                <input id="project-detail-requested-by-title-input" type="text" value="${escapeHtml(project.requested_by_title || '')}">
+
+                <label>Requested By Phone</label>
                 <input id="project-detail-phone-number-input" type="tel" value="${escapeHtml(project.phone_number || '')}">
 
-                <label>Address</label>
+                <label>Project Location Name</label>
+                <input id="project-detail-location-name-input" type="text" value="${escapeHtml(project.project_location_name || '')}">
+
+                <label>Project Address</label>
                 <input id="project-detail-address-input" type="text" value="${escapeHtml(project.address || '')}">
+
+                <label>Project Contact / Tenant Name</label>
+                <input id="project-detail-contact-name-input" type="text" value="${escapeHtml(project.project_contact_name || '')}">
+
+                <label>Project Contact / Tenant Phone</label>
+                <input id="project-detail-contact-phone-input" type="tel" value="${escapeHtml(project.project_contact_phone || '')}">
+
+                <label>Property Manager Name</label>
+                <input id="project-detail-manager-name-input" type="text" value="${escapeHtml(project.property_manager_name || '')}">
+
+                <label>Property Manager Phone</label>
+                <input id="project-detail-manager-phone-input" type="tel" value="${escapeHtml(project.property_manager_phone || '')}">
 
                 <label>Appointment Time</label>
                 <input id="project-detail-appointment-time-input" type="datetime-local" value="${escapeHtml(appointmentTimeValue)}">
@@ -272,7 +369,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-detail-error" class="project-detail-error"></div>
 
-                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_save_back_facility_details | 2026-06-26</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_project_location_cards | 2026-06-26</div>
             </div>
         </div>
 
@@ -334,7 +431,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-update-error" class="project-update-error"></div>
 
-                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_save_back_facility_details | 2026-06-26</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_project_location_cards | 2026-06-26</div>
             </div>
         </div>
     `;
@@ -424,8 +521,15 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             project_name: projectName,
             type: project.type || '',
             status: project.status || 'Open',
+            requested_by_name: project.requested_by_name || '',
+            requested_by_title: project.requested_by_title || '',
             phone_number: project.phone_number || '',
+            project_location_name: project.project_location_name || '',
             address: project.address || '',
+            project_contact_name: project.project_contact_name || '',
+            project_contact_phone: project.project_contact_phone || '',
+            property_manager_name: project.property_manager_name || '',
+            property_manager_phone: project.property_manager_phone || '',
             appointment_time: project.appointment_time || null,
             reminder: project.reminder || '',
             description: project.description || '',
@@ -518,8 +622,15 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
         const projectNameInput = document.getElementById('project-detail-name-input').value.trim();
         const typeInput = document.getElementById('project-detail-type-input').value.trim();
         const statusInput = document.getElementById('project-detail-status-input').value.trim();
+        const requestedByNameInput = document.getElementById('project-detail-requested-by-name-input').value.trim();
+        const requestedByTitleInput = document.getElementById('project-detail-requested-by-title-input').value.trim();
         const phoneNumberInput = document.getElementById('project-detail-phone-number-input').value.trim();
+        const locationNameInput = document.getElementById('project-detail-location-name-input').value.trim();
         const addressInput = document.getElementById('project-detail-address-input').value.trim();
+        const projectContactNameInput = document.getElementById('project-detail-contact-name-input').value.trim();
+        const projectContactPhoneInput = document.getElementById('project-detail-contact-phone-input').value.trim();
+        const propertyManagerNameInput = document.getElementById('project-detail-manager-name-input').value.trim();
+        const propertyManagerPhoneInput = document.getElementById('project-detail-manager-phone-input').value.trim();
         const appointmentTimeInput = document.getElementById('project-detail-appointment-time-input').value;
         const reminderInput = document.getElementById('project-detail-reminder-input').value.trim();
         const descriptionInput = document.getElementById('project-detail-description-input').value.trim();
@@ -535,8 +646,15 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             project_name: projectNameInput,
             type: typeInput,
             status: statusInput,
+            requested_by_name: requestedByNameInput,
+            requested_by_title: requestedByTitleInput,
             phone_number: phoneNumberInput,
+            project_location_name: locationNameInput,
             address: addressInput,
+            project_contact_name: projectContactNameInput,
+            project_contact_phone: projectContactPhoneInput,
+            property_manager_name: propertyManagerNameInput,
+            property_manager_phone: propertyManagerPhoneInput,
             appointment_time: appointmentTimeInput || null,
             reminder: reminderInput,
             description: descriptionInput,
