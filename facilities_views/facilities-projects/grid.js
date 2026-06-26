@@ -1,6 +1,6 @@
 /*================================================================
 FACILITIES-PROJECTS GRID
-VERSION: v2026_06_26_project_location_fields
+VERSION: v2026_06_26_add_project_location_fields_fixed
 UPDATED: 2026-06-26
 ================================================================*/
 
@@ -44,11 +44,11 @@ function getProjectStatus(project) {
 }
 
 function getContactTitle(contact) {
-    return contact?.role || contact?.title || contact?.requested_by_title || '';
+    return contact?.role || contact?.title || '';
 }
 
 function getContactPhone(contact) {
-    return contact?.phone || contact?.phone_number || contact?.contact_phone_number || '';
+    return contact?.phone || contact?.phone_number || '';
 }
 
 export async function renderProjectsGrid(containerId, context = {}) {
@@ -83,11 +83,14 @@ export async function renderProjectsGrid(containerId, context = {}) {
             .project-modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:9999; }
             .project-modal { background:white; width:90%; max-width:360px; border-radius:12px; padding:18px; box-shadow:0 4px 18px rgba(0,0,0,0.25); text-align:left; max-height:90vh; overflow-y:auto; }
             .project-modal h3 { margin:0 0 14px; text-align:center; color:#003b73; }
+
             .project-modal-section { border:1px solid #d6dee8; border-radius:10px; padding:12px; margin-top:12px; background:#f8fbff; }
             .project-modal-section-title { color:#003b73; text-align:center; font-size:13px; font-weight:bold; letter-spacing:1px; margin-bottom:10px; }
+
             .project-modal label { display:block; font-size:13px; font-weight:bold; margin:10px 0 4px; color:#003b73; }
             .project-modal input, .project-modal textarea, .project-modal select { width:100%; padding:9px; border:1px solid #bbb; border-radius:6px; font-size:15px; box-sizing:border-box; }
             .project-modal textarea { min-height:80px; resize:vertical; }
+
             .project-modal-buttons { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:16px; }
             .project-modal-buttons button { padding:11px; border:none; border-radius:7px; font-weight:bold; cursor:pointer; }
             .btn-save-project { background:#22a843; color:white; }
@@ -114,7 +117,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
             <button id="btn-back-facility" class="projects-back-btn">⬅️ BACK</button>
 
-            <div class="projects-version-tag">grid.js | v2026_06_26_project_location_fields | 2026-06-26</div>
+            <div class="projects-version-tag">grid.js | v2026_06_26_add_project_location_fields_fixed | 2026-06-26</div>
         </div>
 
         <div id="project-modal-backdrop" class="project-modal-backdrop">
@@ -201,7 +204,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
                 <div id="project-error" class="project-error"></div>
 
-                <div class="projects-version-tag">grid.js | v2026_06_26_project_location_fields | 2026-06-26</div>
+                <div class="projects-version-tag">grid.js | v2026_06_26_add_project_location_fields_fixed | 2026-06-26</div>
             </div>
         </div>
     `;
@@ -229,9 +232,7 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
     function getSelectedRequestedByContact() {
         const selectedContactId = requestedByNameInput.value;
-
         if (!selectedContactId) return null;
-
         return contacts.find(contact => String(contact.id) === String(selectedContactId)) || null;
     }
 
@@ -250,7 +251,6 @@ export async function renderProjectsGrid(containerId, context = {}) {
         if (!contactId) return false;
 
         const contact = contacts.find(item => String(item.id) === String(contactId));
-
         if (!contact) return false;
 
         requestedByNameInput.value = contact.id;
@@ -260,11 +260,9 @@ export async function renderProjectsGrid(containerId, context = {}) {
 
     function selectRequestedByContactByName(contactName) {
         const cleanName = String(contactName || '').trim().toLowerCase();
-
         if (!cleanName) return false;
 
         const contact = contacts.find(item => String(item.name || '').trim().toLowerCase() === cleanName);
-
         if (!contact) return false;
 
         requestedByNameInput.value = contact.id;
