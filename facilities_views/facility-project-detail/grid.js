@@ -1,8 +1,8 @@
 /*================================================================
 FACILITY-PROJECT-DETAIL GRID
 LOCATION: /facilities_views/facility-project-detail/grid.js
-VERSION: v2026_06_23_remove_inspections_button
-UPDATED: 2026-06-23
+VERSION: v2026_06_26_save_back_facility_details
+UPDATED: 2026-06-26
 ================================================================*/
 
 import {
@@ -85,6 +85,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             .project-detail-button-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
             .project-detail-action-btn { background:#003b73; color:white; border:none; border-radius:9px; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; }
             .project-detail-delete-btn { background:#dc2626; color:yellow; border:none; border-radius:9px; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; }
+            .project-detail-save-btn { background:#22a843; color:white; border:none; border-radius:9px; width:100%; min-height:50px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:8px; }
             .project-detail-main-btn { background:#003b73; color:white; border:none; border-radius:9px; width:100%; min-height:50px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:8px; }
             .project-detail-two-btn-row { display:grid; grid-template-columns:1fr; gap:8px; margin-top:8px; }
             .project-detail-half-btn { background:#003b73; color:white; border:none; border-radius:9px; min-height:50px; font-size:14px; font-weight:bold; cursor:pointer; }
@@ -209,9 +210,11 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
                 <button id="btn-delete-project-detail" class="project-detail-delete-btn">🗑 Delete</button>
             </div>
 
+            <button id="btn-save-project-and-back" class="project-detail-save-btn">💾 SAVE</button>
+
             <button id="btn-back-projects" class="project-detail-back-btn">⬅️ BACK</button>
 
-            <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_23_remove_inspections_button | 2026-06-23</div>
+            <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_save_back_facility_details | 2026-06-26</div>
         </div>
 
         <div id="project-detail-modal-backdrop" class="project-detail-modal-backdrop">
@@ -269,7 +272,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-detail-error" class="project-detail-error"></div>
 
-                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_23_remove_inspections_button | 2026-06-23</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_save_back_facility_details | 2026-06-26</div>
             </div>
         </div>
 
@@ -331,7 +334,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-update-error" class="project-update-error"></div>
 
-                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_23_remove_inspections_button | 2026-06-23</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_save_back_facility_details | 2026-06-26</div>
             </div>
         </div>
     `;
@@ -408,6 +411,44 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
     document.getElementById('btn-back-projects').addEventListener('click', () => {
         if (window.navigateTo) window.navigateTo('facilities-projects', facility);
+    });
+
+    document.getElementById('btn-save-project-and-back').addEventListener('click', async () => {
+        const saveButton = document.getElementById('btn-save-project-and-back');
+
+        saveButton.disabled = true;
+        saveButton.textContent = 'SAVING...';
+
+        const payload = {
+            name: projectName,
+            project_name: projectName,
+            type: project.type || '',
+            status: project.status || 'Open',
+            phone_number: project.phone_number || '',
+            address: project.address || '',
+            appointment_time: project.appointment_time || null,
+            reminder: project.reminder || '',
+            description: project.description || '',
+            notes: project.notes || ''
+        };
+
+        const { error } = await updateProjectDetail(projectId, payload);
+
+        if (error) {
+            console.error('Save project detail error:', error);
+            saveButton.disabled = false;
+            saveButton.textContent = '💾 SAVE';
+            alert('Could not save project.');
+            return;
+        }
+
+        if (window.navigateTo) {
+            window.navigateTo('facilities-details', {
+                ...facility,
+                id: facilityId,
+                facilities_id: facilityId
+            });
+        }
     });
 
     document.getElementById('btn-delete-project-detail').addEventListener('click', async () => {
