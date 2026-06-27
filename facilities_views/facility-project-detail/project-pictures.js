@@ -1,8 +1,8 @@
 /*================================================================
 FACILITY-PROJECT-DETAIL PROJECT PICTURES POPUP
 LOCATION: /facilities_views/facility-project-detail/project-pictures.js
-VERSION: v2026_06_22_project_pictures_popup_new
-UPDATED: 2026-06-22 @ 9:45 AM EDT
+VERSION: v2026_06_26_project_pictures_auto_load
+UPDATED: 2026-06-26
 ================================================================*/
 
 import {
@@ -68,7 +68,7 @@ export function renderProjectPicturesPopup({ projectId, facilitiesId, projectNam
 
             .project-pictures-button-row {
                 display: grid;
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: 1fr;
                 gap: 8px;
                 margin-bottom: 12px;
             }
@@ -159,7 +159,6 @@ export function renderProjectPicturesPopup({ projectId, facilitiesId, projectNam
 
             <div class="project-pictures-button-row">
                 <button id="btn-popup-take-project-picture" class="project-pictures-btn">TAKE PICTURE</button>
-                <button id="btn-popup-see-project-pictures" class="project-pictures-btn">SEE PICTURES</button>
             </div>
 
             <input
@@ -176,7 +175,7 @@ export function renderProjectPicturesPopup({ projectId, facilitiesId, projectNam
             <button id="btn-close-project-pictures-popup" class="project-pictures-close-btn">Close</button>
 
             <div class="project-pictures-version-tag">
-                project-pictures.js | v2026_06_22_project_pictures_popup_new | 2026-06-22 @ 9:45 AM EDT
+                project-pictures.js | v2026_06_26_project_pictures_auto_load | 2026-06-26
             </div>
         </div>
     `;
@@ -245,10 +244,6 @@ export function renderProjectPicturesPopup({ projectId, facilitiesId, projectNam
         fileInput.click();
     });
 
-    document.getElementById('btn-popup-see-project-pictures').addEventListener('click', async () => {
-        await loadPictures();
-    });
-
     fileInput.addEventListener('change', async () => {
         const file = fileInput.files?.[0];
 
@@ -282,5 +277,6 @@ export function renderProjectPicturesPopup({ projectId, facilitiesId, projectNam
             popup.remove();
         }
     });
-}
 
+    loadPictures();
+}
