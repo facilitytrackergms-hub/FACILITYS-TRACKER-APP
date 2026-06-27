@@ -1,7 +1,7 @@
 /* ================================================================
    PURPOSE: Project data service
    LOCATION: /facilities_views/facilities-projects/data.js
-   VERSION: v2026_06_26_project_scope_items
+   VERSION: v2026_06_26_contact_check_project_scope
    UPDATED: 2026-06-26
    ================================================================ */
 
@@ -39,6 +39,91 @@ export async function fetchFacilityContacts(facilityId) {
     return data || [];
 }
 
+export async function findContactByName(facilityId, contactName) {
+    const cleanName = String(contactName || '').trim();
+
+    if (!facilityId || !cleanName) {
+        return { data: null, error: null };
+    }
+
+    const { data, error } = await supabase
+        .from('contacts')
+        .select('*')
+        .eq('facilities_id', facilityId)
+        .ilike('name', cleanName)
+        .limit(1);
+
+    if (error) {
+        return { data: null, error };
+    }
+
+    return { data: data?.[0] || null, error: null };
+}
+
+export async function createRequestedByContact(payload) {
+    return await supabase
+        .from('contacts')
+        .insert([payload])
+        .select('*')
+        .single();
+}
+
+export async function createOrUpdateFacilityContact(facilityId, person = {}) {
+    const cleanName = String(person.name || '').trim();
+
+    if (!facilityId || !cleanName) {
+        return { data: null, error: null };
+    }
+
+    const role = String(person.role || person.title || '').trim();
+    const phone = String(person.phone || person.phone_number || '').trim();
+    const email = String(person.email || '').trim();
+    const notes = String(person.notes || '').trim();
+
+    const existingResponse = await findContactByName(facilityId, cleanName);
+
+    if (existingResponse.error) {
+        console.error('Find contact error:', existingResponse.error);
+        return { data: null, error: existingResponse.error };
+    }
+
+    if (existingResponse.data) {
+        const updatePayload = {};
+
+        if (role) updatePayload.role = role;
+        if (phone) updatePayload.phone = phone;
+        if (email) updatePayload.email = email;
+        if (notes) updatePayload.notes = notes;
+
+        if (!Object.keys(updatePayload).length) {
+            return { data: existingResponse.data, error: null };
+        }
+
+        return await supabase
+            .from('contacts')
+            .update(updatePayload)
+            .eq('id', existingResponse.data.id)
+            .select('*')
+            .single();
+    }
+
+    const insertPayload = {
+        facilities_id: facilityId,
+        name: cleanName
+    };
+
+    if (role) insertPayload.role = role;
+    if (phone) insertPayload.phone = phone;
+    if (email) insertPayload.email = email;
+    if (notes) insertPayload.notes = notes;
+
+    return await supabase
+        .from('contacts')
+        .insert([insertPayload])
+        .select('*')
+        .single();
+}
+
 export async function createProject(payload) {
     return await supabase
         .from('projects')
@@ -48,13 +133,21 @@ export async function createProject(payload) {
 }
 
 export async function createProjectWithScopeItems(payload, scopeItems = []) {
+    const facilityId = payload.facilities_id || payload.location_id;
+
+    const contactResponse = await ensureProjectContacts(facilityId, payload, scopeItems);
+
+    if (contactResponse.error) {
+        return { data: null, error: contactResponse.error };
+    }
+
     const { data: project, error: projectError } = await createProject(payload);
 
     if (projectError || !project) {
         return { data: null, error: projectError };
     }
 
-    const cleanedItems = cleanScopeItems(project.id, payload.facilities_id || payload.location_id, scopeItems);
+    const cleanedItems = cleanScopeItems(project.id, facilityId, scopeItems);
 
     if (!cleanedItems.length) {
         return { data: project, error: null };
@@ -82,6 +175,14 @@ export async function updateProject(projectId, payload) {
 }
 
 export async function updateProjectWithScopeItems(projectId, payload, scopeItems = []) {
+    const facilityId = payload.facilities_id || payload.location_id;
+
+    const contactResponse = await ensureProjectContacts(facilityId, payload, scopeItems);
+
+    if (contactResponse.error) {
+        return { data: null, error: contactResponse.error };
+    }
+
     const { data: project, error: projectError } = await updateProject(projectId, payload);
 
     if (projectError || !project) {
@@ -90,7 +191,7 @@ export async function updateProjectWithScopeItems(projectId, payload, scopeItems
 
     const replaceResponse = await replaceProjectScopeItems(
         projectId,
-        payload.facilities_id || payload.location_id,
+        facilityId,
         scopeItems
     );
 
@@ -196,27 +297,56 @@ export async function replaceProjectScopeItems(projectId, facilityId, scopeItems
     return await createProjectScopeItems(projectId, facilityId, scopeItems);
 }
 
-export async function findContactByName(facilityId, contactName) {
-    const cleanName = String(contactName || '').trim();
-
-    if (!facilityId || !cleanName) {
-        return { data: null, error: null };
+async function ensureProjectContacts(facilityId, projectPayload = {}, scopeItems = []) {
+    if (!facilityId) {
+        return { error: null };
     }
 
-    return await supabase
-        .from('contacts')
-        .select('*')
-        .eq('facilities_id', facilityId)
-        .ilike('name', cleanName)
-        .maybeSingle();
-}
+    const people = [];
 
-export async function createRequestedByContact(payload) {
-    return await supabase
-        .from('contacts')
-        .insert([payload])
-        .select('*')
-        .single();
+    if (projectPayload.requested_by_name) {
+        people.push({
+            name: projectPayload.requested_by_name,
+            role: projectPayload.requested_by_title,
+            phone: projectPayload.phone_number
+        });
+    }
+
+    if (projectPayload.project_contact_name) {
+        people.push({
+            name: projectPayload.project_contact_name,
+            phone: projectPayload.project_contact_phone
+        });
+    }
+
+    if (projectPayload.property_manager_name) {
+        people.push({
+            name: projectPayload.property_manager_name,
+            phone: projectPayload.property_manager_phone
+        });
+    }
+
+    if (Array.isArray(scopeItems)) {
+        scopeItems.forEach(item => {
+            if (item.resident_name) {
+                people.push({
+                    name: item.resident_name,
+                    phone: item.resident_phone
+                });
+            }
+        });
+    }
+
+    for (const person of people) {
+        const response = await createOrUpdateFacilityContact(facilityId, person);
+
+        if (response.error) {
+            console.error('Create or update contact error:', response.error);
+            return { error: response.error };
+        }
+    }
+
+    return { error: null };
 }
 
 function cleanScopeItems(projectId, facilityId, scopeItems = []) {
