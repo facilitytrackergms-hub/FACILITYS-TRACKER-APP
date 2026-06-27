@@ -1,7 +1,7 @@
 /*================================================================
 FACILITY-PROJECT-DETAIL GRID
 LOCATION: /facilities_views/facility-project-detail/grid.js
-VERSION: v2026_06_26_project_dashboard_cards
+VERSION: v2026_06_26_repair_item_route
 UPDATED: 2026-06-26
 ================================================================*/
 
@@ -321,7 +321,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             <button id="btn-save-project-and-back" class="project-detail-save-btn">💾 SAVE</button>
             <button id="btn-back-projects" class="project-detail-back-btn">⬅️ BACK</button>
 
-            <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_project_dashboard_cards | 2026-06-26</div>
+            <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_repair_item_route | 2026-06-26</div>
         </div>
 
         <div id="project-scope-detail-backdrop" class="project-scope-detail-backdrop">
@@ -329,7 +329,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
                 <h3>Area / Item Detail</h3>
                 <div id="project-scope-detail-content"></div>
                 <button id="btn-close-scope-detail" class="project-detail-back-btn">CLOSE</button>
-                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_project_dashboard_cards | 2026-06-26</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_repair_item_route | 2026-06-26</div>
             </div>
         </div>
 
@@ -412,7 +412,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-detail-error" class="project-detail-error"></div>
 
-                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_project_dashboard_cards | 2026-06-26</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_repair_item_route | 2026-06-26</div>
             </div>
         </div>
 
@@ -474,7 +474,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-update-error" class="project-update-error"></div>
 
-                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_project_dashboard_cards | 2026-06-26</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_repair_item_route | 2026-06-26</div>
             </div>
         </div>
 
