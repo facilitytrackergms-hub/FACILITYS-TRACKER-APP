@@ -1,7 +1,7 @@
 /*================================================================
 FACILITY-PROJECT-DETAIL GRID
 LOCATION: /facilities_views/facility-project-detail/grid.js
-VERSION: v2026_06_26_project_location_cards
+VERSION: v2026_06_26_project_dashboard_cards
 UPDATED: 2026-06-26
 ================================================================*/
 
@@ -9,6 +9,7 @@ import {
     fetchProjectDetail,
     updateProjectDetail,
     deleteProjectDetail,
+    fetchProjectScopeItems,
     fetchProjectUpdates,
     createProjectUpdate
 } from './data.js';
@@ -71,6 +72,31 @@ function renderAddressLink(value) {
     `;
 }
 
+function renderDetailRow(label, valueHtml) {
+    return `
+        <div class="project-detail-row">
+            <div class="project-detail-label">${escapeHtml(label)}</div>
+            ${valueHtml}
+        </div>
+    `;
+}
+
+function getScopeItemTitle(item, index) {
+    const location = item.location_number || item.area_name || `Area ${index + 1}`;
+    const itemName = item.item_name || item.work_needed || 'Item';
+    return `${location} — ${itemName}`;
+}
+
+function renderScopeItemButton(item, index) {
+    return `
+        <button type="button" class="project-scope-record-button" data-index="${index}">
+            <div class="project-scope-record-title">${escapeHtml(getScopeItemTitle(item, index))}</div>
+            <div class="project-scope-record-meta">${escapeHtml(item.resident_name || item.area_name || '')}</div>
+            <div class="project-scope-record-meta">${escapeHtml(item.work_needed || '')}</div>
+        </button>
+    `;
+}
+
 export async function renderFacilityProjectDetailGrid(containerId, context = {}) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -91,6 +117,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
         return;
     }
 
+    const projectScopeItems = await fetchProjectScopeItems(projectId);
     const projectUpdates = await fetchProjectUpdates(projectId);
 
     const facilityName = getFacilityName(facility);
@@ -102,40 +129,62 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
         <style>
             .project-detail-card { background:#ffffff; max-width:350px; margin:16px auto; padding:18px; border-radius:14px; box-shadow:0 4px 18px rgba(0,0,0,0.08); text-align:center; }
             .project-detail-title { color:#003b73; font-size:24px; font-weight:bold; margin-bottom:2px; line-height:1.15; overflow-wrap:anywhere; }
-            .project-detail-subtitle { color:#003b73; font-size:13px; font-weight:bold; margin-bottom:16px; letter-spacing:2px; }
+            .project-detail-subtitle { color:#003b73; font-size:13px; font-weight:bold; margin-bottom:12px; letter-spacing:2px; }
 
+            .project-detail-tab-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-bottom:12px; }
+            .project-detail-tab-btn { background:#ffffff; color:#003b73; border:1px solid #003b73; border-radius:8px; min-height:40px; padding:7px 5px; font-size:11px; font-weight:bold; cursor:pointer; }
+            .project-detail-tab-btn.active { background:#003b73; color:white; }
+
+            .project-detail-panel { display:none; }
+            .project-detail-panel.active { display:block; }
             .project-detail-info-box { border:1px solid #d6dee8; border-radius:10px; padding:12px; text-align:left; margin-bottom:14px; background:#f8fbff; }
             .project-detail-section-title { color:#003b73; font-size:13px; font-weight:bold; margin-bottom:10px; text-align:center; letter-spacing:1px; }
+            .project-detail-summary { color:#667085; font-size:12px; font-weight:bold; text-align:center; margin-bottom:10px; }
             .project-detail-row { margin-bottom:10px; text-align:left; }
             .project-detail-label { color:#003b73; font-size:11px; font-weight:bold; margin-bottom:3px; text-align:left; }
             .project-detail-value { color:#111827; font-size:14px; line-height:1.35; margin-bottom:0; white-space:pre-wrap; text-align:left; overflow-wrap:anywhere; word-break:break-word; }
             .project-detail-link { color:#003b73; font-weight:bold; text-decoration:underline; display:inline-block; max-width:100%; overflow-wrap:anywhere; word-break:break-word; text-align:left; }
+
+            .project-scope-record-button { width:100%; border:1px solid #d6dee8; border-radius:10px; padding:10px; margin-top:8px; background:#ffffff; text-align:left; cursor:pointer; }
+            .project-scope-record-title { color:#003b73; font-size:14px; font-weight:bold; margin-bottom:3px; overflow-wrap:anywhere; }
+            .project-scope-record-meta { color:#111827; font-size:12px; margin-bottom:3px; overflow-wrap:anywhere; }
 
             .project-detail-button-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
             .project-detail-action-btn { background:#003b73; color:white; border:none; border-radius:9px; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; }
             .project-detail-delete-btn { background:#dc2626; color:yellow; border:none; border-radius:9px; min-height:48px; font-size:14px; font-weight:bold; cursor:pointer; }
             .project-detail-save-btn { background:#22a843; color:white; border:none; border-radius:9px; width:100%; min-height:50px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:8px; }
             .project-detail-main-btn { background:#003b73; color:white; border:none; border-radius:9px; width:100%; min-height:50px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:8px; }
-            .project-detail-two-btn-row { display:grid; grid-template-columns:1fr; gap:8px; margin-top:8px; }
+            .project-detail-two-btn-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
             .project-detail-half-btn { background:#003b73; color:white; border:none; border-radius:9px; min-height:50px; font-size:14px; font-weight:bold; cursor:pointer; }
-            .project-detail-picture-actions { display:none; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
-            .project-detail-picture-btn { background:#00509d; color:white; border:none; border-radius:9px; min-height:48px; font-size:13px; font-weight:bold; cursor:pointer; }
             .project-detail-back-btn { background:#747d8c; color:white; border:none; border-radius:9px; width:100%; min-height:48px; font-size:15px; font-weight:bold; cursor:pointer; margin-top:12px; }
             .project-detail-version-tag { border-top:1px solid #d6dee8; margin-top:18px; padding-top:10px; font-size:10px; color:#7d8ba0; text-align:center; }
-            .project-update-date { color:#667085; font-size:11px; margin-bottom:4px; }
             .project-update-record-button { width:100%; border:1px solid #d6dee8; border-radius:10px; padding:10px; margin-top:8px; background:#ffffff; text-align:left; cursor:pointer; }
             .project-update-record-button-title { color:#003b73; font-size:14px; font-weight:bold; margin-bottom:3px; }
             .project-update-record-button-status { color:#111827; font-size:12px; margin-bottom:3px; }
             .project-update-record-button-date { color:#667085; font-size:11px; }
 
             .project-detail-modal-backdrop,
-            .project-update-modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:9999; }
+            .project-update-modal-backdrop,
+            .project-scope-detail-backdrop,
+            .project-custom-popup-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:9999; }
 
             .project-detail-modal,
-            .project-update-modal { background:white; width:90%; max-width:360px; border-radius:12px; padding:18px; box-shadow:0 4px 18px rgba(0,0,0,0.25); text-align:left; max-height:90vh; overflow-y:auto; }
+            .project-update-modal,
+            .project-scope-detail-modal,
+            .project-custom-popup { background:white; width:90%; max-width:360px; border-radius:12px; padding:18px; box-shadow:0 4px 18px rgba(0,0,0,0.25); text-align:left; max-height:90vh; overflow-y:auto; }
+
+            .project-custom-popup { text-align:center; }
 
             .project-detail-modal h3,
-            .project-update-modal h3 { margin:0 0 14px; text-align:center; color:#003b73; }
+            .project-update-modal h3,
+            .project-scope-detail-modal h3 { margin:0 0 14px; text-align:center; color:#003b73; }
+
+            .project-custom-popup-title { color:#003b73; font-size:18px; font-weight:bold; margin-bottom:10px; }
+            .project-custom-popup-message { color:#1f2937; font-size:14px; line-height:1.35; margin-bottom:16px; }
+            .project-custom-popup-buttons { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+            .project-custom-popup-buttons button { border:none; border-radius:8px; padding:11px; font-size:14px; font-weight:bold; cursor:pointer; }
+            .btn-popup-yes { background:#dc2626; color:yellow; }
+            .btn-popup-no { background:#777; color:white; }
 
             .project-detail-modal label,
             .project-update-modal label { display:block; font-size:13px; font-weight:bold; margin:10px 0 4px; color:#003b73; }
@@ -170,127 +219,118 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
         <div class="project-detail-card">
             <div class="project-detail-title">${escapeHtml(projectName)}</div>
-            <div class="project-detail-subtitle">${escapeHtml(facilityName)} PROJECT DETAIL</div>
+            <div class="project-detail-subtitle">${escapeHtml(facilityName)} PROJECT DASHBOARD</div>
 
-            <div class="project-detail-info-box">
-                <div class="project-detail-section-title">PROJECT REQUEST INFORMATION</div>
+            <div class="project-detail-tab-grid">
+                <button type="button" class="project-detail-tab-btn active" data-section="request">REQUEST INFO</button>
+                <button type="button" class="project-detail-tab-btn" data-section="location">LOCATION</button>
+                <button type="button" class="project-detail-tab-btn" data-section="contacts">CONTACTS</button>
+                <button type="button" class="project-detail-tab-btn" data-section="areas">AREAS / ITEMS</button>
+                <button type="button" class="project-detail-tab-btn" data-section="updates">UPDATES</button>
+                <button type="button" class="project-detail-tab-btn" data-section="materials">MATERIALS</button>
+                <button type="button" class="project-detail-tab-btn" data-section="pictures">PICTURES</button>
+            </div>
 
-                <div class="project-detail-row">
-                    <div class="project-detail-label">PROJECT DESCRIPTION</div>
-                    ${renderValue(project.description || '')}
-                </div>
-
-                <div class="project-detail-row">
-                    <div class="project-detail-label">TYPE</div>
-                    ${renderValue(project.type || '')}
-                </div>
-
-                <div class="project-detail-row">
-                    <div class="project-detail-label">STATUS</div>
-                    ${renderValue(project.status || 'Open')}
-                </div>
-
-                <div class="project-detail-row">
-                    <div class="project-detail-label">REQUESTED BY NAME</div>
-                    ${renderValue(project.requested_by_name || '')}
-                </div>
-
-                <div class="project-detail-row">
-                    <div class="project-detail-label">REQUESTED BY TITLE</div>
-                    ${renderValue(project.requested_by_title || '')}
-                </div>
-
-                <div class="project-detail-row">
-                    <div class="project-detail-label">REQUESTED BY PHONE</div>
-                    ${renderPhoneLink(project.phone_number || '')}
-                </div>
-
-                <div class="project-detail-row">
-                    <div class="project-detail-label">APPOINTMENT TIME</div>
-                    ${renderValue(formatDate(project.appointment_time))}
-                </div>
-
-                <div class="project-detail-row">
-                    <div class="project-detail-label">REMINDER</div>
-                    ${renderValue(project.reminder || '')}
-                </div>
-
-                <div class="project-detail-row">
-                    <div class="project-detail-label">NOTES</div>
-                    ${renderValue(project.notes || '')}
+            <div class="project-detail-panel active" data-section-panel="request">
+                <div class="project-detail-info-box">
+                    <div class="project-detail-section-title">PROJECT REQUEST INFORMATION</div>
+                    ${renderDetailRow('PROJECT NAME', renderValue(projectName))}
+                    ${renderDetailRow('PROJECT DESCRIPTION', renderValue(project.description || ''))}
+                    ${renderDetailRow('TYPE', renderValue(project.type || ''))}
+                    ${renderDetailRow('STATUS', renderValue(project.status || 'Open'))}
+                    ${renderDetailRow('REQUESTED BY NAME', renderValue(project.requested_by_name || ''))}
+                    ${renderDetailRow('REQUESTED BY TITLE', renderValue(project.requested_by_title || ''))}
+                    ${renderDetailRow('REQUESTED BY PHONE', renderPhoneLink(project.phone_number || ''))}
+                    ${renderDetailRow('APPOINTMENT TIME', renderValue(formatDate(project.appointment_time)))}
+                    ${renderDetailRow('REMINDER', renderValue(project.reminder || ''))}
+                    ${renderDetailRow('NOTES', renderValue(project.notes || ''))}
                 </div>
             </div>
 
-            <div class="project-detail-info-box">
-                <div class="project-detail-section-title">ACTUAL PROJECT LOCATION / CONTACT</div>
-
-                <div class="project-detail-row">
-                    <div class="project-detail-label">PROJECT LOCATION NAME</div>
-                    ${renderValue(project.project_location_name || '')}
-                </div>
-
-                <div class="project-detail-row">
-                    <div class="project-detail-label">PROJECT ADDRESS</div>
-                    ${renderAddressLink(project.address || '')}
-                </div>
-
-                <div class="project-detail-row">
-                    <div class="project-detail-label">PROJECT CONTACT / TENANT NAME</div>
-                    ${renderValue(project.project_contact_name || '')}
-                </div>
-
-                <div class="project-detail-row">
-                    <div class="project-detail-label">PROJECT CONTACT / TENANT PHONE</div>
-                    ${renderPhoneLink(project.project_contact_phone || '')}
-                </div>
-
-                <div class="project-detail-row">
-                    <div class="project-detail-label">PROPERTY MANAGER NAME</div>
-                    ${renderValue(project.property_manager_name || '')}
-                </div>
-
-                <div class="project-detail-row">
-                    <div class="project-detail-label">PROPERTY MANAGER PHONE</div>
-                    ${renderPhoneLink(project.property_manager_phone || '')}
+            <div class="project-detail-panel" data-section-panel="location">
+                <div class="project-detail-info-box">
+                    <div class="project-detail-section-title">ACTUAL PROJECT LOCATION</div>
+                    ${renderDetailRow('PROJECT SITE TYPE', renderValue(project.project_site_type || ''))}
+                    ${renderDetailRow('PROJECT LOCATION / AREA NAME', renderValue(project.project_location_name || ''))}
+                    ${renderDetailRow('PROJECT ADDRESS', renderAddressLink(project.address || ''))}
                 </div>
             </div>
 
-            <button id="btn-open-materials" class="project-detail-main-btn">MATERIALS</button>
-            <button id="btn-add-project-update" class="project-detail-main-btn">ADD PROJECT UPDATE</button>
-
-            <div class="project-detail-two-btn-row">
-                <button id="btn-open-pictures" class="project-detail-half-btn">PICTURES</button>
+            <div class="project-detail-panel" data-section-panel="contacts">
+                <div class="project-detail-info-box">
+                    <div class="project-detail-section-title">PROJECT CONTACTS</div>
+                    ${renderDetailRow('REQUESTED BY NAME', renderValue(project.requested_by_name || ''))}
+                    ${renderDetailRow('REQUESTED BY TITLE', renderValue(project.requested_by_title || ''))}
+                    ${renderDetailRow('REQUESTED BY PHONE', renderPhoneLink(project.phone_number || ''))}
+                    ${renderDetailRow('ON-SITE CONTACT NAME', renderValue(project.project_contact_name || ''))}
+                    ${renderDetailRow('ON-SITE CONTACT PHONE', renderPhoneLink(project.project_contact_phone || ''))}
+                    ${renderDetailRow('PROPERTY / FACILITY CONTACT NAME', renderValue(project.property_manager_name || ''))}
+                    ${renderDetailRow('PROPERTY / FACILITY CONTACT PHONE', renderPhoneLink(project.property_manager_phone || ''))}
+                </div>
             </div>
 
-            <div id="project-picture-actions" class="project-detail-picture-actions">
-                <button id="btn-take-project-picture" class="project-detail-picture-btn">TAKE PICTURE</button>
-                <button id="btn-see-project-pictures" class="project-detail-picture-btn">SEE PICTURES</button>
+            <div class="project-detail-panel" data-section-panel="areas">
+                <div class="project-detail-info-box">
+                    <div class="project-detail-section-title">PROJECT SCOPE / AREA ITEMS</div>
+                    <div class="project-detail-summary">${projectScopeItems.length} AREA / ITEM${projectScopeItems.length === 1 ? '' : 'S'}</div>
+                    ${projectScopeItems.length ? projectScopeItems.map(renderScopeItemButton).join('') : `
+                        <div class="project-detail-value">No area items yet.</div>
+                    `}
+                </div>
             </div>
 
-            <div class="project-detail-info-box" style="margin-top:14px;">
-                <div class="project-detail-label">PROJECT UPDATES</div>
+            <div class="project-detail-panel" data-section-panel="updates">
+                <div class="project-detail-info-box">
+                    <div class="project-detail-section-title">PROJECT UPDATES</div>
+                    <button id="btn-add-project-update" class="project-detail-main-btn">ADD PROJECT UPDATE</button>
+                    ${projectUpdates.length ? projectUpdates.map(update => `
+                        <button type="button" class="project-update-record-button" data-id="${update.id}">
+                            <div class="project-update-record-button-title">${escapeHtml(update.update_title || 'Project Update')}</div>
+                            <div class="project-update-record-button-status">${escapeHtml(update.status || '')}</div>
+                            <div class="project-update-record-button-date">${escapeHtml(formatDate(update.created_at))}</div>
+                        </button>
+                    `).join('') : `
+                        <div class="project-detail-value" style="margin-top:10px;">No project updates yet.</div>
+                    `}
+                </div>
+            </div>
 
-                ${projectUpdates.length ? projectUpdates.map(update => `
-                    <button type="button" class="project-update-record-button" data-id="${update.id}">
-                        <div class="project-update-record-button-title">${escapeHtml(update.update_title || 'Project Update')}</div>
-                        <div class="project-update-record-button-status">${escapeHtml(update.status || '')}</div>
-                        <div class="project-update-record-button-date">${escapeHtml(formatDate(update.created_at))}</div>
-                    </button>
-                `).join('') : `
-                    <div class="project-detail-value">No project updates yet.</div>
-                `}
+            <div class="project-detail-panel" data-section-panel="materials">
+                <div class="project-detail-info-box">
+                    <div class="project-detail-section-title">PROJECT MATERIALS</div>
+                    <button id="btn-open-materials" class="project-detail-main-btn">OPEN MATERIALS</button>
+                </div>
+            </div>
+
+            <div class="project-detail-panel" data-section-panel="pictures">
+                <div class="project-detail-info-box">
+                    <div class="project-detail-section-title">PROJECT PICTURES</div>
+                    <div class="project-detail-two-btn-row">
+                        <button id="btn-take-project-picture" class="project-detail-half-btn">TAKE PICTURE</button>
+                        <button id="btn-see-project-pictures" class="project-detail-half-btn">SEE PICTURES</button>
+                    </div>
+                    <button id="btn-open-pictures" class="project-detail-main-btn">OPEN PICTURES</button>
+                </div>
             </div>
 
             <div class="project-detail-button-row" style="margin-top:12px;">
-                <button id="btn-edit-project-detail" class="project-detail-action-btn">⚙️ Edit</button>
-                <button id="btn-delete-project-detail" class="project-detail-delete-btn">🗑 Delete</button>
+                <button id="btn-edit-project-detail" class="project-detail-action-btn">⚙️ EDIT</button>
+                <button id="btn-delete-project-detail" class="project-detail-delete-btn">🗑 DELETE</button>
             </div>
 
             <button id="btn-save-project-and-back" class="project-detail-save-btn">💾 SAVE</button>
-
             <button id="btn-back-projects" class="project-detail-back-btn">⬅️ BACK</button>
 
-            <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_project_location_cards | 2026-06-26</div>
+            <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_project_dashboard_cards | 2026-06-26</div>
+        </div>
+
+        <div id="project-scope-detail-backdrop" class="project-scope-detail-backdrop">
+            <div class="project-scope-detail-modal">
+                <h3>Area / Item Detail</h3>
+                <div id="project-scope-detail-content"></div>
+                <button id="btn-close-scope-detail" class="project-detail-back-btn">CLOSE</button>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_project_dashboard_cards | 2026-06-26</div>
+            </div>
         </div>
 
         <div id="project-detail-modal-backdrop" class="project-detail-modal-backdrop">
@@ -305,7 +345,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <label>Status</label>
                 <select id="project-detail-status-input">
-                    <option value="Open" ${project.status === 'Open' ? 'selected' : ''}>Open</option>
+                    <option value="Open" ${(project.status || 'Open') === 'Open' ? 'selected' : ''}>Open</option>
                     <option value="In Progress" ${project.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
                     <option value="Waiting on Materials" ${project.status === 'Waiting on Materials' ? 'selected' : ''}>Waiting on Materials</option>
                     <option value="Waiting on Vendor" ${project.status === 'Waiting on Vendor' ? 'selected' : ''}>Waiting on Vendor</option>
@@ -323,6 +363,9 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
                     <option value="Other"></option>
                 </datalist>
 
+                <label>Project Site Type</label>
+                <input id="project-detail-site-type-input" type="text" value="${escapeHtml(project.project_site_type || '')}">
+
                 <label>Requested By Name</label>
                 <input id="project-detail-requested-by-name-input" type="text" value="${escapeHtml(project.requested_by_name || '')}">
 
@@ -332,22 +375,22 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
                 <label>Requested By Phone</label>
                 <input id="project-detail-phone-number-input" type="tel" value="${escapeHtml(project.phone_number || '')}">
 
-                <label>Project Location Name</label>
+                <label>Project Location / Area Name</label>
                 <input id="project-detail-location-name-input" type="text" value="${escapeHtml(project.project_location_name || '')}">
 
                 <label>Project Address</label>
                 <input id="project-detail-address-input" type="text" value="${escapeHtml(project.address || '')}">
 
-                <label>Project Contact / Tenant Name</label>
+                <label>On-Site Contact Name</label>
                 <input id="project-detail-contact-name-input" type="text" value="${escapeHtml(project.project_contact_name || '')}">
 
-                <label>Project Contact / Tenant Phone</label>
+                <label>On-Site Contact Phone</label>
                 <input id="project-detail-contact-phone-input" type="tel" value="${escapeHtml(project.project_contact_phone || '')}">
 
-                <label>Property Manager Name</label>
+                <label>Property / Facility Contact Name</label>
                 <input id="project-detail-manager-name-input" type="text" value="${escapeHtml(project.property_manager_name || '')}">
 
-                <label>Property Manager Phone</label>
+                <label>Property / Facility Contact Phone</label>
                 <input id="project-detail-manager-phone-input" type="tel" value="${escapeHtml(project.property_manager_phone || '')}">
 
                 <label>Appointment Time</label>
@@ -369,7 +412,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-detail-error" class="project-detail-error"></div>
 
-                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_project_location_cards | 2026-06-26</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_project_dashboard_cards | 2026-06-26</div>
             </div>
         </div>
 
@@ -431,15 +474,96 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
 
                 <div id="project-update-error" class="project-update-error"></div>
 
-                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_project_location_cards | 2026-06-26</div>
+                <div class="project-detail-version-tag">facility-project-detail/grid.js | v2026_06_26_project_dashboard_cards | 2026-06-26</div>
+            </div>
+        </div>
+
+        <div id="project-custom-popup-backdrop" class="project-custom-popup-backdrop">
+            <div class="project-custom-popup">
+                <div id="project-custom-popup-title" class="project-custom-popup-title">Confirm</div>
+                <div id="project-custom-popup-message" class="project-custom-popup-message"></div>
+                <div class="project-custom-popup-buttons">
+                    <button id="btn-project-popup-yes" class="btn-popup-yes">YES</button>
+                    <button id="btn-project-popup-no" class="btn-popup-no">NO</button>
+                </div>
             </div>
         </div>
     `;
 
     const modalBackdrop = document.getElementById('project-detail-modal-backdrop');
     const updateModalBackdrop = document.getElementById('project-update-modal-backdrop');
+    const scopeDetailBackdrop = document.getElementById('project-scope-detail-backdrop');
+    const scopeDetailContent = document.getElementById('project-scope-detail-content');
     const errorBox = document.getElementById('project-detail-error');
     const updateErrorBox = document.getElementById('project-update-error');
+    const popupBackdrop = document.getElementById('project-custom-popup-backdrop');
+    const popupTitle = document.getElementById('project-custom-popup-title');
+    const popupMessage = document.getElementById('project-custom-popup-message');
+    const popupYesButton = document.getElementById('btn-project-popup-yes');
+    const popupNoButton = document.getElementById('btn-project-popup-no');
+
+    function showConfirmPopup(title, message) {
+        popupTitle.textContent = title;
+        popupMessage.textContent = message;
+        popupBackdrop.style.display = 'flex';
+
+        return new Promise(resolve => {
+            popupYesButton.onclick = () => {
+                popupBackdrop.style.display = 'none';
+                resolve(true);
+            };
+
+            popupNoButton.onclick = () => {
+                popupBackdrop.style.display = 'none';
+                resolve(false);
+            };
+        });
+    }
+
+    function showProjectSection(sectionName) {
+        document.querySelectorAll('.project-detail-tab-btn').forEach(button => {
+            button.classList.toggle('active', button.dataset.section === sectionName);
+        });
+
+        document.querySelectorAll('.project-detail-panel').forEach(panel => {
+            panel.classList.toggle('active', panel.dataset.sectionPanel === sectionName);
+        });
+    }
+
+    function openScopeItemDetail(item, index) {
+        scopeDetailContent.innerHTML = `
+            <div class="project-detail-info-box">
+                <div class="project-detail-section-title">${escapeHtml(getScopeItemTitle(item, index))}</div>
+                ${renderDetailRow('LOCATION / ROOM / APARTMENT NUMBER', renderValue(item.location_number || ''))}
+                ${renderDetailRow('RESIDENT / AREA CONTACT NAME', renderValue(item.resident_name || ''))}
+                ${renderDetailRow('RESIDENT / AREA CONTACT PHONE', renderPhoneLink(item.resident_phone || ''))}
+                ${renderDetailRow('AREA / SECTION', renderValue(item.area_name || ''))}
+                ${renderDetailRow('ITEM / COMPONENT', renderValue(item.item_name || ''))}
+                ${renderDetailRow('WORK NEEDED', renderValue(item.work_needed || ''))}
+                ${renderDetailRow('NOTES', renderValue(item.notes || ''))}
+            </div>
+        `;
+
+        scopeDetailBackdrop.style.display = 'flex';
+    }
+
+    document.querySelectorAll('.project-detail-tab-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            showProjectSection(button.dataset.section);
+        });
+    });
+
+    document.querySelectorAll('.project-scope-record-button').forEach(button => {
+        button.addEventListener('click', () => {
+            const index = Number(button.dataset.index);
+            const item = projectScopeItems[index];
+            if (item) openScopeItemDetail(item, index);
+        });
+    });
+
+    document.getElementById('btn-close-scope-detail').addEventListener('click', () => {
+        scopeDetailBackdrop.style.display = 'none';
+    });
 
     document.querySelectorAll('.project-update-record-button').forEach(button => {
         button.addEventListener('click', () => {
@@ -521,6 +645,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             project_name: projectName,
             type: project.type || '',
             status: project.status || 'Open',
+            project_site_type: project.project_site_type || '',
             requested_by_name: project.requested_by_name || '',
             requested_by_title: project.requested_by_title || '',
             phone_number: project.phone_number || '',
@@ -556,7 +681,12 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
     });
 
     document.getElementById('btn-delete-project-detail').addEventListener('click', async () => {
-        if (!confirm('Are you sure you want to delete this project?')) return;
+        const shouldDelete = await showConfirmPopup(
+            'Delete Project',
+            'Are you sure you want to delete this project?'
+        );
+
+        if (!shouldDelete) return;
 
         const { error } = await deleteProjectDetail(projectId);
 
@@ -622,6 +752,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
         const projectNameInput = document.getElementById('project-detail-name-input').value.trim();
         const typeInput = document.getElementById('project-detail-type-input').value.trim();
         const statusInput = document.getElementById('project-detail-status-input').value.trim();
+        const siteTypeInput = document.getElementById('project-detail-site-type-input').value.trim();
         const requestedByNameInput = document.getElementById('project-detail-requested-by-name-input').value.trim();
         const requestedByTitleInput = document.getElementById('project-detail-requested-by-title-input').value.trim();
         const phoneNumberInput = document.getElementById('project-detail-phone-number-input').value.trim();
@@ -646,6 +777,7 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
             project_name: projectNameInput,
             type: typeInput,
             status: statusInput,
+            project_site_type: siteTypeInput,
             requested_by_name: requestedByNameInput,
             requested_by_title: requestedByTitleInput,
             phone_number: phoneNumberInput,
