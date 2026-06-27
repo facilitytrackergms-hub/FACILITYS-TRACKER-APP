@@ -108,7 +108,46 @@ export function setupProjectDetailEvents({
     });
 
     on('btn-add-project-scope-item', 'click', () => {
+        const firstScopeItem = projectScopeItems?.[0] || {};
+
         if (addScopeErrorBox) addScopeErrorBox.textContent = '';
+
+        if (getEl('add-scope-location-number-input')) {
+            getEl('add-scope-location-number-input').value = firstScopeItem.location_number || '';
+        }
+
+        if (getEl('add-scope-resident-name-input')) {
+            getEl('add-scope-resident-name-input').value = firstScopeItem.resident_name || '';
+        }
+
+        if (getEl('add-scope-resident-phone-input')) {
+            getEl('add-scope-resident-phone-input').value = firstScopeItem.resident_phone || '';
+        }
+
+        if (getEl('add-scope-area-name-input')) {
+            getEl('add-scope-area-name-input').value = '';
+        }
+
+        if (getEl('add-scope-item-name-input')) {
+            getEl('add-scope-item-name-input').value = '';
+        }
+
+        if (getEl('add-scope-work-needed-input')) {
+            getEl('add-scope-work-needed-input').value = '';
+        }
+
+        if (getEl('add-scope-repair-status-input')) {
+            getEl('add-scope-repair-status-input').value = 'Open';
+        }
+
+        if (getEl('add-scope-repair-priority-input')) {
+            getEl('add-scope-repair-priority-input').value = '';
+        }
+
+        if (getEl('add-scope-notes-input')) {
+            getEl('add-scope-notes-input').value = '';
+        }
+
         if (addScopeBackdrop) addScopeBackdrop.style.display = 'flex';
     });
 
