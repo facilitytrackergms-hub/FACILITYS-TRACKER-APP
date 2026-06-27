@@ -1,8 +1,8 @@
 /* ================================================================
    PURPOSE: Router to handle view navigation
    LOCATION: /global_engine/router.js
-   DATE: 2026-06-24
-   VERSION: v2026_06_24_inspections_step_flow_route
+   DATE: 2026-06-26
+   VERSION: v2026_06_26_repair_item_dashboard_route
    ================================================================ */
 
 import { supabase } from './supabaseClient.js';
@@ -120,7 +120,7 @@ export async function navigateTo(view, context = {}) {
         }
 
         if (view === 'facilities-projects') {
-            const module = await import(`${basePath}/facilities_views/facilities-projects/grid.js?v=20260623_projects`);
+            const module = await import(`${basePath}/facilities_views/facilities-projects/grid.js?v=20260626_project_card_by_card_contacts`);
 
             if (typeof module.renderProjectsGrid === 'function') {
                 await module.renderProjectsGrid('app-container', context);
@@ -143,7 +143,7 @@ export async function navigateTo(view, context = {}) {
         }
 
         if (view === 'facility-project-detail') {
-            const module = await import(`${basePath}/facilities_views/facility-project-detail/grid.js?v=20260623_remove_inspections_button`);
+            const module = await import(`${basePath}/facilities_views/facility-project-detail/grid.js?v=20260626_project_dashboard_cards`);
 
             if (typeof module.renderFacilityProjectDetailGrid === 'function') {
                 await module.renderFacilityProjectDetailGrid('app-container', context);
@@ -155,8 +155,21 @@ export async function navigateTo(view, context = {}) {
             return;
         }
 
+        if (view === 'project-repair-item-detail') {
+            const module = await import(`${basePath}/facilities_views/project-repair-item-detail/grid.js?v=20260626_repair_item_dashboard`);
+
+            if (typeof module.renderProjectRepairItemDetailGrid === 'function') {
+                await module.renderProjectRepairItemDetailGrid('app-container', context);
+                return;
+            }
+
+            console.error("No valid render function found in project-repair-item-detail/grid.js");
+            app.innerHTML = `<div style="padding:20px;color:red;">Repair item detail view render function not found.</div>`;
+            return;
+        }
+
         if (view === 'facility-inspections') {
-           const module = await import(`${basePath}/facilities_views/facility-inspections/grid.js?v=20260624_grid_clickable_item_dashboard`);
+            const module = await import(`${basePath}/facilities_views/facility-inspections/grid.js?v=20260624_grid_clickable_item_dashboard`);
 
             if (typeof module.renderFacilityInspectionsGrid === 'function') {
                 await module.renderFacilityInspectionsGrid('app-container', context);
