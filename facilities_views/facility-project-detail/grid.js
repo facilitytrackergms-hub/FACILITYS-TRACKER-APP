@@ -557,7 +557,17 @@ export async function renderFacilityProjectDetailGrid(containerId, context = {})
         button.addEventListener('click', () => {
             const index = Number(button.dataset.index);
             const item = projectScopeItems[index];
-            if (item) openScopeItemDetail(item, index);
+
+            if (!item || !window.navigateTo) return;
+
+            window.navigateTo('project-repair-item-detail', {
+                ...facility,
+                project_id: projectId,
+                project_scope_item_id: item.id,
+                repair_item_id: item.id,
+                facilities_id: facilityId,
+                project_name: projectName
+            });
         });
     });
 
