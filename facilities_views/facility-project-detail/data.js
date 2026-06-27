@@ -1,6 +1,6 @@
 /*================================================================
 FACILITY-PROJECT-DETAIL DATA
-VERSION: v2026_06_26_scope_items_dashboard
+VERSION: v2026_06_26_add_repair_item
 UPDATED: 2026-06-26
 ================================================================*/
 
@@ -63,6 +63,18 @@ export async function fetchProjectScopeItems(projectId) {
     }
 
     return data || [];
+}
+
+export async function createProjectScopeItem(payload) {
+    return await supabase
+        .from('project_scope_items')
+        .insert([{
+            ...payload,
+            active_status: 'active',
+            repair_status: payload.repair_status || 'Open'
+        }])
+        .select('*')
+        .single();
 }
 
 export async function fetchProjectUpdates(projectId) {
