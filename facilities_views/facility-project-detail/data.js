@@ -1,7 +1,7 @@
 /*================================================================
 FACILITY-PROJECT-DETAIL DATA
-VERSION: v2026_06_22_update_406_fix
-UPDATED: 2026-06-22 @ 7:30 AM EDT
+VERSION: v2026_06_26_scope_items_dashboard
+UPDATED: 2026-06-26
 ================================================================*/
 
 import { supabase } from '../../global_engine/supabaseClient.js';
@@ -44,6 +44,25 @@ export async function deleteProjectDetail(projectId) {
         .from('projects')
         .delete()
         .eq('id', projectId);
+}
+
+export async function fetchProjectScopeItems(projectId) {
+    if (!projectId) return [];
+
+    const { data, error } = await supabase
+        .from('project_scope_items')
+        .select('*')
+        .eq('project_id', projectId)
+        .eq('active_status', 'active')
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error('Fetch project scope items error:', error);
+        return [];
+    }
+
+    return data || [];
 }
 
 export async function fetchProjectUpdates(projectId) {
