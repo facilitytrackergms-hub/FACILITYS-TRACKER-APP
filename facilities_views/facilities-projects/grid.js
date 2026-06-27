@@ -312,37 +312,45 @@ export async function renderProjectsGrid(containerId, context = {}) {
         });
     }
 
-    function addScopeItemCard(item = {}) {
-        const itemIndex = scopeItemsContainer.querySelectorAll('.project-scope-card').length + 1;
-        const card = document.createElement('div');
+  function addScopeItemCard(item = {}) {
+    const itemIndex = scopeItemsContainer.querySelectorAll('.project-scope-card').length + 1;
+    const card = document.createElement('div');
 
-        card.className = 'project-scope-card';
-        card.innerHTML = `
-            <div class="project-scope-card-title">AREA / ITEM ${itemIndex}</div>
+    card.className = 'project-scope-card';
+    card.innerHTML = `
+        <div class="project-scope-card-title">AREA / ITEM ${itemIndex}</div>
 
-            <label>Area / Section</label>
-            <input class="scope-area-name-input" type="text" value="${escapeHtml(item.area_name || '')}" placeholder="Master Room, Bathroom, Dining Room, Room 203">
+        <label>Location / Room / Apartment Number</label>
+        <input class="scope-location-number-input" type="text" value="${escapeHtml(item.location_number || '')}" placeholder="Room 203, Apt 12B, Unit 4">
 
-            <label>Item / Component</label>
-            <input class="scope-item-name-input" type="text" value="${escapeHtml(item.item_name || '')}" placeholder="Window, Ceiling, Sink, Floor, Door">
+        <label>Resident / Area Contact Name</label>
+        <input class="scope-resident-name-input" type="text" value="${escapeHtml(item.resident_name || '')}" placeholder="Resident name or area contact">
 
-            <label>Work Needed</label>
-            <input class="scope-work-needed-input" type="text" value="${escapeHtml(item.work_needed || '')}" placeholder="Repair, Replace, Paint, Install, Inspect">
+        <label>Resident / Area Contact Phone</label>
+        <input class="scope-resident-phone-input" type="tel" value="${escapeHtml(item.resident_phone || '')}" placeholder="Phone number">
 
-            <label>Notes</label>
-            <textarea class="scope-notes-input">${escapeHtml(item.notes || '')}</textarea>
+        <label>Area / Section</label>
+        <input class="scope-area-name-input" type="text" value="${escapeHtml(item.area_name || '')}" placeholder="Master Room, Bathroom, Dining Room">
 
-            <button type="button" class="project-scope-remove-btn">REMOVE THIS AREA / ITEM</button>
-        `;
+        <label>Item / Component</label>
+        <input class="scope-item-name-input" type="text" value="${escapeHtml(item.item_name || '')}" placeholder="Window, Ceiling, Sink, Floor, Door">
 
-        card.querySelector('.project-scope-remove-btn').addEventListener('click', () => {
-            card.remove();
-            renumberScopeItemCards();
-        });
+        <label>Work Needed</label>
+        <input class="scope-work-needed-input" type="text" value="${escapeHtml(item.work_needed || '')}" placeholder="Repair, Replace, Paint, Install, Inspect">
 
-        scopeItemsContainer.appendChild(card);
-    }
+        <label>Notes</label>
+        <textarea class="scope-notes-input">${escapeHtml(item.notes || '')}</textarea>
 
+        <button type="button" class="project-scope-remove-btn">REMOVE THIS AREA / ITEM</button>
+    `;
+
+    card.querySelector('.project-scope-remove-btn').addEventListener('click', () => {
+        card.remove();
+        renumberScopeItemCards();
+    });
+
+    scopeItemsContainer.appendChild(card);
+}
     function renumberScopeItemCards() {
         scopeItemsContainer.querySelectorAll('.project-scope-card').forEach((card, index) => {
             const title = card.querySelector('.project-scope-card-title');
@@ -354,19 +362,25 @@ export async function renderProjectsGrid(containerId, context = {}) {
         scopeItemsContainer.innerHTML = '';
     }
 
-    function getScopeItems() {
-        return Array.from(scopeItemsContainer.querySelectorAll('.project-scope-card')).map(card => ({
-            area_name: card.querySelector('.scope-area-name-input')?.value.trim() || '',
-            item_name: card.querySelector('.scope-item-name-input')?.value.trim() || '',
-            work_needed: card.querySelector('.scope-work-needed-input')?.value.trim() || '',
-            notes: card.querySelector('.scope-notes-input')?.value.trim() || ''
-        })).filter(item =>
-            item.area_name ||
-            item.item_name ||
-            item.work_needed ||
-            item.notes
-        );
-    }
+  function getScopeItems() {
+    return Array.from(scopeItemsContainer.querySelectorAll('.project-scope-card')).map(card => ({
+        location_number: card.querySelector('.scope-location-number-input')?.value.trim() || '',
+        resident_name: card.querySelector('.scope-resident-name-input')?.value.trim() || '',
+        resident_phone: card.querySelector('.scope-resident-phone-input')?.value.trim() || '',
+        area_name: card.querySelector('.scope-area-name-input')?.value.trim() || '',
+        item_name: card.querySelector('.scope-item-name-input')?.value.trim() || '',
+        work_needed: card.querySelector('.scope-work-needed-input')?.value.trim() || '',
+        notes: card.querySelector('.scope-notes-input')?.value.trim() || ''
+    })).filter(item =>
+        item.location_number ||
+        item.resident_name ||
+        item.resident_phone ||
+        item.area_name ||
+        item.item_name ||
+        item.work_needed ||
+        item.notes
+    );
+}
 
     function clearModal() {
         projectIdInput.value = '';
