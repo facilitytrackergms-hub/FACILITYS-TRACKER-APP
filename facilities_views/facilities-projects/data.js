@@ -226,6 +226,9 @@ function cleanScopeItems(projectId, facilityId, scopeItems = []) {
         .map((item, index) => ({
             project_id: projectId,
             facilities_id: facilityId || null,
+            location_number: String(item.location_number || '').trim(),
+            resident_name: String(item.resident_name || '').trim(),
+            resident_phone: String(item.resident_phone || '').trim(),
             area_name: String(item.area_name || '').trim(),
             item_name: String(item.item_name || '').trim(),
             work_needed: String(item.work_needed || '').trim(),
@@ -234,6 +237,9 @@ function cleanScopeItems(projectId, facilityId, scopeItems = []) {
             active_status: 'active'
         }))
         .filter(item =>
+            item.location_number ||
+            item.resident_name ||
+            item.resident_phone ||
             item.area_name ||
             item.item_name ||
             item.work_needed ||
